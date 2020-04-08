@@ -1,0 +1,120 @@
+input[type='email'] {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  font-family: "Open Sans";
+  padding-left: 16px; }
+  input[type='email']:focus {
+    outline: none; }
+
+input[type='password'] {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  font-family: "Open Sans";
+  padding-left: 16px;
+  width: 100%; }
+  input[type='password']:focus {
+    outline: none; }
+
+input[type='input'] {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  font-family: "Open Sans";
+  padding-left: 16px;
+  width: 100%;
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text; }
+  input[type='input']:focus {
+    outline: none; }
+
+input[type='dropdown'] {
+  text-align: center; }
+  input[type='dropdown']:focus {
+    outline: none; }
+
+button[type='submit']:focus {
+  outline: none; }
+
+button[type='button']:focus {
+  outline: none; }
+
+::-webkit-inner-spin-button {
+  display: none; }
+
+::-webkit-calendar-picker-indicator {
+  background-color: white; }
+
+input[type='date'] {
+  font-size: 20px; }
+  input[type='date']:focus {
+    outline: none; }
+
+::-webkit-datetime-edit-text {
+  color: #555555; }
+
+::-webkit-datetime-edit-month-field {
+  color: #555555; }
+
+::-webkit-datetime-edit-day-field {
+  color: #555555; }
+
+::-webkit-datetime-edit-year-field {
+  color: #555555; }
+
+::-webkit-calendar-picker-indicator {
+  background-image: url(http://icons.iconarchive.com/icons/dakirby309/simply-styled/256/Calendar-icon.png);
+  cursor: pointer;
+  background-position: center;
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  color: rgba(204, 204, 204, 0); }
+
+.chart-legend,
+.bar-legend,
+.line-legend,
+.pie-legend,
+.radar-legend,
+.polararea-legend,
+.doughnut-legend {
+  list-style-type: none;
+  margin-top: 5px;
+  text-align: center;
+  -webkit-padding-start: 0;
+  -moz-padding-start: 0;
+  padding-left: 0; }
+
+.chart-legend li,
+.bar-legend li,
+.line-legend li,
+.pie-legend li,
+.radar-legend li,
+.polararea-legend li,
+.doughnut-legend li {
+  display: inline-block;
+  white-space: nowrap;
+  position: relative;
+  margin-bottom: 4px;
+  border-radius: 0.25rem;
+  padding: 2px 8px 2px 28px;
+  font-size: smaller;
+  cursor: default; }
+
+.chart-legend li span,
+.bar-legend li span,
+.line-legend li span,
+.pie-legend li span,
+.radar-legend li span,
+.polararea-legend li span,
+.doughnut-legend li span {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 0.25rem; }
