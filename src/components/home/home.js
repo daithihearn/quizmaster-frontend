@@ -1,14 +1,15 @@
 import axios from 'axios';
 import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
+import quizService from '../../services/QuizService';
 
 class Home extends Component {
   constructor(props) {
     super(props);
-    this.state = { category: '', year: '', results: [] };
+    this.state = { quizzes: [] };
     sessionUtils.checkLoggedIn();
 
-    this.search = this.search.bind(this);
+    this.getAllQuizzes = this.getAllQuizzes.bind(this);
   }
 
   handleChange = event => {
@@ -17,25 +18,15 @@ class Home extends Component {
     this.setState(Object.assign(this.state, updateObj));
   };
 
-  search = event => {
+  getAllQuizzes = event => {
     event.preventDefault();
-
+    
     let thisObj = this;
-    let authHeader = sessionStorage.getItem('JWT-TOKEN');
-
-    if (authHeader) {
-      let config = {
-        headers: {
-          Authorization: authHeader
-        }
-      };
-      axios
-        .get(`${process.env.REACT_APP_API_URL}/api/v1/oscar/search/${thisObj.state.year}`, config)
-        .then(response => {
-          thisObj.setState(Object.assign(thisObj.state, { results: response.data}));
-        })
-        .catch(error => console.error('Error occurred when searching: ', error));
-    }
+    
+    quizService.getAllQuizzes().then(response => {
+      thisObj.setState(Object.assign(thisObj.state, { quizzes: response.data}));
+    })
+    .catch(error => console.error('Error occurred when searching: ', error));
   };
 
   render() {
@@ -46,25 +37,11 @@ class Home extends Component {
           <div className="form_wrap">
               <div className="form_container2">
                 <div className="form_container_subtext">
-                  Search for oscar nominees between the years 1927-2017
+                  Quizes
                 </div>
-                <form onSubmit={this.search}>
-                  
-                  <input
-                    className="year"
-                    type="input"
-                    name="year"
-                    placeholder="Year"
-                    autoComplete="Year"
-                    value={this.state.year}
-                    onChange={this.handleChange}
-                    required
-                  />
-
-                  <div className="login_error_email">{this.state._yearError}</div>
-
+                <form onSubmit={this.getAllQuizzes}>
                   <button type="submit" color="primary" className="login_button">
-                    Search
+                    Get All Quizzes
                     <span>
                       <img
                         style={{ marginLeft: '5px' }}
@@ -84,19 +61,16 @@ class Home extends Component {
           <div className="rwd-table">
                 <table>
                   <tbody className="TableBody">
-                    <tr style={{ backgroundColor: '#f8f8f8', color: 'black', cursor: 'pointer' }}>
+                    {/* <tr style={{ backgroundColor: '#f8f8f8', color: 'black', cursor: 'pointer' }}>
                       <th>Category</th>
                       <th>Entity</th>
                       <th>Winner</th>
                       <th>Year</th>
-                    </tr>
+                    </tr> */}
 
-                    {this.state.results.map((rowdata, i) => {
+                    {this.state.quizzes.map((rowdata, i) => {
                       return (<tr style={{ cursor: 'pointer' }}>
-                        <td data-th="Category"> {rowdata.category} </td>
-                        <td data-th="Entity"> {rowdata.entity}</td>
-                        <td data-th="Winner">{rowdata.winner ? "Winner" : "Nominee"}</td>
-                        <td data-th="Year">{rowdata.year}</td>
+                        <td data-th="Name"> {rowdata.name} </td>
                       </tr>)
                     })}
                   </tbody>
