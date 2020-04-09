@@ -116,13 +116,16 @@ class Home extends Component {
 
 
   handleSubmit = event => {
-    //alert('A name was submitted: ' + this.state.values.join(', '));
-    
-    alert('ROUND submitted: ' + this.state.questions);
+    console.log(`ROUND submitted: ${JSON.stringify(this.state.questions)}`);
  
-    const quiz = {
-      name:'first quiz test',
-      questions: this.state.questions
+    const quiz = { 
+      name:'first quiz test', 
+      rounds: [
+        {
+          name: "My First Round",
+          questions: this.state.questions
+        }
+      ]
     }
 
     // this.setState(prevState => ({
@@ -135,7 +138,7 @@ class Home extends Component {
     //   }
     // }))
 
-    alert('Quiz submitted: ' + quiz.name);
+    console.log(`Quiz submitted: ${JSON.stringify(quiz)}`);
 
     quizService.putQuiz(quiz).then(response =>
       console.log(response)
