@@ -45,7 +45,7 @@ exports.putQuiz = (quiz) => {
       }
     };
     const result = axios
-      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin`, quiz, config)
+      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz`, quiz, config)
       .then(response => response)
       .catch(error => console.error('Error occurred when uploading quiz: ', error));
     return result;
