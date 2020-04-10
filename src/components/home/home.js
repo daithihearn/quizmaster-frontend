@@ -9,6 +9,7 @@ class Home extends Component {
    // this.state = { questions: [{ value: '', answer: ''}], value: '', answer: ''};
    this.state = { questions: [], quizzes: []};
    sessionUtils.checkLoggedIn();
+   sessionUtils.checkUserType();
 
    this.getAllQuizzes = this.getAllQuizzes.bind(this);
   }
