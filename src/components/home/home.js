@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';

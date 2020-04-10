@@ -12,10 +12,16 @@ const HomePage = Loadable({
   loading: Loading
 });
 
+const GamePage = Loadable({
+  loader: () => import('./containers/Game'),
+  loading: Loading
+});
+
 // https://github.com/ReactTraining/react-router/tree/master/packages/react-router-config
 const routes = [
   { path: '/', exact: true, name: 'Home', component: DefaultLayout },
-  { path: '/home', name: 'homePage', component: HomePage }
+  { path: '/home', name: 'homePage', component: HomePage },
+  { path: '/game', name: 'gamePage', component: GamePage },
 ];
 
 export default routes;

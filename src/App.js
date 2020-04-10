@@ -47,6 +47,7 @@ class App extends Component {
           <Route exact path="/login" name="Login Page" component={Login} />
           <Route exact path="/signup" name="Signup" component={Signup} />
           <Route path="/" name="Home" component={DefaultLayout} />
+          <Route path="/" name="Game" component={DefaultLayout} />
         </Switch>
       </HashRouter>
     );
