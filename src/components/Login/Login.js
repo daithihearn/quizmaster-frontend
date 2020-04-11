@@ -142,9 +142,6 @@ class Login extends Component {
                     </span>
                   </button>
                 </form>
-                <div className="form_container_text">
-                  Don't have an account? <a href="/#/signup"><span className="form_container_text_link"> Sign up </span></a>
-                </div>
               </div>
             </div>
           </div>
