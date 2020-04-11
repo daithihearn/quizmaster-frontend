@@ -17,11 +17,17 @@ const GamePage = Loadable({
   loading: Loading
 });
 
+const CreateQuiz = Loadable({
+  loader: () => import('./containers/Createquiz'),
+  loading: Loading
+});
+
 // https://github.com/ReactTraining/react-router/tree/master/packages/react-router-config
 const routes = [
   { path: '/', exact: true, name: 'Home', component: DefaultLayout },
   { path: '/home', name: 'homePage', component: HomePage },
   { path: '/game', name: 'gamePage', component: GamePage },
+  { path: '/createquiz', name: 'createquizPage', component: CreateQuiz },
 ];
 
 export default routes;

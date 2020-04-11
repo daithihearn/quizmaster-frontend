@@ -5,6 +5,26 @@
   position: relative;
 }
 
+.dropdown-menu-quizzes {
+  // position: absolute;
+  /* top: 100%; */
+  /* left: 0; */
+  z-index: 1000;
+  /* display: none; */
+  // float: left;
+  min-width: 10rem;
+  padding: 0 0;
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  color: #23282c;
+  text-align: left;
+  list-style: none;
+  background-color: white;
+  background-clip: padding-box;
+  border: 1px solid #c8ced3;
+  border-radius: 0.25rem;
+}
+
 .home-tile_wrap {
   max-width: 1140px;
   max-height: auto;
