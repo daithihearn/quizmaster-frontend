@@ -27,11 +27,6 @@ const Login = Loadable({
   loading: Loading
 });
 
-const Signup = Loadable({
-  loader: () => import('./containers/Signup'),
-  loading: Loading
-});
-
 const Createquiz = Loadable({
   loader: () => import('./containers/Createquiz'),
   loading: Loading
@@ -50,12 +45,9 @@ class App extends Component {
       <HashRouter>
         <Switch>
           <Route exact path="/login" name="Login Page" component={Login} />
-          <Route exact path="/signup" name="Signup" component={Signup} />
-          {/* <Route exact path="/createquiz"  name="Createquiz" component={DefaultLayout} />
-          */}
-        <Route  path="/"  name="Createquiz" component={DefaultLayout} />
+          <Route  path="/"  name="Createquiz" component={DefaultLayout} />
           <Route path="/" name="Home" component={DefaultLayout} />
-           <Route path="/" name="Game" component={DefaultLayout} />
+          <Route path="/" name="Game" component={DefaultLayout} />
         </Switch>
       </HashRouter>
     );

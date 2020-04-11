@@ -342,21 +342,6 @@ class Createquiz extends Component {
     );
 
     event.preventDefault();
-
-    // let data = stateUtils.getDataFromState(this.state);
-    // let thisObj = this;
-
-    //thisObj.setState({ _usernameError: '' });
-
-
-    // axios
-    //   .post(`${process.env.REACT_APP_API_URL}/signup`, data)
-    //   .then(function (response) {
-    //     window.location.href = '/#/login';
-    //   }).catch(function (error) {
-    //     console.log(error);
-    //     thisObj.setState(Object.assign(thisObj.state, { _error: thisObj.parseError(error) }));
-    //   });
   };
 
   parseError(error) {
