@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
+import answerService from '../../services/AnswerService';
 import SockJsClient from 'react-stomp';
 
 class Game extends Component {
   constructor(props) {
     super(props);
-    this.state = { question: "", answer: "" };
+    this.state = { question: {}, answer: "" };
     sessionUtils.checkLoggedIn();
 
     this.handleChange = this.handleChange.bind(this);
@@ -14,7 +15,11 @@ class Game extends Component {
   }
 
   handleWebsocketMessage(payload) {
-    this.setState({question: payload.payload, answer: ""})
+
+    console.log(payload.payload)
+    let question = JSON.parse(payload.payload)
+    
+    this.setState({question: question, answer: ""})
   }
 
   handleChange(event) {
@@ -26,6 +31,14 @@ class Game extends Component {
   handleSubmit = event => {
     event.preventDefault();
     console.log(`Submitting answer ${this.state.answer}`);
+    
+    let answer = {
+        roundIndex: this.state.question.roundIndex,
+        questionIndex: this.state.question.questionIndex,
+        answer: this.state.answer
+    }
+    
+    answerService.submitAnswer(answer)
   }
 
   parseError(error) {
@@ -84,7 +97,7 @@ class Game extends Component {
               <div className="form_container">
               <form onSubmit={this.handleSubmit}>
               
-              {this.state.question}
+              {this.state.question.question}
               <input
                   className="answer"
                   type="input"
