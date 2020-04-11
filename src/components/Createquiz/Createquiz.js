@@ -2,20 +2,28 @@ import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 
-
-class Home extends Component {
+class Createquiz extends Component {
   constructor(props) {
     super(props);
-   
     this.state = { 
-      
-       quizzes: []
+      questions: [],
+      quizName:'',
+       
+       quizCreated: false, 
+       roundNumber:0, 
+       quizToPersist:
+        {
+          name: '',
+          rounds: [
+         
+        ]
+        }
       
       };
     sessionUtils.checkLoggedIn();
     sessionUtils.checkUserType();
 
-    this.getAllQuizzes = this.getAllQuizzes.bind(this);
+   
   }
 
   showButtonPreviousRound(){
@@ -171,17 +179,6 @@ class Home extends Component {
     console.log("created Quiz: " + this.state.quizCreated);
   }
 
-  getAllQuizzes = event => {
-    event.preventDefault();
-
-    let thisObj = this;
-
-    quizService.getAllQuizzes().then(response => {
-      thisObj.setState(Object.assign(thisObj.state, { quizzes: response.data }));
-    })
-      .catch(error => console.error('Error occurred when searching: ', error));
-  };
-
   createQuestions() {
     return this.state.questions.map((v, i) =>
       <div key={i}>
@@ -270,7 +267,27 @@ class Home extends Component {
     this.setState(Object.assign(this.state, updateObj));
   }
 
-  
+  //   addName = event => {
+  //   // let key = event.target.getAttribute('name');
+  //   // console.log("Key: " + key);
+  //   // let updateObj = { [key]: event.target.value };
+  //   // console.log("object: " + updateObj);
+  //   // this.setState(Object.assign(this.state.quizToPersist.name, updateObj));
+
+  //   let key = event.target.getAttribute('name');
+  //   console.log("Key: " + key);
+  //   let updateObj = { [key]: event.target.value };
+  //   //let quizToPersist = {...this.state.quizToPersist};
+  //   //quizToPersist.name= key;
+  //   this.setState(Object.assign(this.state, updateObj));
+
+  //   // this.setState(prevState => {
+  //   //   let quizToPersist = Object.assign({}, prevState.quizToPersist);  // creating copy of state variable quizToPersist
+  //   //   quizToPersist.name = 'someothername';                     // update the name property, assign a new value                 
+  //   //   return { quizToPersist };                                 // return new object jasper object
+  //   // })
+  // }
+
   addClick() {
     
     this.setState(prevState => ({ questions: [...prevState.questions, { value: '', answer: '' , index: 0 }] }))
@@ -326,6 +343,20 @@ class Home extends Component {
 
     event.preventDefault();
 
+    // let data = stateUtils.getDataFromState(this.state);
+    // let thisObj = this;
+
+    //thisObj.setState({ _usernameError: '' });
+
+
+    // axios
+    //   .post(`${process.env.REACT_APP_API_URL}/signup`, data)
+    //   .then(function (response) {
+    //     window.location.href = '/#/login';
+    //   }).catch(function (error) {
+    //     console.log(error);
+    //     thisObj.setState(Object.assign(thisObj.state, { _error: thisObj.parseError(error) }));
+    //   });
   };
 
   parseError(error) {
@@ -378,74 +409,12 @@ class Home extends Component {
     return (
       <div className="app">
         
-        {/* Choose previous quiz */}
-        <div className="login_background">
-          <div className="login_background_cloumn">
-            <div className="ISSUER_Logo" />
-            {/* <div className="login_background_issuerImage" /> */}
-            <div className="tile_wrap">
-              <div className="card-product_Stats">
-                <div className="form_wrap">
-                  <div className="form_container2">
-                    
-                    <div className="form_container_subtext">
-                      Use a previous Quiz
-                    </div>
-                    <div className="dropdown-menu-quizzes">
-                      {this.state.quizzes.map((rowdata, i) => {
-                        return (
-                           <a  className="dropdown-item" href="#" key={i}> {rowdata.name} </a>
-                       
-                        )
-                      })
-                      }
-                    </div>   
-                    <form onSubmit={this.getAllQuizzes}>
-                      <button type="submit" color="primary" className="login_button">
-                        Get Previous Quizzes
-                          <span>
-                          <img
-                            style={{ marginLeft: '5px' }}
-                            alt="description"
-                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                          />
-                        </span>
-                      </button>
-                      <br></br>
-
-                     <a href="/#/createquiz"><span className="form_container_text_link"> Build a new Quiz </span></a>  
-                      <br></br>
-                    </form>
-                      
-            
-                </div>
-                  </div>
-                  </div>
-                 
-
-               
-
-
-
-              </div>
-            </div>
-          </div>
-          
-          
-                      
-      
-      
-
-       {/* New Quiz
-      <div className="login_background">
-        <div className="login_background_cloumn">
-         <div className="ISSUER_Logo" />
+     {/* New Quiz */}
+      {
             <div className="form_wrap">
               {this.buildQuiz()}
               </div>
-              </div>
-            </div>
-       */}
+      }
       
       {/* App div */}
       </div>      
@@ -458,4 +427,4 @@ class Home extends Component {
   }
 }
 
-export default Home;
+export default Createquiz;
