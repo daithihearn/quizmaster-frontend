@@ -6,7 +6,7 @@ import SockJsClient from 'react-stomp';
 class Scoring extends Component {
   constructor(props) {
     super(props);
-    this.state = { gameId: "5e932fb170416b4231a2fa43", answers: [] };
+    this.state = { gameId: "5e9360f28c8c070004d2102b", answers: [] };
     sessionUtils.checkLoggedIn();
 
     this.handleChange = this.handleChange.bind(this);
