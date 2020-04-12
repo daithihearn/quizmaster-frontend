@@ -17,6 +17,11 @@ const GamePage = Loadable({
   loading: Loading
 });
 
+const ScoringPage = Loadable({
+  loader: () => import('./containers/Scoring'),
+  loading: Loading
+});
+
 const CreateQuiz = Loadable({
   loader: () => import('./containers/Createquiz'),
   loading: Loading
@@ -27,6 +32,7 @@ const routes = [
   { path: '/', exact: true, name: 'Home', component: DefaultLayout },
   { path: '/home', name: 'homePage', component: HomePage },
   { path: '/game', name: 'gamePage', component: GamePage },
+  { path: '/scoring', name: 'scoringPage', component: ScoringPage },
   { path: '/createquiz', name: 'createquizPage', component: CreateQuiz },
 ];
 

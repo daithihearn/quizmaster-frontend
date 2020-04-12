@@ -29,16 +29,20 @@ class Game extends Component {
   }
 
   handleSubmit = event => {
+    let thisObj = this;
     event.preventDefault();
     console.log(`Submitting answer ${this.state.answer}`);
     
     let answer = {
-        roundIndex: this.state.question.roundIndex,
-        questionIndex: this.state.question.questionIndex,
-        answer: this.state.answer
+      gameId: this.state.question.gameId,
+      roundIndex: this.state.question.roundIndex,
+      questionIndex: this.state.question.questionIndex,
+      answer: this.state.answer
     }
     
-    answerService.submitAnswer(answer)
+    answerService.submitAnswer(answer).then(response => {
+      thisObj.setState(Object.assign(this.state, {answer: ""}));
+    }).catch(error => thisObj.parseError(error));
   }
 
   parseError(error) {
@@ -76,13 +80,6 @@ class Game extends Component {
     let error = this.state._error;
     delete this.state._error;
     return error;
-  }
-
-  showResponse() {
-    if (!this.state._txHash) {
-      return false;
-    }
-    return true;
   }
 
   render() {

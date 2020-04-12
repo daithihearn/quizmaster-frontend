@@ -1,0 +1,7 @@
+{
+    "name": "scoringPage",
+    "version": "0.0.0",
+    "private": true,
+    "main": "./Scoring.js"
+  }
+  
