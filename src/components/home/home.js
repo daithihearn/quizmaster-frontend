@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
+import gameService from '../../services/GameService';
 
 
 class Home extends Component {
@@ -9,226 +10,70 @@ class Home extends Component {
    
     this.state = { 
       
-       quizzes: []
+       quizzes: [],
+       emails:[''],
+       quizSelected:{},
+       isGameCreated:false,
+       isQuizSelected:false,
+       game:{}
       
       };
+    
     sessionUtils.checkLoggedIn();
     sessionUtils.checkUserType();
 
-    this.getAllQuizzes = this.getAllQuizzes.bind(this);
-  }
+    this.getAllQuizzes();
 
-  showButtonPreviousRound(){
-    if(this.state.roundNumber>1){
-      return(
-      <div className="form_container_text">
-      Back to <a href="/#/login"><span className="form_container_text_link"> Previous Round </span></a>
-      </div>
-      )
-    }
+    this.onClickHandler = this.onClickHandler.bind (this);
+    //this.getAllQuizzes = this.getAllQuizzes.bind(this);
+    this.startGameWithEmails = this.startGameWithEmails.bind(this);
   }
  
-
-  showRounds(){
-    return this.state.quizToPersist.rounds.map(round =>
-      <div>
-        <h2 key={round.index} item={round}>{round.name}</h2>
-        <ul>
-          {round.questions.map(question => 
-            <h3 key={question.index}> {question.value}: {question.answer}</h3>
-          )}
-        </ul>
-      </div>
-    )
-  }
-
-  
-  buildQuiz(){
- 
-    
-    if(this.state.quizCreated){
-    return(
-
-      
-              
-              <div className="form_container">
-                {/* <div className="form_container_headerText"> New Question </div>  */}
-                {/* <div className="form_container_subtext"> */}
-              
-                <div className="show_quiz_name">You have chosen the quiz name: {this.state.quizName}</div> 
-              
-
-                {this.showRounds()}
-
-                <br></br>
-                  Round number {this.state.roundNumber+1}
-                    <form onSubmit={this.createRound}>
-                      
-                      {this.createQuestions()}
-
-                      <button type="submit" color="primary" className="login_button" onClick={this.addClick.bind(this)}>
-                        Add question
-                            <span>
-                          <img
-                            style={{ marginLeft: '5px' }}
-                            alt="description"
-                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                          />
-                        </span>
-                      </button>
-
-                      {/* {this.showButtonSubmitRound()} */}
-                      <button type="submit" value="submit" color="primary" className="login_button" >
-                        Submit Round {this.state.roundNumber+1}
-                            <span>
-                          <img
-                            style={{ marginLeft: '5px' }}
-                            alt="description"
-                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                          />
-                        </span>
-                      </button>
-
-                      <button type="button" color="primary" className="login_button" onClick={this.submitQuiz}>
-                        Submit Quiz
-                          <span>
-                                <img
-                                  style={{ marginLeft: '5px' }}
-                                  alt="description"
-                                  src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                                />
-                              </span>
-                      </button>
-
-                      {/* <button type="submit" value="submit" color="primary" className="login_button" onClick=xxxx >
-                        Submit Quiz
-                            <span>
-                          <img
-                            style={{ marginLeft: '5px' }}
-                            alt="description"
-                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                          />
-                        </span>
-                      </button> */}
-
-                      
-                    
-                    {this.showButtonPreviousRound()}
-
-                    </form>
-                        
-                   
-                  
-                
-              </div>
-    );
-    }else{
-      return(
-
-       
-              <div className="form_container">
-                  {/* <div className="form_container_headerText"> New Question </div>  */}
-                  {/* <div className="form_container_subtext"> */}
-                 New Quiz
-              
-                <form >
-                    <input
-                      className="quizName"
-                      type="input"
-                      name="quizName"
-                      placeholder="Quiz Name"
-                      autoComplete="Quiz Name"
-                      value={this.state.quizName}
-                      onChange={this.handleChange}
-                      required
-                    ></input>
-                  
-                  
-                      <button type="button" color="primary" className="login_button" onClick={this.createQuiz}>
-                      Create  Quiz
-                      <span>
-                        <img
-                          style={{ marginLeft: '5px' }}
-                          alt="description"
-                          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                        />
-                      </span>
-                    </button>
-                  </form>
-                </div>
-              
-         
-         
-     
-      );
-    }
-    
-  }
-
-  createQuiz = event => {
-    //this.setState(prevState => ({ quizCreated: !prevState.quizCreated})); 
-    this.setState(prevState => ({ quizCreated: !prevState.quizCreated})); 
-    console.log("created Quiz: " + this.state.quizCreated);
-  }
-
-  getAllQuizzes = event => {
-    event.preventDefault();
-
+  getAllQuizzes()  {
     let thisObj = this;
 
     quizService.getAllQuizzes().then(response => {
       thisObj.setState(Object.assign(thisObj.state, { quizzes: response.data }));
     })
-      .catch(error => console.error('Error occurred when searching: ', error));
+      .catch(error => thisObj.parseError(error));
   };
+ 
+  // getAllQuizzes = event => {
+  //   event.preventDefault();
 
-  createQuestions() {
-    return this.state.questions.map((v, i) =>
-      <div key={i}>
-        
-        <input
-          className="question"
-          type="input"
-          name="question"
-          placeholder="Question"
-          autoComplete="Question"
-          value={v.value || ''}
-          onChange={this.handleChangeValue.bind(this, i)}
-          required
-        />
-        {/* <input type="text" value={v.value||''} onChange={this.handleChangeValue.bind(this, i)} /> */}
-        <div><br></br></div>
+  //   let thisObj = this;
 
-        <input
-          className="answer"
-          type="input"
-          name="answer"
-          placeholder="Answer"
-          autoComplete="Answer"
-          value={v.answer || ''}
-          onChange={this.handleChangeAnswer.bind(this, i)}
-          required
-        />
-        <div><br></br></div>
-        {/* <input type="text" value={v.answer||''} onChange={this.handleChangeAnswer.bind(this, i)} /> */}
+  //   quizService.getAllQuizzes().then(response => {
+  //     thisObj.setState(Object.assign(thisObj.state, { quizzes: response.data }));
+  //   })
+  //     .catch(error => thisObj.parseError(error));
+  // };
+ 
+ 
 
-        {/* <input type='button' value='remove' onClick={this.removeClick.bind(this, i)}/> */}
+ 
 
-        <button type="submit" color="primary" className="login_button" onClick={this.removeClick.bind(this, i)}>
-          Remove question
-                    <span>
-            <img
-              style={{ marginLeft: '5px' }}
-              alt="description"
-              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-            />
-          </span>
-        </button>
-        {/* {v.value}, {v.answer} */}
+  startGameWithEmails = event => {
+    event.preventDefault();
 
-      </div>
-    )
-  }
+    let thisObj = this;
+    let gameEmails= 
+    {
+      playerEmails: this.state.emails,
+      quizId: this.state.quizSelected.id
+    }
+
+   
+    this.setState(Object.assign(this.state, { isGameCreated:true}));
+    gameService.put(gameEmails).then(response => {
+
+      thisObj.setState(Object.assign(thisObj.state, { game: response.data }));
+      console.log(`Game created with id: ${JSON.stringify(response.data)}`);
+     })
+       .catch(error => thisObj.parseError(error));
+       
+  };
+ 
   checkLoginStatus() {
     let authHeader = sessionStorage.getItem('JWT-TOKEN');
     if (authHeader) {
@@ -237,82 +82,24 @@ class Home extends Component {
     }
   }
 
-  handleChangeValue(i, event) {
-    let questions = [...this.state.questions];
-    console.log("value: " + event.target.value);
-    questions[i].value = event.target.value;
-    
-    this.setState({ questions });
+ 
 
-    // console.log(questions[0]);
+
+
+
+  onClickHandler = event => {
+
+    let key = event.target.id; 
+    let name = event.target.innerText;
+    let quiz = {name:'', id:''}
+    quiz.name=name;
+    quiz.id=key;
+    console.log("Clicked: " + key + " - " +  name);
+    this.setState(Object.assign(this.state, {quizSelected: quiz, isQuizSelected:true}));
+    console.log(`Quiz select4ed********: ${JSON.stringify(this.state.quizSelected)}`);
   };
 
-  handleChangeAnswer(i, event) {
-
-    //let key = event.target.getAttribute('name');
-    //let updateObj = { [key]: event.target.value };
-    //this.setState(Object.assign(this.state, updateObj));
-
-    let questions = [...this.state.questions];
-    console.log("answer: " + event.target.value);
-    // questions[i].value=event.target.value;
-    questions[i].answer = event.target.value;
-    questions[i].index=i;
-    
-    this.setState({ questions });
-
-  };
-
-  handleChange = event => {
-    let key = event.target.getAttribute('name');
-    console.log("Key: " + key);
-    let updateObj = { [key]: event.target.value };
-    this.setState(Object.assign(this.state, updateObj));
-  }
-
-  
-  addClick() {
-    
-    this.setState(prevState => ({ questions: [...prevState.questions, { value: '', answer: '' , index: 0 }] }))
-  
-  }
-
-  removeClick(i) {
-    let questions = [...this.state.questions];
-    questions.splice(i, 1);
-    this.setState({ questions });
-  
-  }
-
-
-  createRound = event => {
-    
-    this.state.quizToPersist.name=this.state.quizName;
-  
-    
-    console.log("Round Number: " + this.roundNumber)
-
-    console.log(`Previous round: ${JSON.stringify(this.state.quizToPersist)}`);
-
-    this.state.quizToPersist.rounds= [...this.state.quizToPersist.rounds,
-      {
-          index: this.state.roundNumber,
-          name: ' Round ' + this.state.roundNumber+1,
-          questions:this.state.questions
-          
-      }
-      
-    ]
-    
-   
-    console.log(`Quiz completed round: ${JSON.stringify(this.state.quizToPersist)}`);
-
-    this.state.roundNumber=  this.state.roundNumber+1;
-    this.state.questions=[];
-    this.addClick();
-    
-    event.preventDefault();
-  }
+ 
 
   submitQuiz = event => {
 
@@ -327,6 +114,89 @@ class Home extends Component {
     event.preventDefault();
 
   };
+
+  getGameInfo(){
+    let gameId= this.state.game.id;
+    //const membersToRender = this.state.game.players.filter(players => players.display);
+    //const numPlayers = membersToRender.length;
+    const players= this.state.game.players;
+    if(!!players){
+      const numPlayers=players.length;
+      console.log(`Players  ${JSON.stringify(numPlayers)}`);
+      return(
+         
+          <p>     Game Id generated: {gameId}
+              
+          <br></br>
+            Number of Player for this game: {numPlayers}
+          </p>
+         
+    
+        );
+    }
+ 
+
+  }
+
+  getEmailAdresses() {
+
+    return this.state.emails.map((v, i) =>
+    
+        <div key={i}>
+            
+            <input
+              className="email"
+              type="input"
+              name="email"
+              placeholder="Email"
+              autoComplete="Email"
+              value={v || ''}
+              onChange={this.handleChange.bind(this, i)}
+              required
+            />
+            {/* <input type="text" value={v.value||''} onChange={this.handleChangeValue.bind(this, i)} /> */}
+          
+            <button type="button" color="primary" className="login_button" onClick={this.removeClick.bind(this, i)}>
+              Remove Player
+                        <span>
+                <img
+                  style={{ marginLeft: '5px' }}
+                  alt="description"
+                  src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
+                />
+              </span>
+            </button>
+            {/* {v.value}, {v.answer} */}
+
+            <button type="btuoo" color="primary" className="login_button" onClick={this.addClick.bind(this)}>
+                            Add Another Player
+                                <span>
+                              <img
+                                style={{ marginLeft: '5px' }}
+                                alt="description"
+                                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
+                              />
+                            </span>
+              </button>
+              
+          </div>
+     
+    )
+  }
+
+  addClick() {
+    
+    this.setState(prevState => ({ emails: [...prevState.emails, ""] }))
+  
+  
+  }
+
+  removeClick(i) {
+    let emails = [...this.state.emails];
+    emails.splice(i, 1);
+    this.setState({ emails });
+  
+  }
 
   parseError(error) {
     if (
@@ -372,6 +242,22 @@ class Home extends Component {
     return true;
   }
 
+  handleChange(i, event) {
+
+    let emails = [...this.state.emails];
+    console.log(`emails   BEGIN: ${JSON.stringify(emails)}`);
+    
+    //let email = { [key]: event.target.value };
+     emails[i]=event.target.value;
+    console.log (" what " + emails[i].concat(event.target.value));
+    console.log(`emails: ${JSON.stringify(emails)}`);
+    
+    this.setState({ emails });
+  };
+
+  
+
+
   render() {
 
     //new login
@@ -388,46 +274,100 @@ class Home extends Component {
                 <div className="form_wrap">
                   <div className="form_container2">
                     
+
+                  
+                {this.state.isGameCreated ? ''
+                  :
+                   <div>
                     <div className="form_container_subtext">
-                      Use a previous Quiz
+                      Select a previous Quiz
                     </div>
-                    <div className="dropdown-menu-quizzes">
+                    <div className="dropdown-menu-quizzes"  >
                       {this.state.quizzes.map((rowdata, i) => {
                         return (
-                           <a  className="dropdown-item" href="#" key={i}> {rowdata.name} </a>
-                       
+                           <option  className="dropdown-item" key={i} id={rowdata.id} onClick={this.onClickHandler}> 
+                           {rowdata.name} 
+                           </option>
+                           
                         )
                       })
                       }
-                    </div>   
-                    <form onSubmit={this.getAllQuizzes}>
-                      <button type="submit" color="primary" className="login_button">
-                        Get Previous Quizzes
-                          <span>
-                          <img
-                            style={{ marginLeft: '5px' }}
-                            alt="description"
-                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                          />
-                        </span>
-                      </button>
-                      <br></br>
+                    </div>  
+                  </div>
+                  }
+                 
+                   
 
-                     <a href="/#/createquiz"><span className="form_container_text_link"> Build a new Quiz </span></a>  
-                      <br></br>
-                    </form>
-                      
+
+                    {this.state.isQuizSelected  && !this.state.isGameCreated ?  
+                    <div>
+                        <h3>
+                        Selected quiz : {this.state.quizSelected.name}  
+                        </h3> 
+                    
+                         <p>      Enter email adresses and start a game
+                      </p>
+                      </div>
+                    
+                      : [
+                        
+                          (!this.state.isGameCreated ? 
+                            <div> 
+                                    <p>
+                                      <br></br>
+                                      OR
+                                    </p>
+                                        {/* <button href="/#/createquiz"><span className="form_container_text_link"> Create a brand new Quiz </span></button>   */}
+                                      <form action="/#/createquiz"> 
+                                        <button color="primary" className="login_button"  href="/#/createquiz">
+                                          Create a brand new Quiz 
+                                          <span>
+                                          <img
+                                            style={{ marginLeft: '5px' }}
+                                            alt="description"
+                                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
+                                          />
+                                          
+                                        </span>
+                                      </button>
+                                       </form> 
+                               
+                                </div>
+                            : null
+                          )
+                      ]
+                    }
+                    {this.state.isQuizSelected && !this.state.isGameCreated  ?  
+                    <form  onSubmit={this.startGameWithEmails}>
+                       {this.getEmailAdresses()}
+                    <button type="submit" color="primary" className="login_button" >
+                                Start Game 
+                                  <span>
+                                  <img
+                                    style={{ marginLeft: '5px' }}
+                                    alt="description"
+                                    src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
+                                  />
+                                </span>
+                              </button>
+                      </form>
+                     
+                   : <br></br>
+                    }
+
+                    {this.state.isGameCreated ?  
+                    <div>
+                      {this.getGameInfo()}
+                    </div>
+                       : ''                 
+                    } 
             
                 </div>
                   </div>
                   </div>
                  
 
-               
-
-
-
-              </div>
+             </div>
             </div>
           </div>
           
