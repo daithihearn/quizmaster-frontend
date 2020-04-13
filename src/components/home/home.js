@@ -2,8 +2,12 @@ import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
-import ImageSelectPreview from 'react-image-select-pv';
-
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 class Home extends Component {
   constructor(props) {
@@ -20,6 +24,8 @@ class Home extends Component {
       
       };
     
+   
+    
     sessionUtils.checkLoggedIn();
 
     this.getAllQuizzes();
@@ -27,12 +33,8 @@ class Home extends Component {
     this.onClickHandler = this.onClickHandler.bind (this);
     //this.getAllQuizzes = this.getAllQuizzes.bind(this);
     this.startGameWithEmails = this.startGameWithEmails.bind(this);
-    this.handleImageSelect = this.handleImageSelect.bind(this);
   }
 
-  handleImageSelect(data) {
-    console.log(JSON.stringify(data));
-  }
  
   getAllQuizzes()  {
     let thisObj = this;
@@ -102,6 +104,7 @@ class Home extends Component {
 
   getGameInfo(){
     let gameId= this.state.game.id;
+    //this.props.navigation.navigate('Scoring', { gameId: gameId })
     //const membersToRender = this.state.game.players.filter(players => players.display);
     //const numPlayers = membersToRender.length;
     const players= this.state.game.players;
@@ -114,6 +117,17 @@ class Home extends Component {
               
           <br></br>
             Number of Player for this game: {numPlayers}
+
+            <br></br>
+            <Link to={{
+            pathname: '/scoring',
+            gameId: gameId,
+            quizId: this.state.quizSelected.id
+
+          }}> Start Game </Link>
+             {/* <a href="/#/scoring"><span className="form_container_text_link"> Start Game</span></a> */}
+
+
           </p>
          
     
@@ -258,10 +272,7 @@ class Home extends Component {
               <div className="card-product_Stats">
                 <div className="form_wrap">
                   <div className="form_container2">
-                  <ImageSelectPreview 
-                    max={1}
-                    imageTypes="png|jpg|gif"
-                    onChange={this.handleImageSelect}/>
+                
                     
 
                   

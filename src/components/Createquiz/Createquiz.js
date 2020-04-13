@@ -45,6 +45,17 @@ class Createquiz extends Component {
     }
   }
  
+  showLinkHome(){
+    // if(this.state.isQuizSubmited){
+      return(
+      <div className="form_container_text">
+      Back to 
+     
+      <a href="/#/home"><span className="form_container_text_link"> Home</span></a>
+      </div>
+      )
+    //}
+  }
 
   showRounds(){
     console.log("image : " + JSON.stringify(this.state.quizToPersist.rounds));
@@ -449,6 +460,9 @@ class Createquiz extends Component {
       {
             <div className="form_wrap">
               {this.buildQuiz()}
+              <br></br>
+              {this.showLinkHome()}
+             
               </div>
       }
       

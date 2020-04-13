@@ -6,13 +6,31 @@ import SockJsClient from 'react-stomp';
 class Scoring extends Component {
   constructor(props) {
     super(props);
-    this.state = { gameId: "5e9360f28c8c070004d2102b", answers: [] };
+ 
+    //TODO. Game ID clears when refresh
+    console.log(`State game ID ${JSON.stringify(this.props.location.gameId)}`);
+    console.log(`Quiz ID ${JSON.stringify(this.props.location.quizId)}`);
+    let gameId = this.props.location.gameId;
+    let quizId = this.props.location.quizId;
+    
+    this.state = { gameId: gameId, quizId: quizId, answers: [] };
+    
     sessionUtils.checkLoggedIn();
-
+    
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
     this.loadAllUnscoredAnswers();
+  }
+
+ 
+  loadGame() {
+
+    let thisObj = this;
+
+    answerService.getUnscoredAnswers(this.state.gameId).then(response => {
+      thisObj.setState(Object.assign(thisObj.state, { answers: response.data }));
+    }).catch(error => thisObj.parseError(error));
   }
 
   loadAllUnscoredAnswers() {
@@ -106,10 +124,14 @@ class Scoring extends Component {
         <div className="login_background">
           <div className="login_background_cloumn">
             <div className="ISSUER_Logo" />
+           
+            Game Id: {this.state.gameId}
+            
             {this.state.answers.map((answer, idx) => (
               <div className="form_container">
                 <div className="form_wrap">
 
+  
             <form onSubmit={this.handleSubmit}>
 
               <div>Round: {this.state.answers[idx].roundIndex}</div>
