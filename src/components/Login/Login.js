@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { Component } from 'react';
 import { Alert } from 'reactstrap';
 import stateUtils from '../../utils/StateUtils';
+import sessionUtils from '../../utils/SessionUtils';
 
 class Login extends Component {
   constructor(props) {
@@ -32,19 +33,36 @@ class Login extends Component {
 
     thisObj.setState({ _usernameError: '' });
 
-    const { history } = this.props;
-
     axios
       .post(`${process.env.REACT_APP_API_URL}/login`, data)
       .then(function (response) {
         sessionStorage.setItem('JWT-TOKEN', response.headers.authorization);
-        let path = `/`;
-        history.push(path);
+        thisObj.redirectToHomePage();
       }).catch(function (error) {
         console.log(error);
         thisObj.setState(Object.assign(thisObj.state, { _error: thisObj.parseError(error) }));
       });
   };
+
+  redirectToHomePage() {
+
+    // const { history } = this.props;
+
+    sessionUtils.checkUserType().then(function(response) {
+      let authority = response.data[0].authority;
+      if (authority === "PLAYER") {
+        window.location.href = '/#/game';
+      } else if (authority === "ADMIN") {
+        window.location.href = '/#/home';
+      } else {
+        window.location.href = '/#/login';
+      }
+    })
+    .catch(function(error) {
+      console.log(error);
+      window.location.href = '/#/login';
+    });
+  }
 
   parseError(error) {
     if (

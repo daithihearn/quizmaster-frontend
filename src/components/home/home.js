@@ -20,7 +20,6 @@ class Home extends Component {
       };
     
     sessionUtils.checkLoggedIn();
-    sessionUtils.checkUserType();
 
     this.getAllQuizzes();
 
@@ -37,21 +36,6 @@ class Home extends Component {
     })
       .catch(error => thisObj.parseError(error));
   };
- 
-  // getAllQuizzes = event => {
-  //   event.preventDefault();
-
-  //   let thisObj = this;
-
-  //   quizService.getAllQuizzes().then(response => {
-  //     thisObj.setState(Object.assign(thisObj.state, { quizzes: response.data }));
-  //   })
-  //     .catch(error => thisObj.parseError(error));
-  // };
- 
- 
-
- 
 
   startGameWithEmails = event => {
     event.preventDefault();

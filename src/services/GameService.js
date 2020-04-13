@@ -85,3 +85,21 @@ exports.publishQuestion = (pointer) => {
     return result;
   }
 };
+
+exports.getCurrentContent = () => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/json"
+      }
+    };
+    const result = axios
+      .get(`${process.env.REACT_APP_API_URL}/api/v1/game/currentContent`, config)
+      .then(response => response)
+      .catch(error => console.error('Error occurred when getting current content: ', error));
+    return result;
+  }
+};

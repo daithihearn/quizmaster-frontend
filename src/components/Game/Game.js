@@ -1,26 +1,92 @@
 import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import answerService from '../../services/AnswerService';
+import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
+import DataTable, { createTheme } from 'react-data-table-component';
 
 class Game extends Component {
   constructor(props) {
     super(props);
-    this.state = { question: {}, answer: "" };
+    this.state = { question: null, answer: "", leaderboard: null };
     sessionUtils.checkLoggedIn();
+
+    createTheme('solarized', {
+      text: {
+        primary: '#268bd2',
+        secondary: '#2aa198',
+      },
+      background: {
+        default: '#002b36',
+      },
+      context: {
+        background: '#cb4b16',
+        text: '#FFFFFF',
+      },
+      divider: {
+        default: '#073642',
+      },
+      action: {
+        button: 'rgba(0,0,0,.54)',
+        hover: 'rgba(0,0,0,.08)',
+        disabled: 'rgba(0,0,0,.12)',
+      },
+    });
+
+    this.getCurrentContent();
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
   }
 
+  columns = [
+    {
+      name: 'Player',
+      selector: 'playerId',
+      sortable: true,
+    },
+    {
+      name: 'Score',
+      selector: 'score',
+      sortable: true,
+      right: true,
+    },
+  ];
+
+  getCurrentContent() {
+    let thisObj = this;
+    gameService.getCurrentContent().then(response => {
+
+      thisObj.parseScreenContent(response.data)
+    }).catch(error => thisObj.parseError(error));
+  }
+
   handleWebsocketMessage(payload) {
 
-    console.log(payload.payload)
-    let question = JSON.parse(payload.payload)
+    let publishContent = JSON.parse(payload.payload);
+    this.parseScreenContent(publishContent);
     
-    this.setState({question: question, answer: ""})
   }
+
+  parseScreenContent(content) {
+    if (!content) {
+      return
+    }
+
+    switch (content.type) {
+      case("QUESTION"):
+        this.setState(Object.assign(this.state,{question: content.content, answer: "", leaderboard: null}));
+        break;
+      case("LEADERBOARD"): 
+        this.setState(Object.assign(this.state,{question: null, answer: "", leaderboard: content.content}));
+        break;
+      case("ROUND_SUMMARY"):
+      case("GAME_SUMMARY"):
+      default:
+        this.parseError({message: "Unsupported content type"})
+    }
+  } 
 
   handleChange(event) {
     let key = event.target.getAttribute("name");
@@ -90,6 +156,9 @@ class Game extends Component {
         <div className="login_background">
           <div className="login_background_cloumn">
             <div className="ISSUER_Logo" />
+
+            {!!this.state.question ? 
+
             <div className="form_wrap">
               <div className="form_container">
               <form onSubmit={this.handleSubmit}>
@@ -116,21 +185,37 @@ class Game extends Component {
                   </span>
                 </button> 
               </form>
-
-
-              <div className="form_container_text">
-                Back to <a href="/#/login"><span className="form_container_text_link"> Previous Round </span></a>
-              </div>
-              {/* </div> */}
             </div>
+            </div>
+            
+            : null
+            }
 
-              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/game', '/user/game']}
-                onMessage={ this.handleWebsocketMessage.bind(this) }
-                ref={ (client) => { this.clientRef = client }}/>
+          {!!this.state.leaderboard ? 
+            <div className="form_wrap">
+              <div className="form_container">
+            <DataTable
+                title="Leaderboard"
+                columns={this.columns}
+                data={this.state.leaderboard}
+                theme="solarized"
+            />
 
-          </div>
+              </div>
+            </div>
+          : null
+          }
+
+            
+
+              
+
+          
         </div>
       </div>
+      <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/game', '/user/game']}
+                onMessage={ this.handleWebsocketMessage.bind(this) }
+                ref={ (client) => { this.clientRef = client }}/>
     </div>
     );
   }

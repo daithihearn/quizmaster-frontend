@@ -46,16 +46,8 @@ exports.checkUserType = () => {
       Authorization: authHeader
     }
   };
-  axios
-    .get(`${process.env.REACT_APP_API_URL}/api/v1/session/type`, config)
-    .then(function(response) {
-      if (response.data[0].authority === "PLAYER")
-        window.location.href = '/#/game';
-    })
-    .catch(function(error) {
-      console.log(error);
-      window.location.href = '/#/login';
-    });
+  return axios
+    .get(`${process.env.REACT_APP_API_URL}/api/v1/session/type`, config);
 };
 
 exports.logout = () => {

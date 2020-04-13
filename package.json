@@ -33,6 +33,7 @@
     "react-chartjs-2": "^2.7.2",
     "react-circular-progressbar": "^2.0.1",
     "react-copy-to-clipboard": "5.0.1",
+    "react-data-table-component": "^6.7.0",
     "react-dom": "^16.4.2",
     "react-file-base64": "^1.0.3",
     "react-loadable": "^5.4.0",
@@ -48,6 +49,7 @@
     "request": "2.87.0",
     "request-promise-native": "1.0.5",
     "simple-line-icons": "^2.4.1",
+    "styled-components": "^5.1.0",
     "typescript": "^3.5.3",
     "winston": "^2.3.1"
   },
