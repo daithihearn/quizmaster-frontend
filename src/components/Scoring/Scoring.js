@@ -58,12 +58,15 @@ class Scoring extends Component {
     }).catch(error => thisObj.parseError(error));
   }
 
-  handleWebsocketMessage(answer) {
+  handleWebsocketMessage(payload) {
 
     let newState = this.state;
+    let answer = JSON.parse(payload.payload);
+
+    console.log(payload.payload);
     newState.answers.push(answer);
 
-    this.setState(Object.assign(this.state, newState));
+    this.setState(newState);
   }
 
   handleChange(event) {
