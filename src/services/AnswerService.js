@@ -81,7 +81,7 @@ exports.publishLeaderboard = (id) => {
       }
     };
     const result = axios
-      .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/answer/publishLeaderboard?id=${id}`, null, config)
+      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/answer/publishLeaderboard?id=${id}`, null, config)
       .then(response => response)
       .catch(error => console.error('Error occurred when publishing leaderboard: ', error));
     return result;
