@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
+import ImageSelectPreview from 'react-image-select-pv';
 
 
 class Home extends Component {
@@ -26,6 +27,11 @@ class Home extends Component {
     this.onClickHandler = this.onClickHandler.bind (this);
     //this.getAllQuizzes = this.getAllQuizzes.bind(this);
     this.startGameWithEmails = this.startGameWithEmails.bind(this);
+    this.handleImageSelect = this.handleImageSelect.bind(this);
+  }
+
+  handleImageSelect(data) {
+    console.log(JSON.stringify(data));
   }
  
   getAllQuizzes()  {
@@ -65,11 +71,6 @@ class Home extends Component {
       return;
     }
   }
-
- 
-
-
-
 
   onClickHandler = event => {
 
@@ -257,6 +258,10 @@ class Home extends Component {
               <div className="card-product_Stats">
                 <div className="form_wrap">
                   <div className="form_container2">
+                  <ImageSelectPreview 
+                    max={1}
+                    imageTypes="png|jpg|gif"
+                    onChange={this.handleImageSelect}/>
                     
 
                   
