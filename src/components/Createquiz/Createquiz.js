@@ -55,7 +55,7 @@ class Createquiz extends Component {
           {round.questions.map(question => 
             <div>
              
-            <img  src={question.imageUri} height="42" width="42"/>
+            <img src={question.imageUri} height="42" width="42"/>
             <p key={question.index}> {question.value}: {question.answer}</p>
             </div>
           )}
