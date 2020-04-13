@@ -1,0 +1,61 @@
+/*
+filename: Droptest.js 
+*/
+
+import React, { useCallback , useState} from "react";
+// Import the dropzone component
+import Dropzone from "./Dropzone.js.txt";
+import ImageList from "./Imagelist.js.txt";
+//import cuid from "cuid";
+
+const DropTest = ({ result }) => {
+
+
+    const [images, setImages] = useState([]);
+
+    let id=0;
+    const onDrop = useCallback(acceptedFiles => {
+      // Loop through accepted files
+      acceptedFiles.map(file => {
+        id= id+1;
+        // Initialize FileReader browser API
+        const reader = new FileReader();
+        // onload callback gets called after the reader reads the file data
+        reader.onload = function(e) {
+          // add the image into the state. Since FileReader reading process is asynchronous, its better to get the latest snapshot state (i.e., prevState) and update it. 
+          setImages(prevState => [
+            ...prevState,
+            { id: id, src: e.target.result }
+          ]); //TODO: change to a proper id
+        };
+        // Read the file as Data URL (since we accept only images)
+        reader.readAsDataURL(file);
+        result=file;
+        console.log ("File in Dropzone: " + result);
+        return result;
+      });
+    }, []);
+
+    const getImages = () => {
+        console.log ("Trying to get images");
+     return images;
+    };
+  
+  
+  
+    // We pass onDrop function and accept prop to the component. It will be used as initial params for useDropzone hook
+    return (
+      <main className="App">
+        <p className="text-center">Include image</p>
+        <Dropzone onDrop={onDrop} accept={"image/*"}  />
+        <ImageList images={images} />
+         <div>hello 
+         {images.map((img)=><p>1</p>)
+         }
+         </div>
+
+      </main>
+    );
+  }
+  
+  export default DropTest;
