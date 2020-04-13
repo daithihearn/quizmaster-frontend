@@ -13,15 +13,15 @@ class Game extends Component {
 
     createTheme('solarized', {
       text: {
-        primary: '#268bd2',
-        secondary: '#2aa198',
+        primary: '#000000',
+        secondary: '#333333',
       },
       background: {
-        default: '#002b36',
+        default: '#ffffff',
       },
       context: {
-        background: '#cb4b16',
-        text: '#FFFFFF',
+        background: '#ffffff',
+        text: '#ffffff',
       },
       divider: {
         default: '#073642',
