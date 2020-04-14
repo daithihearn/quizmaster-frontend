@@ -4,6 +4,7 @@ import answerService from '../../services/AnswerService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
+import { Button, Form, FormGroup, Label, Input, Container, Row, Col } from 'reactstrap';
 
 class Game extends Component {
   constructor(props) {
@@ -153,56 +154,51 @@ class Game extends Component {
     //new login
     return (
       <div className="app">
-        <div className="login_background">
-          <div className="login_background_cloumn">
-            <div className="ISSUER_Logo" />
+        <div className="form_wrap">
+          <div className="form_container">
 
             {!!this.state.waiting ? 
-              <div className="form_wrap">
-                <div className="form_container">
-                  <div>Please wait for the next question...</div>
-                </div>
-              </div>
+
+              <h3>Please wait for the next question...</h3>
+
             : null}
 
             {!!this.state.question ? 
 
-            <div className="form_wrap">
-              <div className="form_container">
-              <form onSubmit={this.handleSubmit}>
-              
-              {this.state.question.question}
-              <input
-                  className="answer"
-                  type="input"
-                  name="answer"
-                  placeholder="answer"
-                  autoComplete="answer"
-                  value={this.state.answer}
-                  onChange={this.handleChange}
-                  required
-                />
-                <button  type="submit" color="primary" className="login_button">
-                  Submit
-                    <span>
-                    <img
-                      style={{ marginLeft: '5px' }}
-                      alt="description"
-                      src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
+
+              <Form onSubmit={this.handleSubmit}>
+                <FormGroup>{this.state.question.question}</FormGroup>
+                <FormGroup>
+                  <Input
+                      className="answer"
+                      type="input"
+                      name="answer"
+                      placeholder="answer"
+                      autoComplete="answer"
+                      value={this.state.answer}
+                      onChange={this.handleChange}
+                      required
                     />
-                  </span>
-                </button>
-              </form>
-              <img src={this.state.question.imageUri}/>
-            </div>
-            </div>
+                  </FormGroup>
+                  <Button  type="submit" color="primary">
+                    Submit
+                  </Button>
+                  
+                  {!!this.state.question.imageUri ?
+                  <FormGroup>
+                    <img src={this.state.question.imageUri}/>
+                  </FormGroup>
+                  : null}
+
+              </Form>
+              
+
             
             : null
             }
 
           {!!this.state.leaderboard ? 
-            <div className="form_wrap">
-              <div className="form_container">
+
             <DataTable
                 title="Leaderboard"
                 columns={this.columns}
@@ -210,18 +206,12 @@ class Game extends Component {
                 theme="solarized"
             />
 
-              </div>
-            </div>
           : null
           }
-
-            
-
-              
-
-          
+        
+          </div>
         </div>
-      </div>
+
       <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/game', '/user/game']}
                 onMessage={ this.handleWebsocketMessage.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>

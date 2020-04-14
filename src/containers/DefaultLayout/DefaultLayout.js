@@ -47,16 +47,6 @@ class DefaultLayout extends Component {
                 )}
               </main>
             </div>
-            {this.props.search === true ? (
-              <div />
-            ) : (
-              <img
-                className="headermobile_toggleButton2"
-                src={Menu}
-                onClick={this.openSearchpage}
-                alt="description"
-              />
-            )}
             <DefaultFooter />
           </span>
         </div>

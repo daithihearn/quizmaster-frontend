@@ -4,6 +4,8 @@ import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
+import { TabContent, TabPane, Nav, NavItem, NavLink, Button, Form, FormGroup, Label, Input, Container, Row, Col, Media } from 'reactstrap';
+import classnames from 'classnames';
 
 class Scoring extends Component {
   constructor(props) {
@@ -12,16 +14,23 @@ class Scoring extends Component {
     let gameId = this.getGameId(this.props.location.gameId);
     let quizId = this.getQuizId(this.props.location.quizId);
     
-    this.state = { gameId: gameId, quizId: quizId, answers: [] };
+    this.state = { gameId: gameId, quizId: quizId, answers: [], activeTab: '1' };
     
     sessionUtils.checkLoggedIn();
     
     this.handleChange = this.handleChange.bind(this);
+    this.toggle = this.toggle.bind(this);
     this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
     this.handlePublishQuestion = this.handlePublishQuestion.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
     this.loadAllUnscoredAnswers();
     this.loadQuiz();
+  }
+
+  toggle(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState(Object.assign(this.state, { activeTab: tab }));
+    }
   }
 
   getGameId(gameId) {
@@ -82,7 +91,7 @@ class Scoring extends Component {
     console.log(`Submitting correction`);
 
     let answers = this.state.answers;
-    let answer = answers[index];
+    let answer = answers[index].answer;
     answer.score = this.state.score;
 
     answerService.submitCorrection(answer).then(response => {
@@ -166,125 +175,144 @@ class Scoring extends Component {
     //new login
     return (
       <div className="app">
-        <div className="login_background">
-          <div className="login_background_cloumn">
-            <div className="ISSUER_Logo" />
+        <div className="form_wrap">
+          <div className="form_container">
+            <Nav tabs>
+              <NavItem>
+                <NavLink
+                  className={classnames({ active: this.state.activeTab === '1' })}
+                  onClick={() => { this.toggle('1'); }}
+                >
+                  Questions
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  className={classnames({ active: this.state.activeTab === '2' })}
+                  onClick={() => { this.toggle('2'); }}
+                >
+                  Answers
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  className={classnames({ active: this.state.activeTab === '3' })}
+                  onClick={() => { this.toggle('3'); }}
+                >
+                  Actions
+                </NavLink>
+              </NavItem>
+            </Nav>
 
-            <button type="button" color="primary" className="login_button" onClick={this.publishLeaderboard}>
-                Publish Leaderboard
-                        <span>
-                <img
-                  style={{ marginLeft: '5px' }}
-                  alt="description"
-                  src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                />
-              </span>
-            </button>
 
-            {!!this.state.quiz ?
-            <div className="form_container">
-                Quiz: {this.state.quiz.name}
+            <TabContent activeTab={this.state.activeTab}>
+                <TabPane tabId="1">
 
-                {this.state.quiz.rounds.map((round, roundIndex) => (
-                  <div>
-                    Round: {round.name}
-                    {round.questions.map((question, questionIndex) => (
-                      <form onSubmit={this.handlePublishQuestion}>
-                          <div>Question: {question.value}</div>
-                          <div>Answer: {question.answer}</div>
-                          <img src={question.imageUri} height="42" width="42"/>
-                          <input
-                            className="roundIndex"
-                            type="input"
-                            name="roundIndex"
-                            value={roundIndex}
-                            hidden
-                            required />
-                          <input
-                            className="questionIndex"
-                            type="input"
-                            name="questionIndex"
-                            value={questionIndex}
-                            hidden
-                            required />
+                {!!this.state.quiz ?
+                  <Container>
+                    <Row><h2>{this.state.quiz.name}</h2></Row>
+                    <Row>
+                        {this.state.quiz.rounds.map((round, roundIndex) => (
+                          <Container>
+                          <Row>
+                            <h3>Round: {round.name}</h3>
+                          </Row>
+                          
+                            {round.questions.map((question, questionIndex) => (
+                              <Row>
+                              
+                                <Form onSubmit={this.handlePublishQuestion}>
+                                  <FormGroup>Question: {question.value}</FormGroup>
+                                  <FormGroup>Answer: {question.answer}</FormGroup>
+                                  
+                                  {!!question.imageUri ?
+                                  <FormGroup><img src={question.imageUri} height="42" width="42"/></FormGroup>
+                                  : null}
+                                    
+                                  <Input
+                                    className="roundIndex"
+                                    type="input"
+                                    name="roundIndex"
+                                    value={roundIndex}
+                                    hidden
+                                    required />
+                                  <Input
+                                    className="questionIndex"
+                                    type="input"
+                                    name="questionIndex"
+                                    value={questionIndex}
+                                    hidden
+                                    required />
 
-                  <button  type="submit" color="primary" className="login_button">
-                    Publish
-                    <span>
-                      <img
-                        style={{ marginLeft: '5px' }}
-                        alt="description"
-                        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                      />
-                    </span>
-                  </button> 
+                                  <Button color="primary" type="submit">
+                                    Publish
+                                  </Button> 
 
-                      </form>
-                    ))}
-                  </div>
-                ))}
-                <div className="form_wrap">
+                                </Form>
+                              </Row>
+                            ))}
+                          </Container>
+                        ))}
+                    </Row>
+                  </Container>
+                : <Row>No quiz selected</Row>}
+                
+              </TabPane>
 
-                </div>
-            </div>
-            : null}
-            
-            <div>
-              Answers
-            {this.state.answers.map((answer, idx) => (
-              <div className="form_container">
-                <div className="form_wrap">
+              <TabPane tabId="2">
+                  <Container>
+                    {this.state.answers.map((answer, idx) => (
+                    <Row>
 
-  
-            <form onSubmit={this.handleCorrectAnswer}>
+                      <Container>
+                        <Row><Col>Question</Col><Col>{answer.question.value}</Col></Row>
+                        <Row><Col>Correct Answer</Col><Col>{answer.question.answer}</Col></Row>
+                        <Row><Col>Answer Provided</Col><Col>{answer.answer.answer}</Col></Row>
+                      </Container>
+                      <Form onSubmit={this.handleCorrectAnswer}>
 
-              <div>Round: {this.state.answers[idx].roundIndex}</div>
-              <div>Question: {this.state.answers[idx].questionIndex}</div>
-              <div>Answer: {this.state.answers[idx].answer}</div>
+                        <Input
+                          className="index"
+                          type="input"
+                          name="index"
+                          value={idx}
+                          hidden
+                          required
+                          />
+                      
+                        <FormGroup>
+                          <Input
+                              className="score"
+                              type="input"
+                              name="score"
+                              placeholder="Score"
+                              autoComplete="Score"
+                              onChange={this.handleChange}
+                              required
+                            />
+                        </FormGroup>
+                        <Button color="primary" type="submit">
+                          Submit
+                        </Button> 
+                      </Form>
+                    </Row>
+                  ))}
+                </Container>
+              </TabPane>
 
-            <input
-              className="index"
-              type="input"
-              name="index"
-              value={idx}
-              hidden
-              required
-              />
-            
-            <input
-                className="score"
-                type="input"
-                name="score"
-                placeholder="score"
-                autoComplete="score"
-                onChange={this.handleChange}
-                required
-              />
-              <button  type="submit" color="primary" className="login_button">
-                Submit
-                  <span>
-                  <img
-                    style={{ marginLeft: '5px' }}
-                    alt="description"
-                    src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                  />
-                </span>
-              </button> 
-            </form>
-            </div>
-            </div>
-            ))}
+              <TabPane tabId="3">
+                <Button type="button" color="primary" onClick={this.publishLeaderboard}>
+                      Publish Leaderboard
+                </Button>
+              </TabPane>
+            </TabContent>
           </div>
-            
-              
-
-              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
-                onMessage={ this.handleWebsocketMessage.bind(this) }
-                ref={ (client) => { this.clientRef = client }}/>
-
-          
         </div>
-      </div>
+              
+        <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
+          onMessage={ this.handleWebsocketMessage.bind(this) }
+          ref={ (client) => { this.clientRef = client }}/>
+
     </div>
     );
   }

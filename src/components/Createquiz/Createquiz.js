@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 import ImageSelectPreview from 'react-image-select-pv';
-
-
+import { TabContent, TabPane, Nav, NavItem, NavLink, Button, Form, FormGroup, Label, Input, Container, Row, Col, Media } from 'reactstrap';
+import classnames from 'classnames';
 
 class Createquiz extends Component {
 
@@ -25,243 +25,26 @@ class Createquiz extends Component {
           rounds: [
          
         ]
-        }
-      
+        },
+       activeTab: '1' 
       };
+
+    this.toggle = this.toggle.bind(this);
     sessionUtils.checkLoggedIn();
     sessionUtils.checkUserType();
   
   }
 
- 
-
-  showButtonPreviousRound(){
-    if(this.state.roundNumber>1){
-      return(
-      <div className="form_container_text">
-      Back to <a href="/#/login"><span className="form_container_text_link"> Previous Round </span></a>
-      </div>
-      )
+  toggle(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState(Object.assign(this.state, { activeTab: tab }));
     }
-  }
- 
-  showLinkHome(){
-    // if(this.state.isQuizSubmited){
-      return(
-      <div className="form_container_text">
-      Back to 
-     
-      <a href="/#/home"><span className="form_container_text_link"> Home</span></a>
-      </div>
-      )
-    //}
-  }
-
-  showRounds(){
-    console.log("image : " + JSON.stringify(this.state.quizToPersist.rounds));
-    return this.state.quizToPersist.rounds.map(round =>
-      <div>
-        <h3 key={round.index} item={round}>{round.name}</h3>
-        <ul>
-          {round.questions.map(question => 
-            <div>
-             
-            <img src={question.imageUri} height="42" width="42"/>
-            <p key={question.index}> {question.value}: {question.answer}</p>
-            </div>
-          )}
-        </ul>
-      </div>
-    )
-  }
-
-
- 
-  
-  buildQuiz(){
- 
-    if(this.state.isQuizCreated){
-    return(
-
-      
-              
-              <div className="form_container">
-               {this.state.isQuizSubmited  ?
-                <div className="show_quiz_name"><br></br>Congratulations. Your quiz <b>{this.state.quizName}</b> has been created !
-                <br></br></div> 
-              :
-                <div className="show_quiz_name">You have chosen the quiz name: {this.state.quizName}
-              
-                </div> 
-                
-               }
-                {this.showRounds()}
-
-                {!this.state.isQuizSubmited ?
-                  <div>
-                  Round number {this.state.roundNumber+1}
-                    <form onSubmit={this.createRound}>
-                      
-                      {this.createQuestions()}
-
-                      <br></br>
-
-                    {/* {this.state.canSubmitRound ? */}
-                      <button type="submit" value="submit" color="primary" className="login_button" >
-                        Submit Round {this.state.roundNumber+1}
-                            <span>
-                          <img
-                            style={{ marginLeft: '5px' }}
-                            alt="description"
-                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                          />
-                        </span>
-                      </button>
-                      {/* : null} */}
-                      
-                      {this.state.canSubmitQuiz ? 
-                      <button type="button" color="primary" className="login_button" onClick={this.submitQuiz}>
-                        Submit Quiz
-                          <span>
-                                <img
-                                  style={{ marginLeft: '5px' }}
-                                  alt="description"
-                                  src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                                />
-                              </span>
-                      </button>
-                      : null}
-
-                    {this.showButtonPreviousRound()}
-
-                    </form>
-                    </div> 
-                    : null} 
-                   
-                  
-                
-              </div>
-    );
-    }else{
-      return(
-
-       
-              <div className="form_container">
-                  {/* <div className="form_container_headerText"> New Question </div>  */}
-                  {/* <div className="form_container_subtext"> */}
-                 New Quiz
-              
-                <form >
-                    <input
-                      className="quizName"
-                      type="input"
-                      name="quizName"
-                      placeholder="Quiz Name"
-                      autoComplete="Quiz Name"
-                      value={this.state.quizName}
-                      onChange={this.handleChange}
-                      required
-                    ></input>
-                  
-                  
-                      <button type="button" color="primary" className="login_button" onClick={this.createQuiz}>
-                      Create  Quiz
-                      <span>
-                        <img
-                          style={{ marginLeft: '5px' }}
-                          alt="description"
-                          src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                        />
-                      </span>
-                    </button>
-                  </form>
-                </div>
-              
-         
-         
-     
-      );
-    }
-    
   }
 
   createQuiz = event => {
-    //this.setState(prevState => ({ quizCreated: !prevState.quizCreated})); 
     this.setState(prevState => ({ isQuizCreated: !prevState.isQuizCreated})); 
-    console.log("created Quiz: " + this.state.isQuizCreated);
-  }
-
-  createQuestions() {
-
-
- 
+  } 
     
-
-    return this.state.questions.map((v, i) =>
-      <div key={i}>
-        
-
-      
-        <input
-          className="question"
-          type="input"
-          name="question"
-          placeholder="Question"
-          autoComplete="Question"
-          value={v.value || ''}
-          onChange={this.handleChangeValue.bind(this, i)}
-          required
-        />
-        {/* <input type="text" value={v.value||''} onChange={this.handleChangeValue.bind(this, i)} /> */}
-        <div><br></br></div>
-        <ImageSelectPreview 
-                    max={1}
-                    imageTypes="png|jpg|gif"
-                    onChange={this.handleImageSelect.bind(this,i)}/>
-              <div><br></br></div>       
-        <input
-          className="answer"
-          type="input"
-          name="answer"
-          placeholder="Answer"
-          autoComplete="Answer"
-          value={v.answer || ''}
-          onChange={this.handleChangeAnswer.bind(this, i)}
-          required
-        />
-        <div><br></br></div>
-       
-
-        
-        {/* <input type="text" value={v.answer||''} onChange={this.handleChangeAnswer.bind(this, i)} /> */}
-
-        {/* <input type='button' value='remove' onClick={this.removeClick.bind(this, i)}/> */}
-
-        <button type="submit" color="primary" className="login_button" onClick={this.removeClick.bind(this, i)}>
-          Remove question
-                    <span>
-            <img
-              style={{ marginLeft: '5px' }}
-              alt="description"
-              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-            />
-          </span>
-        </button>
-       
-        <button type="submit" color="primary" className="login_button" onClick={this.addClick.bind(this)}>
-                        Add question
-                            <span>
-                          <img
-                            style={{ marginLeft: '5px' }}
-                            alt="description"
-                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                          />
-                        </span>
-                      </button>   
-                      
-      </div>
-    )
-  }
   checkLoginStatus() {
     let authHeader = sessionStorage.getItem('JWT-TOKEN');
     if (authHeader) {
@@ -272,23 +55,14 @@ class Createquiz extends Component {
 
   handleChangeValue(i, event) {
     let questions = [...this.state.questions];
-    console.log("value: " + event.target.value);
     questions[i].value = event.target.value;
     
     this.setState({ questions });
-
-    // console.log(questions[0]);
   };
 
   handleChangeAnswer(i, event) {
 
-    //let key = event.target.getAttribute('name');
-    //let updateObj = { [key]: event.target.value };
-    //this.setState(Object.assign(this.state, updateObj));
-
     let questions = [...this.state.questions];
-    console.log("answer: " + event.target.value);
-    // questions[i].value=event.target.value;
     questions[i].answer = event.target.value;
     questions[i].index=i;
     
@@ -297,43 +71,18 @@ class Createquiz extends Component {
   };
 
   handleImageSelect(i, data) {
-    console.log("image : " + JSON.stringify(data));
     let questions = [...this.state.questions];
     questions[i].imageUri = data[0].content;
-    console.log("image : " + JSON.stringify(questions[i].imageUri));
     questions[i].index=i;
-    //console.log(JSON.stringify("Image stored in state: " + questions[i].imageUri));
     this.setState({ questions });
 
   }
 
   handleChange = event => {
     let key = event.target.getAttribute('name');
-    console.log("Key: " + key);
     let updateObj = { [key]: event.target.value };
     this.setState(Object.assign(this.state, updateObj));
   }
-
-  //   addName = event => {
-  //   // let key = event.target.getAttribute('name');
-  //   // console.log("Key: " + key);
-  //   // let updateObj = { [key]: event.target.value };
-  //   // console.log("object: " + updateObj);
-  //   // this.setState(Object.assign(this.state.quizToPersist.name, updateObj));
-
-  //   let key = event.target.getAttribute('name');
-  //   console.log("Key: " + key);
-  //   let updateObj = { [key]: event.target.value };
-  //   //let quizToPersist = {...this.state.quizToPersist};
-  //   //quizToPersist.name= key;
-  //   this.setState(Object.assign(this.state, updateObj));
-
-  //   // this.setState(prevState => {
-  //   //   let quizToPersist = Object.assign({}, prevState.quizToPersist);  // creating copy of state variable quizToPersist
-  //   //   quizToPersist.name = 'someothername';                     // update the name property, assign a new value                 
-  //   //   return { quizToPersist };                                 // return new object jasper object
-  //   // })
-  // }
 
   addClick() {
     
@@ -364,10 +113,6 @@ class Createquiz extends Component {
     
     this.state.quizToPersist.name=this.state.quizName;
     let numberForName = this.state.roundNumber+1;
-    
-    console.log("Round Number: " + this.roundNumber)
-
-    console.log(`Previous round: ${JSON.stringify(this.state.quizToPersist)}`);
 
     this.state.quizToPersist.rounds= [...this.state.quizToPersist.rounds,
       {
@@ -378,9 +123,6 @@ class Createquiz extends Component {
       }
       
     ]
-    
-   
-    console.log(`Quiz completed round: ${JSON.stringify(this.state.quizToPersist)}`);
 
     this.state.roundNumber=  this.state.roundNumber+1;
     this.state.questions=[];
@@ -454,24 +196,226 @@ class Createquiz extends Component {
 
     //new login
     return (
+      
       <div className="app">
-        
-     {/* New Quiz */}
-      {
-            <div className="form_wrap">
-              {this.buildQuiz()}
-              <br></br>
-              {this.showLinkHome()}
-             
-              </div>
-      }
-      
-      {/* App div */}
-      </div>      
+        <div className="form_wrap">
+          <div className="form_container">
 
-      
-    
-    
+      <Container>
+          <Row>
+            
+
+
+
+
+
+
+
+
+            {!!this.state.isQuizCreated ?
+          
+              <Container>
+                <Row>
+                  {this.state.isQuizSubmited  ?
+                      <h1>
+                      Created Quiz: {this.state.quizName}
+                      </h1>
+                      
+                    :
+                    <h1>
+                    Quiz: {this.state.quizName}
+                    </h1>
+                  }
+                </Row>
+                <Row>
+                <Nav tabs>
+                  <NavItem>
+                    <NavLink
+                      className={classnames({ active: this.state.activeTab === '1' })}
+                      onClick={() => { this.toggle('1'); }}
+                    >
+                      Create
+                    </NavLink>
+                  </NavItem>
+                  <NavItem>
+                    <NavLink
+                      className={classnames({ active: this.state.activeTab === '2' })}
+                      onClick={() => { this.toggle('2'); }}
+                    >
+                      View
+                    </NavLink>
+                  </NavItem>
+                </Nav>
+                </Row>
+                <Row>
+                <TabContent activeTab={this.state.activeTab}>
+                  <TabPane tabId="1">
+                  
+                  {!this.state.isQuizSubmited ?
+                      <Container>
+                        <Row>
+                          <h2>Round number {this.state.roundNumber+1}</h2>
+                        </Row>
+                        <Row>
+                            <Form onSubmit={this.createRound}>
+
+                              {this.state.questions.map((v, i) =>
+                                <div key={i}>
+                                  
+                                  <FormGroup>
+                                
+                                    <Input
+                                      className="question"
+                                      type="input"
+                                      name="question"
+                                      placeholder="Question"
+                                      autoComplete="Question"
+                                      value={v.value || ''}
+                                      onChange={this.handleChangeValue.bind(this, i)}
+                                      required
+                                    />
+                                  </FormGroup>
+                                  <FormGroup>
+                                  <ImageSelectPreview 
+                                              max={1}
+                                              imageTypes="png|jpg|gif"
+                                              onChange={this.handleImageSelect.bind(this,i)}/>
+                                  </FormGroup>
+                                  <FormGroup>
+                                    <Input
+                                      className="answer"
+                                      type="input"
+                                      name="answer"
+                                      placeholder="Answer"
+                                      autoComplete="Answer"
+                                      value={v.answer || ''}
+                                      onChange={this.handleChangeAnswer.bind(this, i)}
+                                      required
+                                    />
+                                  </FormGroup>
+
+                                  <Button type="submit" color="link" onClick={this.removeClick.bind(this, i)}>
+                                    Remove question
+                                  </Button>
+                                
+                                  <Button type="submit" color="link" onClick={this.addClick.bind(this)}>
+                                    Add question
+                                  </Button>   
+                                                
+                                </div>
+
+                              )}
+
+                              <Button type="submit" color="secondary">
+                                Submit Round {this.state.roundNumber+1}
+                              </Button>
+
+                              
+                              {this.state.canSubmitQuiz ? 
+                              <Button type="button" color="primary" onClick={this.submitQuiz}>
+                                Submit Quiz
+                              </Button>
+
+                              : null}
+
+
+                              {this.state.roundNumber > 0 ?
+                                    
+                                  <Button type="button" color="link"><a href="/#/login">Back to Previous Round</a></Button>
+
+                              : null}
+
+
+                            </Form>
+                          </Row>
+                        </Container>
+                        : null} 
+                  
+                  </TabPane>
+                  <TabPane tabId="2">
+                    <Row>
+
+
+                    {this.state.quizToPersist.rounds.map(round =>
+                        <Container>
+                          <Row>
+                            <h2>{round.name}</h2>
+                          </Row>
+                          <Row>
+                              {round.questions.map(question => 
+
+                                <Media>
+                                  {question.imageUri ?
+                                  <Media left href="#">
+                                    <Media object src={question.imageUri} height="64" width="64" alt="Generic placeholder image" />
+                                  </Media>:null}
+                                  <Media body>
+                                    <Media heading>
+                                      Question {question.index + 1}: {question.value}
+                                    </Media>
+                                    <Media body> 
+                                    Answer: {question.answer}
+                                    </Media>
+                                  </Media>
+                                </Media>
+
+                              )}
+                            </Row>
+                        </Container>
+                      )}
+
+
+                    </Row>
+                  </TabPane>
+                </TabContent>
+                </Row>
+              </Container>
+            
+            :
+              
+              
+              <div>
+                  <h2>New Quiz</h2>
+                <Form>
+                  <FormGroup>
+                    <Input
+                      className="quizName"
+                      type="input"
+                      name="quizName"
+                      placeholder="Quiz Name"
+                      autoComplete="Quiz Name"
+                      value={this.state.quizName}
+                      onChange={this.handleChange}
+                      required
+                    />
+                    </FormGroup>  
+                    <Button type="button" color="primary" onClick={this.createQuiz}>
+                    Create Quiz
+                    </Button>
+                  </Form>
+              </div>
+            
+            }
+
+
+
+
+
+
+
+
+
+
+          </Row>
+          <Row>
+            Back to <a href="/#/home"><span className="form_container_text_link"> Home</span></a>
+          </Row>
+      </Container>
+
+        
+          </div>
+        </div>
+      </div>
    
     );
   }
