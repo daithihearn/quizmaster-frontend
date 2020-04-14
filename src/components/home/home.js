@@ -1,77 +1,71 @@
-import axios from 'axios';
 import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
+import gameService from '../../services/GameService';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 class Home extends Component {
   constructor(props) {
     super(props);
-   // this.state = { firstName: '', surname: '', username: '', password: '' };
-   // this.state = { questions: [{ value: '', answer: ''}], value: '', answer: ''};
-   this.state = { questions: [], quizzes: []};
-   sessionUtils.checkLoggedIn();
+   
+    this.state = { 
+      
+       quizzes: [],
+       emails:[''],
+       quizSelected:{},
+       isGameCreated:false,
+       isQuizSelected:false,
+       game:{}
+      
+      };
+    
+   
+    
+    sessionUtils.checkLoggedIn();
 
-   this.getAllQuizzes = this.getAllQuizzes.bind(this);
+    this.getAllQuizzes();
+
+    this.onClickHandler = this.onClickHandler.bind (this);
+    //this.getAllQuizzes = this.getAllQuizzes.bind(this);
+    this.startGameWithEmails = this.startGameWithEmails.bind(this);
   }
 
-  getAllQuizzes = event => {
-    event.preventDefault();
-    
+ 
+  getAllQuizzes()  {
     let thisObj = this;
-    
+
     quizService.getAllQuizzes().then(response => {
-      thisObj.setState(Object.assign(thisObj.state, { quizzes: response.data}));
+      thisObj.setState(Object.assign(thisObj.state, { quizzes: response.data }));
     })
-    .catch(error => console.error('Error occurred when searching: ', error));
+      .catch(error => thisObj.parseError(error));
   };
 
-  createUI(){
-    return this.state.questions.map((v, i) => 
-        <div key={i}>
+  startGameWithEmails = event => {
+    event.preventDefault();
 
-              <input
-                  className="question"
-                  type="input"
-                  name="question"
-                  placeholder="Question"
-                  autoComplete="Question"
-                  value={v.value||''}
-                  onChange={this.handleChangeValue.bind(this, i)} 
-                  required
-                />
-         {/* <input type="text" value={v.value||''} onChange={this.handleChangeValue.bind(this, i)} /> */}
-          <div><br></br></div>
-          
-         <input
-                  className="answer"
-                  type="input"
-                  name="answer"
-                  placeholder="Answer"
-                  autoComplete="Answer"
-                  value={v.answer||''} 
-                  onChange={this.handleChangeAnswer.bind(this, i)}
-                  required
-                />
-             <div><br></br></div>
-         {/* <input type="text" value={v.answer||''} onChange={this.handleChangeAnswer.bind(this, i)} /> */}
-         
-         {/* <input type='button' value='remove' onClick={this.removeClick.bind(this, i)}/> */}
+    let thisObj = this;
+    let gameEmails= 
+    {
+      playerEmails: this.state.emails,
+      quizId: this.state.quizSelected.id
+    }
 
-         <button type="submit" color="primary" className="login_button" onClick={this.removeClick.bind(this, i)}>
-                  Remove question
-                    <span>
-                    <img
-                      style={{ marginLeft: '5px' }}
-                      alt="description"
-                      src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                    />
-                  </span>
-                </button>
-        {/* {v.value}, {v.answer} */}
+   
+    this.setState(Object.assign(this.state, { isGameCreated:true}));
+    gameService.put(gameEmails).then(response => {
 
-        </div>          
-    )
- }
+      thisObj.setState(Object.assign(thisObj.state, { game: response.data }));
+      console.log(`Game created with id: ${JSON.stringify(response.data)}`);
+     })
+       .catch(error => thisObj.parseError(error));
+       
+  };
+ 
   checkLoginStatus() {
     let authHeader = sessionStorage.getItem('JWT-TOKEN');
     if (authHeader) {
@@ -80,64 +74,25 @@ class Home extends Component {
     }
   }
 
-  handleChangeValue (i,event){
-    let questions = [...this.state.questions];
-    console.log("value: "+ event.target.value);
-    questions[i].value=event.target.value;
-    this.setState({ questions });
-    
-   // console.log(questions[0]);
-  };
- 
-  handleChangeAnswer (i,event){
-    
-    //let key = event.target.getAttribute('name');
-     //let updateObj = { [key]: event.target.value };
-     //this.setState(Object.assign(this.state, updateObj));
+  onClickHandler = event => {
 
-    let questions = [...this.state.questions];
-    console.log("answer: "+ event.target.value);
-   // questions[i].value=event.target.value;
-    questions[i].answer=event.target.value;
-
-    this.setState({ questions });
-   
+    let key = event.target.id; 
+    let name = event.target.innerText;
+    let quiz = {name:'', id:''}
+    quiz.name=name;
+    quiz.id=key;
+    console.log("Clicked: " + key + " - " +  name);
+    this.setState(Object.assign(this.state, {quizSelected: quiz, isQuizSelected:true}));
+    console.log(`Quiz select4ed********: ${JSON.stringify(this.state.quizSelected)}`);
   };
 
-  addClick(){
-    this.setState(prevState => ({ questions: [...prevState.questions, {value: '' , answer: ''} ]}))
-  }
-
-  removeClick(i){
-    let questions = [...this.state.questions];
-    questions.splice(i,1);
-    this.setState({ questions });
- }
-
-
-  handleSubmit = event => {
-    //alert('A name was submitted: ' + this.state.values.join(', '));
-    
-    alert('ROUND submitted: ' + this.state.questions);
  
-    const quiz = {
-      name:'first quiz test',
-      questions: this.state.questions
-    }
 
-    // this.setState(prevState => ({
-    //   quiz: {
-    //     ...prevState.quiz,   
-    //     name:'Quiz test',        // copy all other key-value pairs of food object
-    //     questions: {                     // specific object of food object
-    //       ...prevState.questions          // update value of specific key
-    //     }
-    //   }
-    // }))
+  submitQuiz = event => {
 
-    alert('Quiz submitted: ' + quiz.name);
+    console.log(`Quiz submitted********: ${JSON.stringify(this.state.quizToPersist)}`);
 
-    quizService.putQuiz(quiz).then(response =>
+    quizService.putQuiz(this.state.quizToPersist).then(response =>
       console.log(response)
     ).catch(error =>
       console.log(error)
@@ -145,21 +100,102 @@ class Home extends Component {
 
     event.preventDefault();
 
-    // let data = stateUtils.getDataFromState(this.state);
-    // let thisObj = this;
-
-    //thisObj.setState({ _usernameError: '' });
-
-    
-    // axios
-    //   .post(`${process.env.REACT_APP_API_URL}/signup`, data)
-    //   .then(function (response) {
-    //     window.location.href = '/#/login';
-    //   }).catch(function (error) {
-    //     console.log(error);
-    //     thisObj.setState(Object.assign(thisObj.state, { _error: thisObj.parseError(error) }));
-    //   });
   };
+
+  getGameInfo(){
+    let gameId= this.state.game.id;
+    //this.props.navigation.navigate('Scoring', { gameId: gameId })
+    //const membersToRender = this.state.game.players.filter(players => players.display);
+    //const numPlayers = membersToRender.length;
+    const players= this.state.game.players;
+    if(!!players){
+      const numPlayers=players.length;
+      console.log(`Players  ${JSON.stringify(numPlayers)}`);
+      return(
+         
+          <p>     Game Id generated: {gameId}
+              
+          <br></br>
+            Number of Player for this game: {numPlayers}
+
+            <br></br>
+            <Link to={{
+            pathname: '/scoring',
+            gameId: gameId,
+            quizId: this.state.quizSelected.id
+
+          }}> Start Game </Link>
+             {/* <a href="/#/scoring"><span className="form_container_text_link"> Start Game</span></a> */}
+
+
+          </p>
+         
+    
+        );
+    }
+ 
+
+  }
+
+  getEmailAdresses() {
+
+    return this.state.emails.map((v, i) =>
+    
+        <div key={i}>
+            
+            <input
+              className="email"
+              type="input"
+              name="email"
+              placeholder="Email"
+              autoComplete="Email"
+              value={v || ''}
+              onChange={this.handleChange.bind(this, i)}
+              required
+            />
+            {/* <input type="text" value={v.value||''} onChange={this.handleChangeValue.bind(this, i)} /> */}
+          
+            <button type="button" color="primary" className="login_button" onClick={this.removeClick.bind(this, i)}>
+              Remove Player
+                        <span>
+                <img
+                  style={{ marginLeft: '5px' }}
+                  alt="description"
+                  src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
+                />
+              </span>
+            </button>
+            {/* {v.value}, {v.answer} */}
+
+            <button type="btuoo" color="primary" className="login_button" onClick={this.addClick.bind(this)}>
+                            Add Another Player
+                                <span>
+                              <img
+                                style={{ marginLeft: '5px' }}
+                                alt="description"
+                                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
+                              />
+                            </span>
+              </button>
+              
+          </div>
+     
+    )
+  }
+
+  addClick() {
+    
+    this.setState(prevState => ({ emails: [...prevState.emails, ""] }))
+  
+  
+  }
+
+  removeClick(i) {
+    let emails = [...this.state.emails];
+    emails.splice(i, 1);
+    this.setState({ emails });
+  
+  }
 
   parseError(error) {
     if (
@@ -205,150 +241,159 @@ class Home extends Component {
     return true;
   }
 
+  handleChange(i, event) {
+
+    let emails = [...this.state.emails];
+    console.log(`emails   BEGIN: ${JSON.stringify(emails)}`);
+    
+    //let email = { [key]: event.target.value };
+     emails[i]=event.target.value;
+    console.log (" what " + emails[i].concat(event.target.value));
+    console.log(`emails: ${JSON.stringify(emails)}`);
+    
+    this.setState({ emails });
+  };
+
+  
+
+
   render() {
-   
+
     //new login
     return (
       <div className="app">
+        
+        {/* Choose previous quiz */}
         <div className="login_background">
           <div className="login_background_cloumn">
             <div className="ISSUER_Logo" />
             {/* <div className="login_background_issuerImage" /> */}
-            <div className="form_wrap">
-              <div className="form_container">
-                {/* <div className="form_container_headerText"> New Question </div>  */}
-                {/* <div className="form_container_subtext"> */}
-                 New Round
-                </div>
-              {/* <form onSubmit={this.handleSubmit}>
+            <div className="tile_wrap">
+              <div className="card-product_Stats">
+                <div className="form_wrap">
+                  <div className="form_container2">
                 
+                    
+
+                  
+                {this.state.isGameCreated ? ''
+                  :
+                   <div>
+                    <div className="form_container_subtext">
+                      Select a previous Quiz
+                    </div>
+                    <div className="dropdown-menu-quizzes"  >
+                      {this.state.quizzes.map((rowdata, i) => {
+                        return (
+                           <option  className="dropdown-item" key={i} id={rowdata.id} onClick={this.onClickHandler}> 
+                           {rowdata.name} 
+                           </option>
+                           
+                        )
+                      })
+                      }
+                    </div>  
+                  </div>
+                  }
+                 
+                   
 
 
-                <input
-                  className="question"
-                  type="input"
-                  name="question"
-                  placeholder="Question"
-                  autoComplete="Question"
-                  value={this.state.firstName}
-                  onChange={this.handleChange}
-                  required
-                />
+                    {this.state.isQuizSelected  && !this.state.isGameCreated ?  
+                    <div>
+                        <h3>
+                        Selected quiz : {this.state.quizSelected.name}  
+                        </h3> 
+                    
+                         <p>      Enter email adresses and start a game
+                      </p>
+                      </div>
+                    
+                      : [
+                        
+                          (!this.state.isGameCreated ? 
+                            <div> 
+                                    <p>
+                                      <br></br>
+                                      OR
+                                    </p>
+                                        {/* <button href="/#/createquiz"><span className="form_container_text_link"> Create a brand new Quiz </span></button>   */}
+                                      <form action="/#/createquiz"> 
+                                        <button color="primary" className="login_button"  href="/#/createquiz">
+                                          Create a brand new Quiz 
+                                          <span>
+                                          <img
+                                            style={{ marginLeft: '5px' }}
+                                            alt="description"
+                                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
+                                          />
+                                          
+                                        </span>
+                                      </button>
+                                       </form> 
+                               
+                                </div>
+                            : null
+                          )
+                      ]
+                    }
+                    {this.state.isQuizSelected && !this.state.isGameCreated  ?  
+                    <form  onSubmit={this.startGameWithEmails}>
+                       {this.getEmailAdresses()}
+                    <button type="submit" color="primary" className="login_button" >
+                                Start Game 
+                                  <span>
+                                  <img
+                                    style={{ marginLeft: '5px' }}
+                                    alt="description"
+                                    src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
+                                  />
+                                </span>
+                              </button>
+                      </form>
+                     
+                   : <br></br>
+                    }
 
-                <div className="login_error_email">{this.state._firstNameError}</div>
-
-                <input
-                  className="answer"
-                  type="input"
-                  name="answer"
-                  placeholder="Answer"
-                  autoComplete="Answer"
-                  value={this.state.surname}
-                  onChange={this.handleChange}
-                  required
-                />
-
-                <div className="login_error_email">{this.state._surnameError}</div>
-
-
-                <button type="submit" color="primary" className="login_button">
-                  Submit Round
-                    <span>
-                    <img
-                      style={{ marginLeft: '5px' }}
-                      alt="description"
-                      src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                    />
-                  </span>
-                </button>
-              </form> */}
-
-
-              <form onSubmit={this.handleSubmit}>
-                {this.createUI()}  
-                <button  type="submit" color="primary" className="login_button" onClick={this.addClick.bind(this)}>
-                  Add question
-                    <span>
-                    <img
-                      style={{ marginLeft: '5px' }}
-                      alt="description"
-                      src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                    />
-                  </span>
-                </button> 
-                <button  type="submit" value="submit" color="primary" className="login_button" >
-                  Submit Round
-                    <span>
-                    <img
-                      style={{ marginLeft: '5px' }}
-                      alt="description"
-                      src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                    />
-                  </span>
-                </button> 
-
-                {/* <input type='button' value='add more' onClick={this.addClick.bind(this)}/>
-                <input type="submit" value="Submit" /> */}
-              </form>
-
-
-              <div className="form_container_text">
-                Back to <a href="/#/login"><span className="form_container_text_link"> Previous Round </span></a>
-              </div>
-              {/* </div> */}
-            </div>
-          </div>
-        </div>
-
-
-
-        <div className="tile_wrap">
-          <div className="card-product_Stats">
-          <div className="form_wrap">
-              <div className="form_container2">
-                <div className="form_container_subtext">
-                  Quizes
+                    {this.state.isGameCreated ?  
+                    <div>
+                      {this.getGameInfo()}
+                    </div>
+                       : ''                 
+                    } 
+            
                 </div>
-                <form onSubmit={this.getAllQuizzes}>
-                  <button type="submit" color="primary" className="login_button">
-                    Get All Quizzes
-                    <span>
-                      <img
-                        style={{ marginLeft: '5px' }}
-                        alt="description"
-                        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                      />
-                    </span>
-                  </button>
-                </form>
-              </div>
+                  </div>
+                  </div>
+                 
+
+             </div>
             </div>
           </div>
-        </div>
+          
+          
+                      
+      
+      
 
-        <div className="tile_wrap">
-          <div className="card-product_Stats">
-          <div className="rwd-table">
-                <table>
-                  <tbody className="TableBody">
-                    {/* <tr style={{ backgroundColor: '#f8f8f8', color: 'black', cursor: 'pointer' }}>
-                      <th>Category</th>
-                      <th>Entity</th>
-                      <th>Winner</th>
-                      <th>Year</th>
-                    </tr> */}
-
-                    {this.state.quizzes.map((rowdata, i) => {
-                      return (<tr style={{ cursor: 'pointer' }}>
-                        <td data-th="Name"> {rowdata.name} </td>
-                      </tr>)
-                    })}
-                  </tbody>
-                </table>
+       {/* New Quiz
+      <div className="login_background">
+        <div className="login_background_cloumn">
+         <div className="ISSUER_Logo" />
+            <div className="form_wrap">
+              {this.buildQuiz()}
               </div>
-          </div>
-        </div>
-      </div>
+              </div>
+            </div>
+       */}
+      
+      {/* App div */}
+      </div>      
+
+      
+    
+    
+   
     );
   }
 }

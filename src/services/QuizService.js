@@ -17,7 +17,7 @@ exports.getQuiz = (id) => {
   }
 };
 
-exports.getAllQuizzes = (id) => {
+exports.getAllQuizzes = () => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 
   if (authHeader) {

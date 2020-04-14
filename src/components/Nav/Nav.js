@@ -31,9 +31,16 @@ class Nav extends Component {
     const result = axios
       .get(`${process.env.REACT_APP_API_URL}/api/v1/session/name`, config)
       .then(function(response) {
+        let username = response.data;
+        let atIndex = username.indexOf('@');
+
+        if (atIndex !== -1) {
+          username = username.substring(0, atIndex);
+        }
+
         thisObj.setState(
           Object.assign(thisObj.state, {
-            usersName: response.data
+            usersName: username
           })
         );
       })

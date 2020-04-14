@@ -1,7 +1,7 @@
 {
-    "name": "Signup",
+    "name": "AutoLogin",
     "version": "0.0.0",
     "private": true,
-    "main": "./Signup.js"
+    "main": "./AutoLogin.js"
   }
   
