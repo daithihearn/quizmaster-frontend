@@ -264,30 +264,33 @@ class Createquiz extends Component {
                                   </Button>
                                                 
                               
-
-                              <Button type="button" color="secondary" onClick={this.addRound}>
-                                Submit Round
-                              </Button>
-
-                              
-                              {this.state.rounds.length > 0 ? 
-                              <Button type="button" color="primary" onClick={this.submitQuiz}>
-                                Submit Quiz
-                              </Button>
-
-                              : null}
-
+                             
 
                             </Form>
                           </Row>
                           <Row>
                           
                             {this.state.questions.map((question, idx) =>
-                              <Container><Row><Col>{question.question}</Col><Col><Button type="button" color="link" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></Col></Row></Container>
+                              <Container><Row className="row_min"><Col>{question.question}</Col><Col><Button type="button" color="link" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></Col></Row></Container>
                             )}
                           </Row>
                         </Container>
                         : null} 
+
+                    <form>
+                     
+                     <Button type="button" color="primary" onClick={this.addRound}>
+                       Submit Round
+                     </Button>
+
+                     {this.state.rounds.length > 0 ? 
+                     <Button type="button" color="primary" onClick={this.submitQuiz}>
+                       Submit Quiz
+                     </Button>
+
+                     : null}
+                     
+                    </form>
                   
                   </TabPane>
                   <TabPane tabId="2">
@@ -323,9 +326,7 @@ class Createquiz extends Component {
                       )}
                       </Row>
                       : "No rounds have been added yet"}
-
-
-                    
+            
                   </TabPane>
                 </TabContent>
                 </Row>
@@ -359,7 +360,9 @@ class Createquiz extends Component {
 
           </Row>
           <Row>
-            Back to <a href="/#/home"><span className="form_container_text_link"> Home</span></a>
+            
+            Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
+           
           </Row>
       </Container>
 
