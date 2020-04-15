@@ -10,8 +10,16 @@ import classnames from 'classnames';
 class Scoring extends Component {
   constructor(props) {
     super(props);
+
+    let game = {};
+    if (!props.location.state) {
+      game = JSON.parse(sessionStorage.getItem("game"));
+    } else {
+      game = props.location.state.game;
+    }
+    sessionStorage.setItem("game", JSON.stringify(game));
     
-    this.state = { game: props.location.state.game, answers: [], activeTab: '1' };
+    this.state = { game: game, answers: [], activeTab: '1' };
     
     sessionUtils.checkLoggedIn();
     
@@ -28,22 +36,6 @@ class Scoring extends Component {
     if (this.state.activeTab !== tab) {
       this.setState(Object.assign(this.state, { activeTab: tab }));
     }
-  }
-
-  getGameId(gameId) {
-    if (!gameId) {
-      return sessionStorage.getItem("gameId");
-    }
-    sessionStorage.setItem("gameId", gameId);
-    return gameId;
-  }
-
-  getQuizId(quizId) {
-    if (!quizId) {
-      return sessionStorage.getItem("quizId");
-    }
-    sessionStorage.setItem("quizId", quizId);
-    return quizId;
   }
 
   loadQuiz() {

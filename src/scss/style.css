@@ -12118,7 +12118,7 @@ html body .app.flex-row.align-items-center {
 .form_container {
   font-size: 16px;
   line-height: 24px;
-  padding: 200px 20px 0 20px; }
+  padding: 50px 20px 0 20px; }
   .form_container_headerText {
     height: 40px;
     width: 92px;
@@ -12147,10 +12147,19 @@ html body .app.flex-row.align-items-center {
     text-align: center;
     margin: 40px auto 20px auto; }
     .form_container_text_link {
-      color: #000000;
+      color: #355ea3;
       font-weight: 700;
       font-family: "Open Sans";
+      padding: 10%;
       cursor: pointer; }
+
+.row {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 0px 20px; }
+  .row_min {
+    margin-top: 0px;
+    margin-bottom: 0px; }
 
 .firstName {
   height: 60px;
@@ -12231,7 +12240,7 @@ html body .app.flex-row.align-items-center {
   .login_background_issuerImage {
     display: none; }
   .ISSUER_Logo {
-    background: url("../assets/icons/logo2.svg");
+    background: url("../assets/icons/logo.jpg");
     display: none; }
   .form_wrap {
     min-width: 0;
@@ -12243,7 +12252,8 @@ html body .app.flex-row.align-items-center {
   background-color: #212121; }
   .navigation_Tab_container {
     background-color: black;
-    height: 350px; }
+    height: 350px;
+    padding-top: 50%; }
   .navigation_Tab_logo {
     margin: 0 0 15px 15px;
     pointer-events: none; }
