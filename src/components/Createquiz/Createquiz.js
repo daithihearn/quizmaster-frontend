@@ -1,9 +1,10 @@
 import React, { Component, useState } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
-import ImageSelectPreview from 'react-image-select-pv';
+// import ImageSelectPreview from 'react-image-select-pv';
 import { TabContent, TabPane, Nav, NavItem, NavLink, Button, Form, FormGroup, Label, Input, Container, Row, Col, Media } from 'reactstrap';
 import classnames from 'classnames';
+import nextId from "react-id-generator";
 
 class Createquiz extends Component {
 
@@ -11,25 +12,20 @@ class Createquiz extends Component {
   constructor(props) {
     super(props);
     this.state = { 
-      questions: [ { value: '', imageUri:'',answer: '' , index: 0 }],
+      questions: [],
+      rounds: [],
       quizName:'',
-       canSubmitRound:false,
-       canSubmitQuiz:false,
-       isQuizCreated: false, 
-       isQuizSubmited:false,
-       roundNumber:0, 
-      
-       quizToPersist:
-        {
-          name: '',
-          rounds: [
-         
-        ]
-        },
-       activeTab: '1' 
-      };
+      isQuizCreated: false, 
+      isQuizSubmited:false,
+      activeTab: '1',
+      newImage: {}
+    };
 
     this.toggle = this.toggle.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.handleChangeImage = this.handleChangeImage.bind(this);
+    this.addQuestion = this.addQuestion.bind(this);
+    this.addRound = this.addRound.bind(this);
     sessionUtils.checkLoggedIn();
     sessionUtils.checkUserType();
   
@@ -42,6 +38,7 @@ class Createquiz extends Component {
   }
 
   createQuiz = event => {
+    event.preventDefault();
     this.setState(prevState => ({ isQuizCreated: !prevState.isQuizCreated})); 
   } 
     
@@ -53,99 +50,64 @@ class Createquiz extends Component {
     }
   }
 
-  handleChangeValue(i, event) {
-    let questions = [...this.state.questions];
-    questions[i].value = event.target.value;
-    
-    this.setState({ questions });
-  };
-
-  handleChangeAnswer(i, event) {
-
-    let questions = [...this.state.questions];
-    questions[i].answer = event.target.value;
-    questions[i].index=i;
-    
-    this.setState({ questions });
-
-  };
-
-  handleImageSelect(i, data) {
-    let questions = [...this.state.questions];
-    questions[i].imageUri = data[0].content;
-    questions[i].index=i;
-    this.setState({ questions });
-
-  }
-
-  handleChange = event => {
-    let key = event.target.getAttribute('name');
+  handleChange(event) {
+    let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
     this.setState(Object.assign(this.state, updateObj));
   }
 
-  addClick() {
+  handleChangeImage(event) {
+    let file = event.target.files[0]
     
-    if (this.state.questions.length >1){
-      this.setState ({canSubmitRound: true});
-   }else{
-     this.setState ({canSubmitRound: false});
-   }
-    this.setState(prevState => ({ questions: [...prevState.questions, { value: '', imageUri:'', answer: '' , index: 0 }] }))
+    let reader = new FileReader()
 
-  }
-
-  removeClick(i) { 
-    let questions = [...this.state.questions];
-    questions.splice(i, 1);
-    this.setState({ questions });
-
-    // not working 
-    if (questions.length >1){   
-      this.setState ({canSubmitRound: true});
-   }else{
-     this.setState ({canSubmitRound: false});
-   }
-  }
-
-
-  createRound = event => {
-    
-    this.state.quizToPersist.name=this.state.quizName;
-    let numberForName = this.state.roundNumber+1;
-
-    this.state.quizToPersist.rounds= [...this.state.quizToPersist.rounds,
-      {
-          index: this.state.roundNumber,
-          name: ' Round ' + numberForName,
-          questions:this.state.questions
-          
-      }
-      
-    ]
-
-    this.state.roundNumber=  this.state.roundNumber+1;
-    this.state.questions=[];
-    this.addClick();
-
-    if(this.state.roundNumber>0){
-      this.setState ({canSubmitQuiz: true});
+    reader.onloadend = () => {
+      this.setState(Object.assign(this.state, {newImage: {
+        file: file,
+        imagePreviewUrl: reader.result
+      }}));
     }
+
+    reader.readAsDataURL(file);
+  }
+
+  addQuestion = event => {
     event.preventDefault();
+    let updatedQuestions = this.state.questions;
+    updatedQuestions.push({ question: this.state.newQuestion, answer: this.state.newAnswer, imageUri: this.state.newImage.imagePreviewUrl, id: nextId() });
+
+    this.setState(Object.assign(this.state, {questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}}));
+    event.currentTarget.reset();
+  }
+
+  removeQuestion(idx) {
+    let questions = [...this.state.questions];
+    questions.splice(idx, 1);
+    this.setState(Object.assign(this.state, { questions: questions }));
+  }
+
+  addRound = event => {
+    let updatedRounds = this.state.rounds;
+    updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: nextId() });
+
+    this.setState(Object.assign(this.state, {rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newRoundName: ''}));
+  }
+
+  removeRound(idx) {
+    let rounds = [...this.state.rounds];
+    rounds.splice(idx, 1);
+    this.setState(Object.assign(this.state, { rounds: rounds }));
   }
 
   submitQuiz = event => {
-
-    console.log(`Quiz submitted********: ${JSON.stringify(this.state.quizToPersist)}`);
-
-    quizService.putQuiz(this.state.quizToPersist).then(response =>
-      console.log(response)
-    ).catch(error =>
-      console.log(error)
-    );
-    this.setState ({isQuizSubmited: true});
-
     event.preventDefault();
+    let thisObj = this;
+    
+    let quiz = { name: this.state.quizName, rounds: this.state.rounds };
+    
+    quizService.putQuiz(quiz).then(response =>
+      thisObj.setState ({isQuizSubmited: true})
+    ).catch(error => thisObj.parseError(error));
   };
 
   parseError(error) {
@@ -205,13 +167,6 @@ class Createquiz extends Component {
           <Row>
             
 
-
-
-
-
-
-
-
             {!!this.state.isQuizCreated ?
           
               <Container>
@@ -254,64 +209,68 @@ class Createquiz extends Component {
                   {!this.state.isQuizSubmited ?
                       <Container>
                         <Row>
-                          <h2>Round number {this.state.roundNumber+1}</h2>
-                        </Row>
-                        <Row>
-                            <Form onSubmit={this.createRound}>
+                            <Form onSubmit={this.addQuestion}>
 
-                              {this.state.questions.map((v, i) =>
-                                <div key={i}>
-                                  
                                   <FormGroup>
+                                    <Input
+                                        className="newRoundName"
+                                        type="input"
+                                        name="newRoundName"
+                                        placeholder="Round Name"
+                                        autoComplete="Round Name"
+                                        value={this.state.newRoundName}
+                                        onChange={this.handleChange}
+                                        required
+                                      />
+                                    
                                 
                                     <Input
-                                      className="question"
+                                      className="newQuestion"
                                       type="input"
-                                      name="question"
+                                      name="newQuestion"
                                       placeholder="Question"
                                       autoComplete="Question"
-                                      value={v.value || ''}
-                                      onChange={this.handleChangeValue.bind(this, i)}
+                                      value={this.state.newQuestion}
+                                      onChange={this.handleChange}
                                       required
                                     />
                                   </FormGroup>
                                   <FormGroup>
-                                  <ImageSelectPreview 
+                                  {/* <ImageSelectPreview 
                                               max={1}
+                                              name="newImage"
                                               imageTypes="png|jpg|gif"
-                                              onChange={this.handleImageSelect.bind(this,i)}/>
+                                              onChange={this.handleChangeImage}/> */}
+
+                                      <Input type="file" name="newImage" onChange={this.handleChangeImage} />
+                                      {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl}  height="64" width="64"/> : null }
+
                                   </FormGroup>
                                   <FormGroup>
                                     <Input
-                                      className="answer"
+                                      className="newAnswer"
                                       type="input"
-                                      name="answer"
+                                      name="newAnswer"
                                       placeholder="Answer"
                                       autoComplete="Answer"
-                                      value={v.answer || ''}
-                                      onChange={this.handleChangeAnswer.bind(this, i)}
+                                      value={this.state.newAnswer}
+                                      onChange={this.handleChange}
                                       required
                                     />
                                   </FormGroup>
-
-                                  <Button type="submit" color="link" onClick={this.removeClick.bind(this, i)}>
-                                    Remove question
-                                  </Button>
                                 
-                                  <Button type="submit" color="link" onClick={this.addClick.bind(this)}>
+                                  <Button type="submit" color="link">
                                     Add question
-                                  </Button>   
+                                  </Button>
                                                 
-                                </div>
+                              
 
-                              )}
-
-                              <Button type="submit" color="secondary">
-                                Submit Round {this.state.roundNumber+1}
+                              <Button type="button" color="secondary" onClick={this.addRound}>
+                                Submit Round
                               </Button>
 
                               
-                              {this.state.canSubmitQuiz ? 
+                              {this.state.rounds.length > 0 ? 
                               <Button type="button" color="primary" onClick={this.submitQuiz}>
                                 Submit Quiz
                               </Button>
@@ -319,24 +278,24 @@ class Createquiz extends Component {
                               : null}
 
 
-                              {this.state.roundNumber > 0 ?
-                                    
-                                  <Button type="button" color="link"><a href="/#/login">Back to Previous Round</a></Button>
-
-                              : null}
-
-
                             </Form>
+                          </Row>
+                          <Row>
+                          
+                            {this.state.questions.map((question, idx) =>
+                              <Container><Row><Col>{question.question}</Col><Col><Button type="button" color="link" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></Col></Row></Container>
+                            )}
                           </Row>
                         </Container>
                         : null} 
                   
                   </TabPane>
                   <TabPane tabId="2">
-                    <Row>
+                    
 
-
-                    {this.state.quizToPersist.rounds.map(round =>
+                    {!!this.state.rounds || this.state.rounds.length == 0 ?
+                      <Row>
+                      {this.state.rounds.map((round, idx) =>
                         <Container>
                           <Row>
                             <h2>{round.name}</h2>
@@ -344,28 +303,29 @@ class Createquiz extends Component {
                           <Row>
                               {round.questions.map(question => 
 
-                                <Media>
+                                <Container>
+                                  <Row>
+                                    <Col>Question</Col><Col>{question.question}</Col>
+                                  </Row>
+                                  <Row> 
+                                    <Col>Answer</Col><Col>{question.answer}</Col>
+                                  </Row>
                                   {question.imageUri ?
-                                  <Media left href="#">
-                                    <Media object src={question.imageUri} height="64" width="64" alt="Generic placeholder image" />
-                                  </Media>:null}
-                                  <Media body>
-                                    <Media heading>
-                                      Question {question.index + 1}: {question.value}
-                                    </Media>
-                                    <Media body> 
-                                    Answer: {question.answer}
-                                    </Media>
-                                  </Media>
-                                </Media>
+                                  <Row>
+                                    <img src={question.imageUri} height="64" width="64" />
+                                  </Row>:null}
+                                </Container>
 
                               )}
                             </Row>
-                        </Container>
+                            <Row><Button type="button" color="link" onClick={this.removeRound.bind(this, idx)}>Remove</Button></Row>
+                          </Container>
                       )}
+                      </Row>
+                      : "No rounds have been added yet"}
 
 
-                    </Row>
+                    
                   </TabPane>
                 </TabContent>
                 </Row>
@@ -376,7 +336,7 @@ class Createquiz extends Component {
               
               <div>
                   <h2>New Quiz</h2>
-                <Form>
+                <Form onSubmit={this.createQuiz}>
                   <FormGroup>
                     <Input
                       className="quizName"
@@ -389,22 +349,13 @@ class Createquiz extends Component {
                       required
                     />
                     </FormGroup>  
-                    <Button type="button" color="primary" onClick={this.createQuiz}>
+                    <Button type="submit" color="primary">
                     Create Quiz
                     </Button>
                   </Form>
               </div>
             
             }
-
-
-
-
-
-
-
-
-
 
           </Row>
           <Row>

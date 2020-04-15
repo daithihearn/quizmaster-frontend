@@ -102,8 +102,8 @@ class Game extends Component {
     
     let answer = {
       gameId: this.state.question.gameId,
-      roundIndex: this.state.question.roundIndex,
-      questionIndex: this.state.question.questionIndex,
+      roundId: this.state.question.roundId,
+      questionId: this.state.question.questionId,
       answer: this.state.answer
     }
     

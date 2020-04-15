@@ -102,12 +102,12 @@ class Scoring extends Component {
 
   handlePublishQuestion = event => {
     let thisObj = this;
-    let roundIndex = event.target.elements.roundIndex.value;
-    let questionIndex = event.target.elements.questionIndex.value;
+    let roundId = event.target.elements.roundId.value;
+    let questionId = event.target.elements.questionId.value;
     event.preventDefault();
     console.log(`Publishing question`);
 
-    let payload = {gameId: this.state.gameId, roundIndex: roundIndex, questionIndex: questionIndex};
+    let payload = {gameId: this.state.gameId, roundId: roundId, questionId: questionId};
 
     console.log(JSON.stringify(payload));
 
@@ -191,7 +191,7 @@ class Scoring extends Component {
                   className={classnames({ active: this.state.activeTab === '2' })}
                   onClick={() => { this.toggle('2'); }}
                 >
-                  Answers
+                  Answers ({!!this.state.answers ? this.state.answers.length : 0})
                 </NavLink>
               </NavItem>
               <NavItem>
@@ -212,17 +212,17 @@ class Scoring extends Component {
                   <Container>
                     <Row><h2>{this.state.quiz.name}</h2></Row>
                     <Row>
-                        {this.state.quiz.rounds.map((round, roundIndex) => (
+                        {this.state.quiz.rounds.map((round) => (
                           <Container>
                           <Row>
                             <h3>Round: {round.name}</h3>
                           </Row>
                           
-                            {round.questions.map((question, questionIndex) => (
+                            {round.questions.map((question) => (
                               <Row>
                               
                                 <Form onSubmit={this.handlePublishQuestion}>
-                                  <FormGroup>Question: {question.value}</FormGroup>
+                                  <FormGroup>Question: {question.question}</FormGroup>
                                   <FormGroup>Answer: {question.answer}</FormGroup>
                                   
                                   {!!question.imageUri ?
@@ -230,17 +230,17 @@ class Scoring extends Component {
                                   : null}
                                     
                                   <Input
-                                    className="roundIndex"
+                                    className="roundId"
                                     type="input"
-                                    name="roundIndex"
-                                    value={roundIndex}
+                                    name="roundId"
+                                    value={round.id}
                                     hidden
                                     required />
                                   <Input
-                                    className="questionIndex"
+                                    className="questionId"
                                     type="input"
-                                    name="questionIndex"
-                                    value={questionIndex}
+                                    name="questionId"
+                                    value={question.id}
                                     hidden
                                     required />
 
@@ -265,7 +265,7 @@ class Scoring extends Component {
                     <Row>
 
                       <Container>
-                        <Row><Col>Question</Col><Col>{answer.question.value}</Col></Row>
+                        <Row><Col>Question</Col><Col>{answer.question.question}</Col></Row>
                         <Row><Col>Correct Answer</Col><Col>{answer.question.answer}</Col></Row>
                         <Row><Col>Answer Provided</Col><Col>{answer.answer.answer}</Col></Row>
                       </Container>
@@ -287,6 +287,7 @@ class Scoring extends Component {
                               name="score"
                               placeholder="Score"
                               autoComplete="Score"
+                              value={answer.question.score}
                               onChange={this.handleChange}
                               required
                             />

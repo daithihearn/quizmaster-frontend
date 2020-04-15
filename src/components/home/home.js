@@ -50,19 +50,17 @@ class Home extends Component {
       .catch(error => thisObj.parseError(error));
   };
 
-  startGameWithEmails = event => {
-    event.preventDefault();
+  startGameWithEmails() {
 
     let thisObj = this;
-    let gameEmails= 
-    {
+    let gameEmails = {
       playerEmails: this.state.emails,
       quizId: this.state.quizSelected.id
     }
 
     gameService.put(gameEmails).then(response => {
 
-      thisObj.setState(Object.assign(thisObj.state, { game: response.data, isGameCreated:true, emails: [], currentEmail: '' }));
+      thisObj.setState(Object.assign(thisObj.state, { game: response.data, isGameCreated: true, emails: [], currentEmail: '' }));
       console.log(`Game created with id: ${JSON.stringify(response.data)}`);
      })
        .catch(error => thisObj.parseError(error));
@@ -101,7 +99,8 @@ class Home extends Component {
 
   };
 
-  addPlayer() {
+  addPlayer = event => {
+    event.preventDefault();
     let updatedEmails = this.state.emails;
     updatedEmails.push(this.state.currentEmail);
 
@@ -109,7 +108,6 @@ class Home extends Component {
   }
 
   removePlayer(idx) {
-    console.log("Index" + idx)
     let emails = [...this.state.emails];
     emails.splice(idx, 1);
     this.setState({ emails });
@@ -215,7 +213,7 @@ class Home extends Component {
                       <Row>
                         <Form action="/#/createquiz"> 
                           <Button color="primary" href="/#/createquiz">
-                            Create a brand new Quiz 
+                            Create a new Quiz 
                           </Button>
                         </Form> 
                       </Row>
@@ -227,7 +225,7 @@ class Home extends Component {
                 
             {!!this.state.quizSelected && !this.state.isGameCreated  ?  
                 
-                  <Form onSubmit={this.startGameWithEmails}>
+                  <Form onSubmit={this.addPlayer}>
                       <FormGroup>
                         <Input
                             className="currentEmail"
@@ -241,11 +239,11 @@ class Home extends Component {
                           />
                       </FormGroup>
 
-                      <Button type="button" color="secondary" onClick={this.addPlayer.bind(this)}>
+                      <Button type="submit" color="secondary">
                         Add Player
                       </Button>
               
-                      <Button color="primary" type="submit">
+                      <Button color="primary" type="button" onClick={this.startGameWithEmails.bind(this)}>
                           Start Game 
                       </Button>
                   </Form>
