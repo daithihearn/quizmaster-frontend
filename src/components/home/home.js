@@ -15,20 +15,19 @@ class Home extends Component {
     super(props);
    
     this.state = { 
-      
-       quizzes: [],
-       emails:[],
-       currentEmail: '',
-       quizSelected: null,
-       isGameCreated:false,
-       game:{},
-       dropDownOpen: false
-      
+      activeGames: [],
+      quizzes: [],
+      emails:[],
+      currentEmail: '',
+      quizSelected: null,
+      game:{},
+      dropDownOpen: false
     };
     
     sessionUtils.checkLoggedIn();
 
     this.getAllQuizzes();
+    this.getActiveGames();
 
     this.handleChange = this.handleChange.bind(this);
     this.toggle = this.toggle.bind(this);
@@ -50,18 +49,26 @@ class Home extends Component {
       .catch(error => thisObj.parseError(error));
   };
 
+  getActiveGames()  {
+    let thisObj = this;
+
+    gameService.getActive().then(response => {
+      thisObj.setState(Object.assign(thisObj.state, { activeGames: response.data }));
+    })
+      .catch(error => thisObj.parseError(error));
+  };
+
   startGameWithEmails() {
 
     let thisObj = this;
     let gameEmails = {
       playerEmails: this.state.emails,
-      quizId: this.state.quizSelected.id
+      quizId: this.state.quizSelected.id,
+      name: this.state.quizSelected.name
     }
 
     gameService.put(gameEmails).then(response => {
-
-      thisObj.setState(Object.assign(thisObj.state, { game: response.data, isGameCreated: true, emails: [], currentEmail: '' }));
-      console.log(`Game created with id: ${JSON.stringify(response.data)}`);
+      thisObj.redirectToGame(response.data);
      })
        .catch(error => thisObj.parseError(error));
        
@@ -75,7 +82,7 @@ class Home extends Component {
     }
   }
 
-  onQuizSelect = event => {
+  onQuizSelect(event) {
 
     let quiz = { name: event.target.name, id:event.target.value };
     if (quiz.name === "None") {
@@ -85,21 +92,19 @@ class Home extends Component {
     }
   };
 
-  submitQuiz = event => {
+  submitQuiz(event) {
 
-    console.log(`Quiz submitted********: ${JSON.stringify(this.state.quizToPersist)}`);
+    let thisObj = this;
 
     quizService.putQuiz(this.state.quizToPersist).then(response =>
       console.log(response)
-    ).catch(error =>
-      console.log(error)
-    );
+    ).catch(error => thisObj.parseError(error));
 
     event.preventDefault();
 
   };
 
-  addPlayer = event => {
+  addPlayer(event) {
     event.preventDefault();
     let updatedEmails = this.state.emails;
     updatedEmails.push(this.state.currentEmail);
@@ -111,6 +116,23 @@ class Home extends Component {
     let emails = [...this.state.emails];
     emails.splice(idx, 1);
     this.setState({ emails });
+  }
+
+  redirectToGame(game) {
+    this.props.history.push({
+      pathname: '/scoring',
+      state: { game: game }
+    });
+  }
+
+  deleteGame(game, idx) {
+    let thisObj = this;
+    let activeGames = [...this.state.activeGames];
+    activeGames.splice(idx, 1);
+
+    gameService.delete(game.id)
+      .then(response => thisObj.setState(Object.assign(thisObj.state, { activeGames: activeGames })))
+      .catch(error => thisObj.parseError(error));
   }
 
   handleChange(event) {
@@ -170,60 +192,69 @@ class Home extends Component {
         <div className="form_wrap">
           <div className="form_container">
 
-            { !this.state.isGameCreated ?
-                <Container>
+            {this.state.activeGames.length > 0 ?
+              <Container>
+                <Row><h1>Active Games</h1></Row>
+                {this.state.activeGames.map((game, idx) => 
                   <Row>
-                    <Dropdown isOpen={this.state.dropDownOpen} toggle={this.toggle}>
-                      <DropdownToggle caret>
-                          {!!this.state.quizSelected?this.state.quizSelected.name:"Please select a quiz"}
-                        </DropdownToggle>
-                      <DropdownMenu>
-                      <DropdownItem onClick={this.onQuizSelect} value="None" name="None">
-                          None
-                      </DropdownItem>
-                      {this.state.quizzes.map((rowdata, i) => 
-                        <DropdownItem onClick={this.onQuizSelect} value={rowdata.id} name={rowdata.name}>
-                          {rowdata.name}
-                        </DropdownItem>
-                      )}
-                      </DropdownMenu>
-                    </Dropdown>
+                    <Col>{game.name}</Col>
+                    <Col><Button type="button" color="danger" onClick={this.deleteGame.bind(this, game, idx)}>Delete</Button></Col>
+                    <Col><Button type="button" color="secondary" onClick={this.redirectToGame.bind(this, game)}>Enter Game</Button></Col>
                   </Row>
-                </Container>
-              : null} 
-              
+                )}
+              </Container>
+            : null}
+
+
+              <Container>
+                <Row><h1>Available Quizzes</h1></Row>
+                <Row>
+                  <Dropdown isOpen={this.state.dropDownOpen} toggle={this.toggle}>
+                    <DropdownToggle caret>
+                        {!!this.state.quizSelected?this.state.quizSelected.name:"Please select a quiz"}
+                      </DropdownToggle>
+                    <DropdownMenu>
+                    <DropdownItem onClick={this.onQuizSelect} value="None" name="None">
+                        None
+                    </DropdownItem>
+                    {this.state.quizzes.map((rowdata, i) => 
+                      <DropdownItem onClick={this.onQuizSelect} value={rowdata.id} name={rowdata.name}>
+                        {rowdata.name}
+                      </DropdownItem>
+                    )}
+                    </DropdownMenu>
+                  </Dropdown>
+                </Row>
+              </Container>
                 
 
 
-            {!!this.state.quizSelected  && !this.state.isGameCreated ?  
+            {!!this.state.quizSelected ?  
               <Container>
                 <Row> 
-                <span>Enter email adresses and start a game</span>
+                <span>Enter email addresses and start a game</span>
                 </Row>
               </Container>
             
-              : [
+              :
                 
-                  (!this.state.isGameCreated ? 
-                    <Container> 
-                      <Row><span>
-                        OR
-                      </span>
-                      </Row>
-                      <Row>
-                        <Form action="/#/createquiz"> 
-                          <Button color="primary" href="/#/createquiz">
-                            Create a new Quiz 
-                          </Button>
-                        </Form> 
-                      </Row>
-                    </Container>
-                    : null
-                  )
-              ]
+              <Container> 
+                <Row><span>
+                  OR
+                </span>
+                </Row>
+                <Row>
+                  <Form action="/#/createquiz"> 
+                    <Button color="primary" href="/#/createquiz">
+                      Create a new Quiz 
+                    </Button>
+                  </Form> 
+                </Row>
+              </Container>
+
             }
                 
-            {!!this.state.quizSelected && !this.state.isGameCreated  ?  
+            {!!this.state.quizSelected ?  
                 
                   <Form onSubmit={this.addPlayer}>
                       <FormGroup>
@@ -257,25 +288,6 @@ class Home extends Component {
                   )}
                 </Container>
 
-
-                {!!this.state.quizSelected && this.state.isGameCreated && !!this.state.game.players ?  
-                  <Container>
-                    <Row>
-                    <h2>Game Id generated: { this.state.game.id } </h2>
-                    </Row>
-                    <Row>
-                      Number of Player for this game: { this.state.game.players.length }
-                    </Row>
-                    <Row> 
-                      <Link to={{
-                        pathname: '/scoring',
-                        gameId: this.state.game.id,
-                        quizId: this.state.quizSelected.id
-
-                      }}> Start Game </Link>
-                    </Row>
-                </Container>
-              : null}
             </div>
           </div>
         </div>

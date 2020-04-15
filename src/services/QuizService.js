@@ -11,8 +11,6 @@ exports.getQuiz = (id) => {
     };
     const result = axios
       .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz?id=${id}`, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when getting quiz: ', error));
     return result;
   }
 };
@@ -29,8 +27,6 @@ exports.getAllQuizzes = () => {
     };
     const result = axios
       .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/all`, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when getting all quizzes: ', error));
     return result;
   }
 };
@@ -46,8 +42,6 @@ exports.putQuiz = (quiz) => {
     };
     const result = axios
       .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz`, quiz, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when uploading quiz: ', error));
     return result;
   }
 };
@@ -63,8 +57,6 @@ exports.deleteQuiz = (id) => {
     };
     const result = axios
       .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz?id=${id}`, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when getting quiz: ', error));
     return result;
   }
 };

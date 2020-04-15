@@ -11,10 +11,7 @@ class Scoring extends Component {
   constructor(props) {
     super(props);
     
-    let gameId = this.getGameId(this.props.location.gameId);
-    let quizId = this.getQuizId(this.props.location.quizId);
-    
-    this.state = { gameId: gameId, quizId: quizId, answers: [], activeTab: '1' };
+    this.state = { game: props.location.state.game, answers: [], activeTab: '1' };
     
     sessionUtils.checkLoggedIn();
     
@@ -51,9 +48,8 @@ class Scoring extends Component {
 
   loadQuiz() {
     let thisObj = this;
-    let quizId = this.state.quizId;
     
-    quizService.getQuiz(quizId).then(response => {
+    quizService.getQuiz(this.state.game.quizId).then(response => {
       thisObj.setState(Object.assign(thisObj.state, { quiz: response.data }));
     }).catch(error => thisObj.parseError(error));
   }
@@ -62,7 +58,7 @@ class Scoring extends Component {
 
     let thisObj = this;
 
-    answerService.getUnscoredAnswers(this.state.gameId).then(response => {
+    answerService.getUnscoredAnswers(this.state.game.id).then(response => {
       thisObj.setState(Object.assign(thisObj.state, { answers: response.data }));
     }).catch(error => thisObj.parseError(error));
   }
@@ -107,7 +103,7 @@ class Scoring extends Component {
     event.preventDefault();
     console.log(`Publishing question`);
 
-    let payload = {gameId: this.state.gameId, roundId: roundId, questionId: questionId};
+    let payload = {gameId: this.state.game.id, roundId: roundId, questionId: questionId};
 
     console.log(JSON.stringify(payload));
 
@@ -121,7 +117,7 @@ class Scoring extends Component {
     event.preventDefault();
     console.log(`Publishing Leaderboard`)
 
-    answerService.publishLeaderboard(this.state.gameId).then(response => {
+    answerService.publishLeaderboard(this.state.game.id).then(response => {
       // TODO: Do something
     }).catch(error => thisObj.parseError(error));
   }
