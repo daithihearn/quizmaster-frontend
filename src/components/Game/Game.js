@@ -9,7 +9,7 @@ import { Button, Form, FormGroup, Label, Input, Container, Row, Col } from 'reac
 class Game extends Component {
   constructor(props) {
     super(props);
-    this.state = { waiting: true, question: null, answer: "", leaderboard: null };
+    this.state = { waiting: true, question: null, answer: "", leaderboard: null, roundSummary: null };
     sessionUtils.checkLoggedIn();
 
     createTheme('solarized', {
@@ -77,12 +77,14 @@ class Game extends Component {
 
     switch (content.type) {
       case("QUESTION"):
-        this.setState(Object.assign(this.state,{waiting: false, question: content.content, answer: "", leaderboard: null}));
+        this.setState(Object.assign(this.state,{waiting: false, question: content.content, answer: "", leaderboard: null, roundSummary: null}));
         break;
       case("LEADERBOARD"): 
-        this.setState(Object.assign(this.state,{waiting: false, question: null, answer: "", leaderboard: content.content}));
+        this.setState(Object.assign(this.state,{waiting: false, question: null, answer: "", leaderboard: content.content, roundSummary: null}));
         break;
       case("ROUND_SUMMARY"):
+        this.setState(Object.assign(this.state,{waiting: false, question: null, answer: "", leaderboard: null , roundSummary: content.content}));
+        break;
       case("GAME_SUMMARY"):
       default:
         this.setState({ waiting: true, question: null, answer: "", leaderboard: null })
@@ -206,6 +208,36 @@ class Game extends Component {
                 theme="solarized"
             />
 
+          : null
+          }
+
+          {!!this.state.roundSummary ? 
+              <div>
+
+                <Container>
+                  <Row>
+                    <h2>{this.state.roundSummary.name}</h2>
+                  </Row>
+                  <Row>
+                      {this.state.roundSummary.questions.map(question => 
+
+                        <Container>
+                          <Row>
+                            <Col>Question</Col><Col>{question.question}</Col>
+                          </Row>
+                          <Row> 
+                            <Col>Answer</Col><Col>{question.answer}</Col>
+                          </Row>
+                          {question.imageUri ?
+                          <Row>
+                            <img src={question.imageUri} height="64" width="64" />
+                          </Row>:null}
+                        </Container>
+
+                      )}
+                    </Row>
+                  </Container>
+            </div>
           : null
           }
         

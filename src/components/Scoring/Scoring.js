@@ -112,13 +112,22 @@ class Scoring extends Component {
     }).catch(error => thisObj.parseError(error));
   }
 
-  publishLeaderboard = event => {
+  publishLeaderboard(event) {
     let thisObj = this;
     event.preventDefault();
     console.log(`Publishing Leaderboard`)
 
     answerService.publishLeaderboard(this.state.game.id).then(response => {
       // TODO: Do something
+    }).catch(error => thisObj.parseError(error));
+  }
+
+  publishAnswersForRound(round) {
+    let thisObj = this;
+
+    answerService.publishAnswersForRound(this.state.game.id, round.id)
+      .then(response => {
+        // TODO: Do something
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -298,9 +307,21 @@ class Scoring extends Component {
               </TabPane>
 
               <TabPane tabId="3">
-                <Button type="button" color="primary" onClick={this.publishLeaderboard}>
+                <Container>
+                <Row><Col></Col><Col><Button type="button" color="primary" onClick={this.publishLeaderboard.bind(this)}>
                       Publish Leaderboard
-                </Button>
+                </Button></Col></Row>
+
+                {!!this.state.quiz ?
+                <div>
+                {this.state.quiz.rounds.map((round) => 
+                  <Row><Col>Round: {round.name}</Col><Col><Button type="button" color="primary" onClick={this.publishAnswersForRound.bind(this, round)}>
+                        Publish Answers 
+                  </Button></Col></Row>
+                )}
+                </div>
+                : null}
+                </Container>
               </TabPane>
             </TabContent>
           </div>

@@ -77,3 +77,21 @@ exports.publishLeaderboard = (id) => {
     return result;
   }
 };
+
+
+
+exports.publishAnswersForRound = (gameId, roundId) => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/json"
+      }
+    };
+    const result = axios
+      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/answer/publishAnswersForRound?gameId=${gameId}&roundId=${roundId}`, null, config)
+    return result;
+  }
+};

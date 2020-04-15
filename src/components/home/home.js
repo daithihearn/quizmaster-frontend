@@ -29,6 +29,7 @@ class Home extends Component {
     this.getAllQuizzes();
     this.getActiveGames();
 
+    this.addPlayer = this.addPlayer.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.toggle = this.toggle.bind(this);
     this.onQuizSelect = this.onQuizSelect.bind(this);
