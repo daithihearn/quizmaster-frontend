@@ -102,7 +102,7 @@ class Login extends Component {
   }
 
   showResponse() {
-    if (!this.state._txHash) {
+    if (!this.state._message) {
       return false;
     }
     return true;

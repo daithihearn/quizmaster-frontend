@@ -4,8 +4,7 @@ import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
-import { TabContent, TabPane, Nav, NavItem, NavLink, Button, Form, FormGroup, Label, Input, Container, Row, Col, Media } from 'reactstrap';
-import classnames from 'classnames';
+import { Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
 
 class Scoring extends Component {
   constructor(props) {
@@ -19,23 +18,15 @@ class Scoring extends Component {
     }
     sessionStorage.setItem("game", JSON.stringify(game));
     
-    this.state = { game: game, answers: [], activeTab: '1' };
+    this.state = { game: game, answers: []};
     
     sessionUtils.checkLoggedIn();
     
     this.handleChange = this.handleChange.bind(this);
-    this.toggle = this.toggle.bind(this);
-    this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
-    this.handlePublishQuestion = this.handlePublishQuestion.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
+    this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
     this.loadAllUnscoredAnswers();
     this.loadQuiz();
-  }
-
-  toggle(tab) {
-    if (this.state.activeTab !== tab) {
-      this.setState(Object.assign(this.state, { activeTab: tab }));
-    }
   }
 
   loadQuiz() {
@@ -72,7 +63,7 @@ class Scoring extends Component {
     this.setState(Object.assign(this.state, updateObj));
   }
 
-  handleCorrectAnswer = event => {
+  handleCorrectAnswer(event) {
     let thisObj = this;
     let index = event.target.elements.index.value;
     event.preventDefault();
@@ -88,11 +79,8 @@ class Scoring extends Component {
     }).catch(error => thisObj.parseError(error));
   }
 
-  handlePublishQuestion = event => {
+  handlePublishQuestion(roundId, questionId) {
     let thisObj = this;
-    let roundId = event.target.elements.roundId.value;
-    let questionId = event.target.elements.questionId.value;
-    event.preventDefault();
     console.log(`Publishing question`);
 
     let payload = {gameId: this.state.game.id, roundId: roundId, questionId: questionId};
@@ -124,24 +112,25 @@ class Scoring extends Component {
   }
 
   parseError(error) {
+    let errorMessage = 'Undefined error';
     if (
       typeof error.response !== 'undefined' &&
       typeof error.response.data !== 'undefined' &&
       typeof error.response.data.message !== 'undefined' &&
       error.response.data.message !== ''
     ) {
-      return error.response.data.message;
+      errorMessage = error.response.data.message;
     } else if (
       typeof error.response !== 'undefined' &&
       typeof error.response.statusText !== 'undefined' &&
       error.response.statusText !== ''
     ) {
-      return error.response.statusText;
+      errorMessage = error.response.statusText;
     }
     if (typeof error.message !== 'undefined') {
-      return error.message;
+      errorMessage = error.message;
     }
-    return 'Undefined error';
+    this.setState(Object.assign(this.state, {_error: errorMessage}));
   }
 
   showError() {
@@ -161,10 +150,19 @@ class Scoring extends Component {
   }
 
   showResponse() {
-    if (!this.state._txHash) {
+    if (!this.state._message) {
       return false;
     }
     return true;
+  }
+
+  readResponseMessage() {
+    if (!this.state._message) {
+      return '';
+    }
+    let message = this.state._message;
+    delete this.state._message;
+    return message;
   }
 
   render() {
@@ -173,157 +171,192 @@ class Scoring extends Component {
     return (
       <div className="app">
         <div className="form_wrap">
-          <div className="form_container">
-            <Nav tabs>
-              <NavItem>
-                <NavLink
-                  className={classnames({ active: this.state.activeTab === '1' })}
-                  onClick={() => { this.toggle('1'); }}
-                >
-                  Questions
-                </NavLink>
-              </NavItem>
-              <NavItem>
-                <NavLink
-                  className={classnames({ active: this.state.activeTab === '2' })}
-                  onClick={() => { this.toggle('2'); }}
-                >
-                  Answers ({!!this.state.answers ? this.state.answers.length : 0})
-                </NavLink>
-              </NavItem>
-              <NavItem>
-                <NavLink
-                  className={classnames({ active: this.state.activeTab === '3' })}
-                  onClick={() => { this.toggle('3'); }}
-                >
-                  Actions
-                </NavLink>
-              </NavItem>
-            </Nav>
 
+            { this.showError() || this.showResponse() ?
+              <CardGroup>
+                <Card className="p-6">
+                  <CardBody>
+                    <Alert className="mt-3" color="danger" isOpen={this.showError()}>
+                      {this.readErrorMessage()}
+                    </Alert>
+                    <Alert className="mt-3" color="primary" isOpen={this.showResponse()}>
+                      {this.readErrorMessage()}
+                    </Alert>
+                  </CardBody>
+                </Card>
+              </CardGroup>
+            : null}
 
-            <TabContent activeTab={this.state.activeTab}>
-                <TabPane tabId="1">
+              <CardGroup>
+                <Card className="p-6">
 
                 {!!this.state.quiz ?
-                  <Container>
-                    <Row><h2>{this.state.quiz.name}</h2></Row>
-                    <Row>
-                        {this.state.quiz.rounds.map((round) => (
-                          <Container>
-                          <Row>
-                            <h3>Round: {round.name}</h3>
-                          </Row>
+                  <div>
+                    <CardBody>
+                      <CardTitle>{this.state.quiz.name}</CardTitle>
+                    </CardBody>
+                    
+                      {this.state.quiz.rounds.map((round) => (
+                        <div>
+                        <CardBody>
+                          <CardTitle>Round: {round.name}</CardTitle>
+                        </CardBody>
+                        <CardBody>
+                          <Table>
+                            <thead>
+                              <tr>
+                                <th>Question</th>
+                                <th>Answer</th>
+                                <th>Image</th>
+                                <th>Publish Question</th>
+                              </tr>
+                            </thead>
+                            <tbody>
                           
-                            {round.questions.map((question) => (
-                              <Row>
-                              
-                                <Form onSubmit={this.handlePublishQuestion}>
-                                  <FormGroup>Question: {question.question}</FormGroup>
-                                  <FormGroup>Answer: {question.answer}</FormGroup>
-                                  
-                                  {!!question.imageUri ?
-                                  <FormGroup><img src={question.imageUri} height="42" width="42"/></FormGroup>
-                                  : null}
-                                    
-                                  <Input
-                                    className="roundId"
-                                    type="input"
-                                    name="roundId"
-                                    value={round.id}
-                                    hidden
-                                    required />
-                                  <Input
-                                    className="questionId"
-                                    type="input"
-                                    name="questionId"
-                                    value={question.id}
-                                    hidden
-                                    required />
-
-                                  <Button color="primary" type="submit">
-                                    Publish
-                                  </Button> 
-
-                                </Form>
-                              </Row>
-                            ))}
-                          </Container>
-                        ))}
-                    </Row>
-                  </Container>
+                              {round.questions.map((question) => (
+                                <tr>
+                                    <td>{question.question}</td>
+                                    <td>{question.answer}</td>
+                                    <td>
+                                    {!!question.imageUri ?
+                                      <img src={question.imageUri} height="42" width="42"/>
+                                    : null}
+                                    </td>
+                                    <td>
+                                      <Button color="primary" type="button" onClick={this.handlePublishQuestion.bind(this, round.id, question.id)}>
+                                        Publish
+                                      </Button> 
+                                    </td>
+                                </tr>
+                              ))}
+                              </tbody>
+                          </Table>
+                        </CardBody>
+                      </div>
+                    ))}
+                    
+                  </div>
                 : <Row>No quiz selected</Row>}
                 
-              </TabPane>
+                </Card>
+              </CardGroup>
 
-              <TabPane tabId="2">
-                  <Container>
-                    {this.state.answers.map((answer, idx) => (
-                    <Row>
+              <CardGroup>
+                <Card className="p-6">
+                  <CardBody>
+                    <CardTitle>Answers for Correction</CardTitle>
+                  </CardBody>
 
-                      <Container>
-                        <Row><Col>Question</Col><Col>{answer.question.question}</Col></Row>
-                        <Row><Col>Correct Answer</Col><Col>{answer.question.answer}</Col></Row>
-                        <Row><Col>Answer Provided</Col><Col>{answer.answer.answer}</Col></Row>
-                      </Container>
-                      <Form onSubmit={this.handleCorrectAnswer}>
+                  {this.state.answers.length > 0 ?
+                    <CardGroup>
+                    
+                    <Table>
+                      <thead>
+                        <tr>
+                          <th>Question</th>
+                          <th>Correct Answer</th>
+                          <th>Provided Answer</th>
+                          <th>Score</th>
+                        </tr>
+                      </thead>
+                      <tbody>
 
-                        <Input
-                          className="index"
-                          type="input"
-                          name="index"
-                          value={idx}
-                          hidden
-                          required
-                          />
-                      
-                        <FormGroup>
-                          <Input
-                              className="score"
-                              type="input"
-                              name="score"
-                              placeholder="Score"
-                              autoComplete="Score"
-                              value={answer.question.score}
-                              onChange={this.handleChange}
-                              required
-                            />
-                        </FormGroup>
-                        <Button color="primary" type="submit">
-                          Submit
-                        </Button> 
-                      </Form>
-                    </Row>
+                      {this.state.answers.map((answer, idx) => (
+                          <tr>
+                            
+                              <td>{answer.question.question}</td>
+                              <td>{answer.question.answer}</td>
+                              <td>{answer.answer.answer}</td>
+                              <td>
+                                <Form onSubmit={this.handleCorrectAnswer}>
+                                <FormGroup>
+                                <Input
+                                  className="index"
+                                  type="input"
+                                  name="index"
+                                  value={idx}
+                                  hidden
+                                  required
+                                  />
+                                  <Input
+                                      className="score"
+                                      type="input"
+                                      name="score"
+                                      placeholder="Score"
+                                      autoComplete="Score"
+                                      value={answer.question.score}
+                                      onChange={this.handleChange}
+                                      required
+                                    />
+                                </FormGroup>
+                              
+                                <Button color="primary" type="submit">
+                                  Submit
+                                </Button> 
+                                </Form>
+                            </td>
+
+                          
+                        </tr>
+                    
                   ))}
-                </Container>
-              </TabPane>
+                      </tbody>
+                    </Table>
+                  </CardGroup>
+                : "No answers availble for correction at this time.."}
 
-              <TabPane tabId="3">
-                <Container>
-                <Row><Col></Col><Col><Button type="button" color="primary" onClick={this.publishLeaderboard.bind(this)}>
-                      Publish Leaderboard
-                </Button></Col></Row>
+                </Card>
+              </CardGroup>
 
-                {!!this.state.quiz ?
-                <div>
-                {this.state.quiz.rounds.map((round) => 
-                  <Row><Col>Round: {round.name}</Col><Col><Button type="button" color="primary" onClick={this.publishAnswersForRound.bind(this, round)}>
-                        Publish Answers 
-                  </Button></Col></Row>
-                )}
-                </div>
-                : null}
-                </Container>
-              </TabPane>
-            </TabContent>
+              <CardGroup>
+                <Card className="p-6">
+                  <CardBody>
+                    <CardTitle>Actions</CardTitle>
+                  </CardBody>
+                  <CardBody>
+                    <ButtonGroup vertical>
+                      <Button type="button" color="primary" onClick={this.publishLeaderboard.bind(this)}>
+                        Publish Leaderboard
+                      </Button>
+                    </ButtonGroup>
+                  </CardBody>
+
+                  {!!this.state.quiz ?
+                    <CardBody>
+                      <Table>
+                      <thead>
+                        <tr>
+                          <th>Round</th>
+                          <th>Publsh Answers</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                          {this.state.quiz.rounds.map((round) => 
+                            <tr>
+                              <td>Round: {round.name}</td>
+                              <td><Button type="button" color="primary" onClick={this.publishAnswersForRound.bind(this, round)}>
+                                  Publish 
+                            </Button></td>
+                            </tr>
+                          )}
+
+                        </tbody>
+                      </Table>
+                    </CardBody>
+                  : null}
+
+              
+              </Card>
+            </CardGroup>
+          
           </div>
-        </div>
+
               
         <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
           onMessage={ this.handleWebsocketMessage.bind(this) }
           ref={ (client) => { this.clientRef = client }}/>
 
-    </div>
+       </div>
     );
   }
 }

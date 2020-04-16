@@ -4,7 +4,7 @@ import answerService from '../../services/AnswerService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
-import { Button, Form, FormGroup, Label, Input, Container, Row, Col } from 'reactstrap';
+import { Button, ButtonGroup, Form, FormGroup, Label, Input, Container, Row, Col, Card, CardBody, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
 
 class Game extends Component {
   constructor(props) {
@@ -115,24 +115,25 @@ class Game extends Component {
   }
 
   parseError(error) {
+    let errorMessage = 'Undefined error';
     if (
       typeof error.response !== 'undefined' &&
       typeof error.response.data !== 'undefined' &&
       typeof error.response.data.message !== 'undefined' &&
       error.response.data.message !== ''
     ) {
-      return error.response.data.message;
+      errorMessage = error.response.data.message;
     } else if (
       typeof error.response !== 'undefined' &&
       typeof error.response.statusText !== 'undefined' &&
       error.response.statusText !== ''
     ) {
-      return error.response.statusText;
+      errorMessage = error.response.statusText;
     }
     if (typeof error.message !== 'undefined') {
-      return error.message;
+      errorMessage = error.message;
     }
-    return 'Undefined error';
+    this.setState(Object.assign(this.state, {_error: errorMessage}));
   }
 
   showError() {
@@ -151,13 +152,43 @@ class Game extends Component {
     return error;
   }
 
+  showResponse() {
+    if (!this.state._message) {
+      return false;
+    }
+    return true;
+  }
+
+  readResponseMessage() {
+    if (!this.state._message) {
+      return '';
+    }
+    let message = this.state._message;
+    delete this.state._message;
+    return message;
+  }
+
   render() {
    
     //new login
     return (
       <div className="app">
         <div className="form_wrap">
-          <div className="form_container">
+
+        { this.showError() || this.showResponse() ?
+          <CardGroup>
+            <Card className="p-6">
+              <CardBody>
+                <Alert className="mt-3" color="danger" isOpen={this.showError()}>
+                  {this.readErrorMessage()}
+                </Alert>
+                <Alert className="mt-3" color="primary" isOpen={this.showResponse()}>
+                  {this.readErrorMessage()}
+                </Alert>
+              </CardBody>
+            </Card>
+          </CardGroup>
+        : null}
 
             {!!this.state.waiting ? 
 
@@ -167,86 +198,109 @@ class Game extends Component {
 
             {!!this.state.question ? 
 
+              <CardGroup>
+                <Card className="p-6">
+                    <CardBody>
+                      <CardTitle>{this.state.question.question}</CardTitle>
+                    </CardBody>
+                    <CardBody>
+                      <Form onSubmit={this.handleSubmit}>
+                        <FormGroup>
+                          <Input
+                              className="answer"
+                              type="input"
+                              name="answer"
+                              placeholder="answer"
+                              autoComplete="answer"
+                              value={this.state.answer}
+                              onChange={this.handleChange}
+                              required
+                            />
+                          </FormGroup>
+                          <ButtonGroup>
+                            <Button  type="submit" color="primary">
+                              Submit
+                            </Button>
+                          </ButtonGroup>
+                          
+                          {!!this.state.question.imageUri ?
+                          <FormGroup>
+                            <img src={this.state.question.imageUri}/>
+                          </FormGroup>
+                          : null}
 
-              <Form onSubmit={this.handleSubmit}>
-                <FormGroup>{this.state.question.question}</FormGroup>
-                <FormGroup>
-                  <Input
-                      className="answer"
-                      type="input"
-                      name="answer"
-                      placeholder="answer"
-                      autoComplete="answer"
-                      value={this.state.answer}
-                      onChange={this.handleChange}
-                      required
-                    />
-                  </FormGroup>
-                  <Button  type="submit" color="primary">
-                    Submit
-                  </Button>
-                  
-                  {!!this.state.question.imageUri ?
-                  <FormGroup>
-                    <img src={this.state.question.imageUri}/>
-                  </FormGroup>
-                  : null}
-
-              </Form>
-              
-
+                      </Form>
+                    </CardBody>
+                </Card>
+              </CardGroup>
             
             : null
             }
 
           {!!this.state.leaderboard ? 
 
-            <DataTable
-                title="Leaderboard"
-                columns={this.columns}
-                data={this.state.leaderboard}
-                theme="solarized"
-            />
+            <CardGroup>
+              <Card className="p-6">
+                <CardBody>
+                  <DataTable
+                      title="Leaderboard"
+                      columns={this.columns}
+                      data={this.state.leaderboard}
+                      theme="solarized"
+                  />
+                </CardBody>
+              </Card>
+            </CardGroup>
 
           : null
           }
 
           {!!this.state.roundSummary ? 
-              <div>
+              <CardGroup>
+                <Card className="p-6">
+                  <CardBody>
+                    <CardTitle>{this.state.roundSummary.name} - Summary</CardTitle>
+                  </CardBody>
+                  <CardBody>
 
-                <Container>
-                  <Row>
-                    <h2>{this.state.roundSummary.name}</h2>
-                  </Row>
-                  <Row>
-                      {this.state.roundSummary.questions.map(question => 
+                      <Table>
+                        <thead>
+                          <tr>
+                            <th>Question</th>
+                            <th>Answer</th>
+                            <th>Image</th>
+                          </tr>
+                        </thead>
+                        <tbody>
 
-                        <Container>
-                          <Row>
-                            <Col>Question</Col><Col>{question.question}</Col>
-                          </Row>
-                          <Row> 
-                            <Col>Answer</Col><Col>{question.answer}</Col>
-                          </Row>
-                          {question.imageUri ?
-                          <Row>
-                            <img src={question.imageUri} height="64" width="64" />
-                          </Row>:null}
-                        </Container>
+                          {this.state.roundSummary.questions.map(question => 
 
-                      )}
-                    </Row>
-                  </Container>
-            </div>
+                            <tr>
+                              <td>
+                                {question.question}
+                              </td>
+                              <td> 
+                                {question.answer}
+                              </td>
+                              <td>
+                                {question.imageUri ?<img src={question.imageUri} height="64" width="64" />:null}
+                              </td>
+                            </tr>
+
+                          )}
+                        </tbody>
+                      </Table>
+
+                    </CardBody>
+                  </Card>
+              </CardGroup>
           : null
           }
-        
-          </div>
-        </div>
 
       <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/game', '/user/game']}
                 onMessage={ this.handleWebsocketMessage.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
+      </div>
     </div>
     );
   }

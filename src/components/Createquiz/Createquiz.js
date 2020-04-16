@@ -2,8 +2,7 @@ import React, { Component, useState } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
-import { TabContent, TabPane, Nav, NavItem, NavLink, Button, Form, FormGroup, Label, Input, Container, Row, Col, Media } from 'reactstrap';
-import classnames from 'classnames';
+import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
 import nextId from "react-id-generator";
 
 class Createquiz extends Component {
@@ -17,7 +16,6 @@ class Createquiz extends Component {
       quizName:'',
       isQuizCreated: false, 
       isQuizSubmited:false,
-      activeTab: '1',
       newImage: {}
     };
 
@@ -29,12 +27,6 @@ class Createquiz extends Component {
     sessionUtils.checkLoggedIn();
     sessionUtils.checkUserType();
   
-  }
-
-  toggle(tab) {
-    if (this.state.activeTab !== tab) {
-      this.setState(Object.assign(this.state, { activeTab: tab }));
-    }
   }
 
   createQuiz = event => {
@@ -111,24 +103,25 @@ class Createquiz extends Component {
   };
 
   parseError(error) {
+    let errorMessage = 'Undefined error';
     if (
       typeof error.response !== 'undefined' &&
       typeof error.response.data !== 'undefined' &&
       typeof error.response.data.message !== 'undefined' &&
       error.response.data.message !== ''
     ) {
-      return error.response.data.message;
+      errorMessage = error.response.data.message;
     } else if (
       typeof error.response !== 'undefined' &&
       typeof error.response.statusText !== 'undefined' &&
       error.response.statusText !== ''
     ) {
-      return error.response.statusText;
+      errorMessage = error.response.statusText;
     }
     if (typeof error.message !== 'undefined') {
-      return error.message;
+      errorMessage = error.message;
     }
-    return 'Undefined error';
+    this.setState(Object.assign(this.state, {_error: errorMessage}));
   }
 
   showError() {
@@ -148,12 +141,21 @@ class Createquiz extends Component {
   }
 
   showResponse() {
-    if (!this.state._txHash) {
+    if (!this.state._message) {
       return false;
     }
     return true;
   }
 
+  readResponseMessage() {
+    if (!this.state._message) {
+      return '';
+    }
+    let message = this.state._message;
+    delete this.state._message;
+    return message;
+  }
+  
   render() {
 
     //new login
@@ -161,213 +163,214 @@ class Createquiz extends Component {
       
       <div className="app">
         <div className="form_wrap">
-          <div className="form_container">
 
-      <Container>
-          <Row>
+          { this.showError() || this.showResponse() ?
+              <CardGroup>
+                <Card className="p-6">
+                  <CardBody>
+                    <Alert className="mt-3" color="danger" isOpen={this.showError()}>
+                      {this.readErrorMessage()}
+                    </Alert>
+                    <Alert className="mt-3" color="primary" isOpen={this.showResponse()}>
+                      {this.readErrorMessage()}
+                    </Alert>
+                  </CardBody>
+                </Card>
+              </CardGroup>
+            : null}
+
+          <CardGroup>
+            <Card className="p-6">
             
 
             {!!this.state.isQuizCreated ?
           
-              <Container>
-                <Row>
+              <div>
+                <CardBody>
                   {this.state.isQuizSubmited  ?
-                      <h1>
-                      Created Quiz: {this.state.quizName}
-                      </h1>
-                      
+                      <CardTitle>Created Quiz: {this.state.quizName}</CardTitle>              
                     :
-                    <h1>
-                    Quiz: {this.state.quizName}
-                    </h1>
+                    <CardTitle>Quiz: {this.state.quizName}</CardTitle>
                   }
-                </Row>
-                <Row>
-                <Nav tabs>
-                  <NavItem>
-                    <NavLink
-                      className={classnames({ active: this.state.activeTab === '1' })}
-                      onClick={() => { this.toggle('1'); }}
-                    >
-                      Create
-                    </NavLink>
-                  </NavItem>
-                  <NavItem>
-                    <NavLink
-                      className={classnames({ active: this.state.activeTab === '2' })}
-                      onClick={() => { this.toggle('2'); }}
-                    >
-                      View
-                    </NavLink>
-                  </NavItem>
-                </Nav>
-                </Row>
-                <Row>
-                <TabContent activeTab={this.state.activeTab}>
-                  <TabPane tabId="1">
+                </CardBody>
+
+
+
                   
                   {!this.state.isQuizSubmited ?
-                      <Container>
-                        <Row>
-                            <Form onSubmit={this.addQuestion}>
-
-                                  <FormGroup>
-                                    <Input
-                                        className="newRoundName"
-                                        type="input"
-                                        name="newRoundName"
-                                        placeholder="Round Name"
-                                        autoComplete="Round Name"
-                                        value={this.state.newRoundName}
-                                        onChange={this.handleChange}
-                                        required
-                                      />
-                                    
+                    <div>
+                      <CardBody>
+                          <Form onSubmit={this.addQuestion}>
+                              <FormGroup>
+                                <Input
+                                    className="newRoundName"
+                                    type="input"
+                                    name="newRoundName"
+                                    placeholder="Round Name"
+                                    autoComplete="Round Name"
+                                    value={this.state.newRoundName}
+                                    onChange={this.handleChange}
+                                    required
+                                  />
                                 
-                                    <Input
-                                      className="newQuestion"
-                                      type="input"
-                                      name="newQuestion"
-                                      placeholder="Question"
-                                      autoComplete="Question"
-                                      value={this.state.newQuestion}
-                                      onChange={this.handleChange}
-                                      required
-                                    />
-                                  </FormGroup>
-                                  <FormGroup>
-                                  {/* <ImageSelectPreview 
-                                              max={1}
-                                              name="newImage"
-                                              imageTypes="png|jpg|gif"
-                                              onChange={this.handleChangeImage}/> */}
+                            
+                                <Input
+                                  className="newQuestion"
+                                  type="input"
+                                  name="newQuestion"
+                                  placeholder="Question"
+                                  autoComplete="Question"
+                                  value={this.state.newQuestion}
+                                  onChange={this.handleChange}
+                                  required
+                                />
+                              </FormGroup>
+                              <FormGroup>
+                                  <Input type="file" name="newImage" onChange={this.handleChangeImage} />
+                                  {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl}  height="64" width="64"/> : null }
 
-                                      <Input type="file" name="newImage" onChange={this.handleChangeImage} />
-                                      {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl}  height="64" width="64"/> : null }
-
-                                  </FormGroup>
-                                  <FormGroup>
-                                    <Input
-                                      className="newAnswer"
-                                      type="input"
-                                      name="newAnswer"
-                                      placeholder="Answer"
-                                      autoComplete="Answer"
-                                      value={this.state.newAnswer}
-                                      onChange={this.handleChange}
-                                      required
-                                    />
-                                  </FormGroup>
-                                
-                                  <Button type="submit" color="link">
-                                    Add question
-                                  </Button>
-                                                
-                              
-                             
+                              </FormGroup>
+                              <FormGroup>
+                                <Input
+                                  className="newAnswer"
+                                  type="input"
+                                  name="newAnswer"
+                                  placeholder="Answer"
+                                  autoComplete="Answer"
+                                  value={this.state.newAnswer}
+                                  onChange={this.handleChange}
+                                  required
+                                />
+                              </FormGroup>
+                              <ButtonGroup>
+                                <Button type="submit" color="primary">
+                                  Add question
+                                </Button>
+                              </ButtonGroup> 
 
                             </Form>
-                          </Row>
-                          <Row>
-                          
-                            {this.state.questions.map((question, idx) =>
-                              <Container><Row className="row_min"><Col>{question.question}</Col><Col><Button type="button" color="link" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></Col></Row></Container>
-                            )}
-                          </Row>
-                        </Container>
+                          </CardBody>
+                          <CardBody>
+                            <CardTitle>Questions</CardTitle>
+                          </CardBody>
+                          <CardBody>
+
+                            <Table>
+                              <thead>
+                                <tr>
+                                  <th>Question</th>
+                                  <th>Remove</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {this.state.questions.map((question, idx) => 
+                                  <tr>
+                                    <td>{question.question}</td>
+                                    <td><Button type="button" color="danger" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></td>
+                                    
+                                  </tr>
+                                )}
+                              </tbody>
+                            </Table>
+                        </CardBody>
+                        </div>
                         : null} 
 
-                    <form>
                      
-                     <Button type="button" color="primary" onClick={this.addRound}>
-                       Submit Round
-                     </Button>
+                     <CardBody>
+                      <ButtonGroup>
+                          <Button type="button" color="primary" onClick={this.addRound}>
+                            Submit Round
+                          </Button>
 
-                     {this.state.rounds.length > 0 ? 
-                     <Button type="button" color="primary" onClick={this.submitQuiz}>
-                       Submit Quiz
-                     </Button>
+                          {this.state.rounds.length > 0 ? 
+                          <Button type="button" color="primary" onClick={this.submitQuiz}>
+                            Submit Quiz
+                          </Button>
 
-                     : null}
-                     
-                    </form>
+                          : null}
+                      </ButtonGroup>
+                     </CardBody>
                   
-                  </TabPane>
-                  <TabPane tabId="2">
-                    
+
+
+
+
+
 
                     {!!this.state.rounds || this.state.rounds.length == 0 ?
-                      <Row>
-                      {this.state.rounds.map((round, idx) =>
-                        <Container>
-                          <Row>
-                            <h2>{round.name}</h2>
-                          </Row>
-                          <Row>
-                              {round.questions.map(question => 
-
-                                <Container>
-                                  <Row>
-                                    <Col>Question</Col><Col>{question.question}</Col>
-                                  </Row>
-                                  <Row> 
-                                    <Col>Answer</Col><Col>{question.answer}</Col>
-                                  </Row>
-                                  {question.imageUri ?
-                                  <Row>
-                                    <img src={question.imageUri} height="64" width="64" />
-                                  </Row>:null}
-                                </Container>
-
-                              )}
-                            </Row>
-                            <Row><Button type="button" color="link" onClick={this.removeRound.bind(this, idx)}>Remove</Button></Row>
-                          </Container>
-                      )}
-                      </Row>
+                      <div>
+                      <CardBody>
+                        <CardTitle>Rounds</CardTitle>
+                      </CardBody>
+                      <CardBody>
+                        <Table>
+                          <thead>
+                            <tr>
+                              <th>Round</th>
+                              <th>Remove</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {this.state.rounds.map((round, idx) =>
+                              <tr>
+                                <td>{round.name}</td>
+                                <td><Button type="button" color="danger" onClick={this.removeRound.bind(this, idx)}>Remove</Button></td>
+                                
+                              </tr>
+                          )}
+                        </tbody>
+                        </Table>
+                      </CardBody>
+                      </div>
                       : "No rounds have been added yet"}
-            
-                  </TabPane>
-                </TabContent>
-                </Row>
-              </Container>
+          
+
+              </div>
             
             :
               
               
               <div>
-                  <h2>New Quiz</h2>
-                <Form onSubmit={this.createQuiz}>
-                  <FormGroup>
-                    <Input
-                      className="quizName"
-                      type="input"
-                      name="quizName"
-                      placeholder="Quiz Name"
-                      autoComplete="Quiz Name"
-                      value={this.state.quizName}
-                      onChange={this.handleChange}
-                      required
-                    />
-                    </FormGroup>  
-                    <Button type="submit" color="primary">
-                    Create Quiz
-                    </Button>
+                <CardBody>
+                  <CardTitle>New Quiz</CardTitle>
+                </CardBody>
+                <CardBody>
+                  <Form onSubmit={this.createQuiz}>
+                    <FormGroup>
+                      <Input
+                        className="quizName"
+                        type="input"
+                        name="quizName"
+                        placeholder="Quiz Name"
+                        autoComplete="Quiz Name"
+                        value={this.state.quizName}
+                        onChange={this.handleChange}
+                        required
+                      />
+                    </FormGroup>
+                    <ButtonGroup>
+                      <Button type="submit" color="primary">
+                      Create Quiz
+                      </Button>
+                    </ButtonGroup>
                   </Form>
+                </CardBody>
               </div>
             
             }
 
-          </Row>
-          <Row>
+          
+          <CardBody>
             
             Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
            
-          </Row>
-      </Container>
+          </CardBody>
+        </Card>
+      </CardGroup>
 
         
-          </div>
+
         </div>
       </div>
    
