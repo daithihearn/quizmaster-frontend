@@ -344,6 +344,12 @@
 }
 
 @media only screen and (max-width: 385px) {
+
+  .diplay_image_size {
+    max-width: 380px;
+    max-height: 380px;
+  }
+  
   .card-product_StatsHome {
     &_Content {
       font-size: 38px !important ;
