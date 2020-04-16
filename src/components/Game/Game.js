@@ -226,7 +226,7 @@ class Game extends Component {
                           
                           {!!this.state.question.imageUri ?
                           <FormGroup>
-                            <img src={this.state.question.imageUri}/>
+                            <img src={this.state.question.imageUri} class="diplay_image_size"/>
                           </FormGroup>
                           : null}
 
@@ -281,7 +281,7 @@ class Game extends Component {
                                 {question.question}
                               </td>
                               <td>
-                                {question.imageUri ?<img src={question.imageUri} height="64" width="64" />:null}
+                                {question.imageUri ?<img src={question.imageUri} class="thumbnail_size" />:null}
                               </td>
                               <td> 
                                 {question.answer}
