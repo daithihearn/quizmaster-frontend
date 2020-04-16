@@ -173,7 +173,8 @@ class Game extends Component {
     //new login
     return (
       <div className="app">
-        <div className="form_wrap">
+         <div className="game_wrap">
+          <div className="game_container">
 
         { this.showError() || this.showResponse() ?
           <CardGroup>
@@ -192,7 +193,7 @@ class Game extends Component {
 
             {!!this.state.waiting ? 
 
-              <h3>Please wait for the next question...</h3>
+              <h1>Please wait for the next question...</h1>
 
             : null}
 
@@ -201,7 +202,7 @@ class Game extends Component {
               <CardGroup>
                 <Card className="p-6">
                     <CardBody>
-                      <CardTitle>{this.state.question.question}</CardTitle>
+                      <h2>{this.state.question.question}</h2>
                     </CardBody>
                     <CardBody>
                       <Form onSubmit={this.handleSubmit}>
@@ -218,7 +219,7 @@ class Game extends Component {
                             />
                           </FormGroup>
                           <ButtonGroup>
-                            <Button  type="submit" color="primary">
+                            <Button type="submit" color="primary">
                               Submit
                             </Button>
                           </ButtonGroup>
@@ -259,7 +260,7 @@ class Game extends Component {
               <CardGroup>
                 <Card className="p-6">
                   <CardBody>
-                    <CardTitle>{this.state.roundSummary.name} - Summary</CardTitle>
+                    <h2>{this.state.roundSummary.name} - Summary</h2>
                   </CardBody>
                   <CardBody>
 
@@ -267,8 +268,8 @@ class Game extends Component {
                         <thead>
                           <tr>
                             <th>Question</th>
-                            <th>Answer</th>
                             <th>Image</th>
+                            <th>Answer</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -276,14 +277,14 @@ class Game extends Component {
                           {this.state.roundSummary.questions.map(question => 
 
                             <tr>
-                              <td>
+                              <td align="left">
                                 {question.question}
-                              </td>
-                              <td> 
-                                {question.answer}
                               </td>
                               <td>
                                 {question.imageUri ?<img src={question.imageUri} height="64" width="64" />:null}
+                              </td>
+                              <td> 
+                                {question.answer}
                               </td>
                             </tr>
 
@@ -302,6 +303,7 @@ class Game extends Component {
                 ref={ (client) => { this.clientRef = client }}/>
       </div>
     </div>
+  </div>
     );
   }
 }

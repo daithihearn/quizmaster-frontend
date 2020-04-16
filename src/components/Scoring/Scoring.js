@@ -4,6 +4,7 @@ import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
+import DataTable, { createTheme } from 'react-data-table-component';
 import { Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
 
 class Scoring extends Component {
@@ -21,6 +22,28 @@ class Scoring extends Component {
     this.state = { game: game, answers: []};
     
     sessionUtils.checkLoggedIn();
+
+    createTheme('solarized', {
+      text: {
+        primary: '#000000',
+        secondary: '#333333',
+      },
+      background: {
+        default: '#ffffff',
+      },
+      context: {
+        background: '#ffffff',
+        text: '#ffffff',
+      },
+      divider: {
+        default: '#073642',
+      },
+      action: {
+        button: 'rgba(0,0,0,.54)',
+        hover: 'rgba(0,0,0,.08)',
+        disabled: 'rgba(0,0,0,.12)',
+      },
+    });
     
     this.handleChange = this.handleChange.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
@@ -29,11 +52,33 @@ class Scoring extends Component {
     this.loadQuiz();
   }
 
+  columns = [
+    {
+      name: 'Player',
+      selector: 'playerId',
+      sortable: true,
+    },
+    {
+      name: 'Score',
+      selector: 'score',
+      sortable: true,
+      right: true,
+    },
+  ];
+
   loadQuiz() {
     let thisObj = this;
     
     quizService.getQuiz(this.state.game.quizId).then(response => {
       thisObj.setState(Object.assign(thisObj.state, { quiz: response.data }));
+    }).catch(error => thisObj.parseError(error));
+  }
+
+  updateLeaderboard() {
+    let thisObj = this;
+    
+    answerService.getLeaderboard(this.state.game.id).then(response => {
+      thisObj.setState(Object.assign(thisObj.state, { leaderboard: response.data }));
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -169,8 +214,9 @@ class Scoring extends Component {
    
     //new login
     return (
-      <div className="app">
-        <div className="form_wrap">
+        <div className="app">
+         <div className="game_wrap">
+          <div className="game_container">
 
             { this.showError() || this.showResponse() ?
               <CardGroup>
@@ -193,37 +239,37 @@ class Scoring extends Component {
                 {!!this.state.quiz ?
                   <div>
                     <CardBody>
-                      <CardTitle>{this.state.quiz.name}</CardTitle>
+                      <h1>{this.state.quiz.name}</h1>
                     </CardBody>
                     
                       {this.state.quiz.rounds.map((round) => (
                         <div>
                         <CardBody>
-                          <CardTitle>Round: {round.name}</CardTitle>
+                          <h2>Round: {round.name}</h2>
                         </CardBody>
                         <CardBody>
                           <Table>
                             <thead>
                               <tr>
                                 <th>Question</th>
-                                <th>Answer</th>
                                 <th>Image</th>
-                                <th>Publish Question</th>
+                                <th>Answer</th>
+                                <th>Action</th>
                               </tr>
                             </thead>
                             <tbody>
                           
                               {round.questions.map((question) => (
                                 <tr>
-                                    <td>{question.question}</td>
-                                    <td>{question.answer}</td>
+                                    <td align="left">{question.question}</td>
                                     <td>
                                     {!!question.imageUri ?
-                                      <img src={question.imageUri} height="42" width="42"/>
+                                      <img src={question.imageUri} class="thumbnail_size"/>
                                     : null}
                                     </td>
+                                    <td>{question.answer}</td>
                                     <td>
-                                      <Button color="primary" type="button" onClick={this.handlePublishQuestion.bind(this, round.id, question.id)}>
+                                      <Button color="link" type="button" onClick={this.handlePublishQuestion.bind(this, round.id, question.id)}>
                                         Publish
                                       </Button> 
                                     </td>
@@ -244,7 +290,7 @@ class Scoring extends Component {
               <CardGroup>
                 <Card className="p-6">
                   <CardBody>
-                    <CardTitle>Answers for Correction</CardTitle>
+                    <h1>Answers for Correction</h1>
                   </CardBody>
 
                   {this.state.answers.length > 0 ?
@@ -264,7 +310,7 @@ class Scoring extends Component {
                       {this.state.answers.map((answer, idx) => (
                           <tr>
                             
-                              <td>{answer.question.question}</td>
+                              <td align="left">{answer.question.question}</td>
                               <td>{answer.question.answer}</td>
                               <td>{answer.answer.answer}</td>
                               <td>
@@ -311,7 +357,27 @@ class Scoring extends Component {
               <CardGroup>
                 <Card className="p-6">
                   <CardBody>
-                    <CardTitle>Actions</CardTitle>
+                    <DataTable
+                        title="Leaderboard"
+                        columns={this.columns}
+                        data={this.state.leaderboard}
+                        theme="solarized"
+                    />
+                  </CardBody>
+                  <CardBody>
+                    <ButtonGroup vertical>
+                      <Button type="button" color="primary" onClick={this.updateLeaderboard.bind(this)}>
+                        Update Leaderboard
+                      </Button>
+                    </ButtonGroup>
+                  </CardBody>
+              </Card>
+            </CardGroup>
+
+              <CardGroup>
+                <Card className="p-6">
+                  <CardBody>
+                    <h1>Actions</h1>
                   </CardBody>
                   <CardBody>
                     <ButtonGroup vertical>
@@ -327,15 +393,15 @@ class Scoring extends Component {
                       <thead>
                         <tr>
                           <th>Round</th>
-                          <th>Publsh Answers</th>
+                          <th>Action</th>
                         </tr>
                       </thead>
                       <tbody>
                           {this.state.quiz.rounds.map((round) => 
                             <tr>
-                              <td>Round: {round.name}</td>
-                              <td><Button type="button" color="primary" onClick={this.publishAnswersForRound.bind(this, round)}>
-                                  Publish 
+                              <td align="left">Round: {round.name}</td>
+                              <td><Button type="button" color="link" onClick={this.publishAnswersForRound.bind(this, round)}>
+                                  Publish Answers
                             </Button></td>
                             </tr>
                           )}
@@ -350,7 +416,7 @@ class Scoring extends Component {
             </CardGroup>
           
           </div>
-
+        </div>
               
         <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
           onMessage={ this.handleWebsocketMessage.bind(this) }

@@ -160,8 +160,9 @@ class Createquiz extends Component {
     //new login
     return (
       
-      <div className="app">
-        <div className="form_wrap">
+        <div className="app">
+         <div className="game_wrap">
+          <div className="game_container">
 
           { this.showError() || this.showResponse() ?
               <CardGroup>
@@ -187,9 +188,9 @@ class Createquiz extends Component {
               <div>
                 <CardBody>
                   {this.state.isQuizSubmited  ?
-                      <CardTitle>Created Quiz: {this.state.quizName}</CardTitle>              
+                      <h1>Created Quiz: {this.state.quizName}</h1>              
                     :
-                    <CardTitle>Quiz: {this.state.quizName}</CardTitle>
+                    <h1>Quiz: {this.state.quizName}</h1>
                   }
                 </CardBody>
 
@@ -226,7 +227,7 @@ class Createquiz extends Component {
                               </FormGroup>
                               <FormGroup>
                                   <Input type="file" name="newImage" onChange={this.handleChangeImage} />
-                                  {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl}  height="64" width="64"/> : null }
+                                  {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
 
                               </FormGroup>
                               <FormGroup>
@@ -250,7 +251,7 @@ class Createquiz extends Component {
                             </Form>
                           </CardBody>
                           <CardBody>
-                            <CardTitle>Questions</CardTitle>
+                            <h2>Questions</h2>
                           </CardBody>
                           <CardBody>
 
@@ -264,7 +265,7 @@ class Createquiz extends Component {
                               <tbody>
                                 {this.state.questions.map((question, idx) => 
                                   <tr>
-                                    <td>{question.question}</td>
+                                    <td align="left">{question.question}</td>
                                     <td><Button type="button" color="danger" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></td>
                                     
                                   </tr>
@@ -300,7 +301,7 @@ class Createquiz extends Component {
                     {!!this.state.rounds || this.state.rounds.length == 0 ?
                       <div>
                       <CardBody>
-                        <CardTitle>Rounds</CardTitle>
+                        <h2>Rounds</h2>
                       </CardBody>
                       <CardBody>
                         <Table>
@@ -313,7 +314,7 @@ class Createquiz extends Component {
                           <tbody>
                             {this.state.rounds.map((round, idx) =>
                               <tr>
-                                <td>{round.name}</td>
+                                <td align="left">{round.name}</td>
                                 <td><Button type="button" color="danger" onClick={this.removeRound.bind(this, idx)}>Remove</Button></td>
                                 
                               </tr>
@@ -332,7 +333,7 @@ class Createquiz extends Component {
               
               <div>
                 <CardBody>
-                  <CardTitle>New Quiz</CardTitle>
+                  <h1>New Quiz</h1>
                 </CardBody>
                 <CardBody>
                   <Form onSubmit={this.createQuiz}>
@@ -371,6 +372,7 @@ class Createquiz extends Component {
         
 
         </div>
+      </div>
       </div>
    
     );

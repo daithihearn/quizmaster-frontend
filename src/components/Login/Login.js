@@ -114,7 +114,7 @@ class Login extends Component {
       <div className="app">
         <div className="login_background">
           <div className="login_background_cloumn">
-            <div className="ISSUER_Logo" />
+            <div className="Logo" />
             <div className="login_background_issuerImage" />
             <div className="form_wrap">
               <div className="form_container">

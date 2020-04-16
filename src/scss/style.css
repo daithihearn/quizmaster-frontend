@@ -11655,6 +11655,65 @@ html body .app.flex-row.align-items-center {
   flex: 1;
   position: relative; }
 
+.card-group {
+  padding-top: 10px;
+  padding-bottom: 10px; }
+
+.game_wrap {
+  min-width: 650px;
+  max-height: auto;
+  overflow: overlay;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  background-color: white; }
+
+.game_container {
+  font-size: 16px;
+  line-height: 24px;
+  padding: 50px 20px 0 20px; }
+  .game_container_headerText {
+    height: 40px;
+    width: 92px;
+    color: #000000;
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 700;
+    font-family: "Open Sans";
+    margin: 0 auto 24px auto; }
+  .game_container_subtext {
+    min-height: 44px;
+    max-width: 293px;
+    color: #0f0f0f;
+    font-family: "Open Sans";
+    font-size: 18px;
+    line-height: 22px;
+    text-align: center;
+    margin: 0 auto 34px auto; }
+  .game_container_text {
+    height: auto;
+    max-width: 304px;
+    color: #262f3a;
+    font-family: "Open Sans";
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+    margin: 40px auto 20px auto; }
+    .game_container_text_link {
+      color: #355ea3;
+      font-weight: 700;
+      font-family: "Open Sans";
+      padding: 10%;
+      cursor: pointer; }
+
+.thumbnail_size {
+  max-width: 128px;
+  max-height: 128px; }
+
+.diplay_image_size {
+  max-width: 1024px;
+  max-height: 1024px; }
+
 .dropdown-menu-quizzes {
   /* top: 100%; */
   /* left: 0; */
@@ -12239,10 +12298,13 @@ html body .app.flex-row.align-items-center {
     display: block; }
   .login_background_issuerImage {
     display: none; }
-  .ISSUER_Logo {
+  .Logo {
     background: url("../assets/icons/logo.jpg");
     display: none; }
   .form_wrap {
+    min-width: 0;
+    max-width: 599px; }
+  .game_wrap {
     min-width: 0;
     max-width: 599px; } }
 

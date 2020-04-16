@@ -18,7 +18,7 @@
   }
 }
 
-// .ISSUER_Logo {
+// .Logo {
 //   background: url('../assets/icons/logo.svg');
 //   height: 56px;
 //   width: 122px;
@@ -193,12 +193,17 @@
     }
   }
 
-  .ISSUER_Logo {
+  .Logo {
     background: url('../assets/icons/logo.jpg');
     display: none;
   }
 
   .form_wrap {
+    min-width: 0;
+    max-width: 599px;
+  }
+
+  .game_wrap {
     min-width: 0;
     max-width: 599px;
   }

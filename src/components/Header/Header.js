@@ -62,7 +62,6 @@ class Header extends Component {
       <>
         <div className="header_background">
           {this.content()}
-          <img className="headermobile_logo" src={Logo} alt="logo" />
         </div>
       </>
     );

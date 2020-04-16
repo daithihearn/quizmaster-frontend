@@ -206,7 +206,8 @@ class Home extends Component {
 
     return (
       <div className="app">
-         <div className="form_wrap">
+         <div className="game_wrap">
+          <div className="game_container">
             
             
             { this.showError() || this.showResponse() ?
@@ -229,7 +230,7 @@ class Home extends Component {
               <CardGroup>
                 <Card className="p-6">
                 <CardBody>
-                  <CardTitle>Active Games</CardTitle>
+                  <h1>Active Games</h1>
                 </CardBody>
                 <CardBody>
                   <Table>
@@ -243,9 +244,9 @@ class Home extends Component {
                     <tbody>
                       {this.state.activeGames.map((game, idx) => 
                         <tr>
-                          <td>{game.name}</td>
+                          <td align="left">{game.name}</td>
                           <td><Button type="button" color="danger" onClick={this.deleteGame.bind(this, game, idx)}>Delete</Button></td>
-                          <td><Button type="button" color="primary" onClick={this.redirectToGame.bind(this, game)}>Open</Button></td>
+                          <td><Button type="button" color="link" onClick={this.redirectToGame.bind(this, game)}>Open</Button></td>
                         </tr>
                       )}
                     </tbody>
@@ -259,7 +260,7 @@ class Home extends Component {
             <CardGroup>
               <Card className="p-6">
                 <CardBody>
-                  <CardTitle>Available Quizzes</CardTitle>
+                  <h1>Available Quizzes</h1>
                 </CardBody>
                 <CardBody>
                     <Dropdown isOpen={this.state.dropDownOpen} toggle={this.toggle}>
@@ -285,7 +286,7 @@ class Home extends Component {
                 {!!this.state.quizSelected ?  
                   <div>
                     <CardBody>
-                      <CardTitle>Enter email addresses and start a game</CardTitle>
+                      <h3>Enter email addresses and start a game</h3>
                     </CardBody>
                     <CardBody>
                       <Form onSubmit={this.addPlayer}>
@@ -319,7 +320,7 @@ class Home extends Component {
                     
                   <div>
                     <CardBody>
-                      <CardTitle>OR</CardTitle>
+                      <h3>OR</h3>
                     </CardBody>
                     <CardBody>
 
@@ -335,7 +336,7 @@ class Home extends Component {
                 {this.state.emails.length > 0 ?
                   <div>
                   <CardBody>
-                    <CardTitle>Players added</CardTitle>
+                    <h2>Players added</h2>
                   </CardBody>
                   <CardBody>
                     <Table>
@@ -348,7 +349,7 @@ class Home extends Component {
                       <tbody>
                       {this.state.emails.map((email, idx) =>
                         <tr>
-                          <td>{email}</td>
+                          <td align="left">{email}</td>
                           <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, idx)}>Remove</Button></td>
                         </tr>
                       )}
@@ -361,7 +362,7 @@ class Home extends Component {
             </Card>
           </CardGroup>
          
-
+        </div>
        </div> 
     </div>
    
