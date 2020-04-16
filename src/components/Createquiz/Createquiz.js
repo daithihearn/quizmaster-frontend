@@ -19,7 +19,6 @@ class Createquiz extends Component {
       newImage: {}
     };
 
-    this.toggle = this.toggle.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleChangeImage = this.handleChangeImage.bind(this);
     this.addQuestion = this.addQuestion.bind(this);
