@@ -1,8 +1,12 @@
+.body {
+  font-family: $fontFamily;
+}
 .app_body {
   background-color: $white;
   width: auto;
   flex: 1;
   position: relative;
+  font-family: $fontFamily;
 }
 
 .card-group {
@@ -63,7 +67,6 @@
       color:$blue;
       font-weight: $fontWeightBold;
       font-family: $fontFamily;
-      padding: 10%;
       cursor: pointer;
     }
   }
