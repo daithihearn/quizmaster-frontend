@@ -310,48 +310,6 @@ class Scoring extends Component {
               </Card>
             </CardGroup>
 
-              <CardGroup>
-                <Card className="p-6">
-                  <CardHeader tag="h1">Actions</CardHeader>
-                  <CardBody>
-                    <ButtonGroup vertical>
-                      <Button type="button" color="primary" onClick={this.publishLeaderboard.bind(this)}>
-                        Publish Leaderboard
-                      </Button>
-                      <Button type="button" color="secondary" onClick={this.redirectToHome.bind(this)}>
-                        Back to Home
-                      </Button>
-                    </ButtonGroup>
-                  </CardBody>
-
-                  {!!this.state.quiz ?
-                    <CardBody>
-                      <Table>
-                      <thead>
-                        <tr>
-                          <th>Round</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                          {this.state.quiz.rounds.map((round) => 
-                            <tr>
-                              <td align="left">Round: {round.name}</td>
-                              <td><Button type="button" color="link" onClick={this.publishAnswersForRound.bind(this, round)}>
-                                  Publish Answers
-                            </Button></td>
-                            </tr>
-                          )}
-
-                        </tbody>
-                      </Table>
-                    </CardBody>
-                  : null}
-
-              
-              </Card>
-            </CardGroup>
-
             <CardGroup>
                 <Card className="p-6">
                   <CardHeader tag="h1">Answers for Correction</CardHeader>
@@ -417,6 +375,48 @@ class Scoring extends Component {
 
                 </Card>
               </CardGroup>
+
+              <CardGroup>
+                <Card className="p-6">
+                  <CardHeader tag="h1">Actions</CardHeader>
+                  <CardBody>
+                    <ButtonGroup vertical>
+                      <Button type="button" color="primary" onClick={this.publishLeaderboard.bind(this)}>
+                        Publish Leaderboard
+                      </Button>
+                      <Button type="button" color="secondary" onClick={this.redirectToHome.bind(this)}>
+                        Back to Home
+                      </Button>
+                    </ButtonGroup>
+                  </CardBody>
+
+                  {!!this.state.quiz ?
+                    <CardBody>
+                      <Table>
+                      <thead>
+                        <tr>
+                          <th>Round</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                          {this.state.quiz.rounds.map((round) => 
+                            <tr>
+                              <td align="left">Round: {round.name}</td>
+                              <td><Button type="button" color="danger" onClick={this.publishAnswersForRound.bind(this, round)}>
+                                  Publish Answers
+                            </Button></td>
+                            </tr>
+                          )}
+
+                        </tbody>
+                      </Table>
+                    </CardBody>
+                  : null}
+
+              
+              </Card>
+            </CardGroup>
           
           </div>
         </div>
