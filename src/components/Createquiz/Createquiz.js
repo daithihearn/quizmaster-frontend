@@ -2,7 +2,7 @@ import React, { Component, useState } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
-import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
+import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
 import nextId from "react-id-generator";
 
 class Createquiz extends Component {
@@ -185,13 +185,13 @@ class Createquiz extends Component {
             {!!this.state.isQuizCreated ?
           
               <div>
-                <CardBody>
+                
                   {this.state.isQuizSubmited  ?
-                      <h1>Created Quiz: {this.state.quizName}</h1>              
+                      <CardHeader tag="h1">Created Quiz: {this.state.quizName}</CardHeader>
                     :
-                    <h1>Quiz: {this.state.quizName}</h1>
+                      <CardHeader tag="h1">Quiz: {this.state.quizName}</CardHeader>
                   }
-                </CardBody>
+                
 
 
 
@@ -331,9 +331,7 @@ class Createquiz extends Component {
               
               
               <div>
-                <CardBody>
-                  <h1>New Quiz</h1>
-                </CardBody>
+                <CardHeader tag="h1">New Quiz</CardHeader>
                 <CardBody>
                   <Form onSubmit={this.createQuiz}>
                     <FormGroup>

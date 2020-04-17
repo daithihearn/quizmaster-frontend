@@ -11711,8 +11711,8 @@ html body .app.flex-row.align-items-center {
   max-height: 128px; }
 
 .diplay_image_size {
-  max-width: 640px;
-  max-height: 640px; }
+  max-width: 512px;
+  max-height: 512px; }
 
 .dropdown-menu-quizzes {
   /* top: 100%; */

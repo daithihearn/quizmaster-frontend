@@ -2,13 +2,7 @@ import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
-import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
 
 class Home extends Component {
   constructor(props) {
@@ -229,9 +223,7 @@ class Home extends Component {
             {this.state.activeGames.length > 0 ?  
               <CardGroup>
                 <Card className="p-6">
-                <CardBody>
-                  <h1>Active Games</h1>
-                </CardBody>
+                  <CardHeader tag="h1">Active Games</CardHeader>
                 <CardBody>
                   <Table>
                     <thead>
@@ -259,9 +251,7 @@ class Home extends Component {
 
             <CardGroup>
               <Card className="p-6">
-                <CardBody>
-                  <h1>Available Quizzes</h1>
-                </CardBody>
+                <CardHeader tag="h1">Available Quizzes</CardHeader>
                 <CardBody>
                     <Dropdown isOpen={this.state.dropDownOpen} toggle={this.toggle}>
                       <DropdownToggle caret>

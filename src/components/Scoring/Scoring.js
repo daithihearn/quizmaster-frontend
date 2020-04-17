@@ -5,7 +5,7 @@ import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
-import { Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
+import { Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
 
 class Scoring extends Component {
   constructor(props) {
@@ -243,9 +243,7 @@ class Scoring extends Component {
 
                 {!!this.state.quiz ?
                   <div>
-                    <CardBody>
-                      <h1>{this.state.quiz.name}</h1>
-                    </CardBody>
+                    <CardHeader tag="h1">{this.state.quiz.name}</CardHeader>
                     
                       {this.state.quiz.rounds.map((round) => (
                         <div>
@@ -294,9 +292,9 @@ class Scoring extends Component {
 
               <CardGroup>
                 <Card className="p-6">
+                  <CardHeader tag="h1">Leaderboard</CardHeader>
                   <CardBody>
                     <DataTable
-                        title="Leaderboard"
                         columns={this.columns}
                         data={this.state.leaderboard}
                         theme="solarized"
@@ -314,9 +312,7 @@ class Scoring extends Component {
 
               <CardGroup>
                 <Card className="p-6">
-                  <CardBody>
-                    <h1>Actions</h1>
-                  </CardBody>
+                  <CardHeader tag="h1">Actions</CardHeader>
                   <CardBody>
                     <ButtonGroup vertical>
                       <Button type="button" color="primary" onClick={this.publishLeaderboard.bind(this)}>
@@ -358,9 +354,7 @@ class Scoring extends Component {
 
             <CardGroup>
                 <Card className="p-6">
-                  <CardBody>
-                    <h1>Answers for Correction</h1>
-                  </CardBody>
+                  <CardHeader tag="h1">Answers for Correction</CardHeader>
 
                   {this.state.answers.length > 0 ?
                     <CardGroup>
@@ -418,7 +412,7 @@ class Scoring extends Component {
                       </tbody>
                     </Table>
                   </CardGroup>
-                : "No answers availble for correction at this time.."}
+                : <CardGroup>No answers availble for correction at this time..</CardGroup>}
 
                 </Card>
               </CardGroup>

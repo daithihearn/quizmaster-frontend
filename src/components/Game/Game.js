@@ -4,12 +4,13 @@ import answerService from '../../services/AnswerService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
-import { Button, ButtonGroup, Form, FormGroup, Label, Input, Container, Row, Col, Card, CardBody, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
+import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
+import Viewer from 'react-viewer';
 
 class Game extends Component {
   constructor(props) {
     super(props);
-    this.state = { waiting: true, question: null, answer: "", leaderboard: null, roundSummary: null };
+    this.state = { waiting: true, question: null, answer: "", leaderboard: null, roundSummary: null, visible: false };
     sessionUtils.checkLoggedIn();
 
     createTheme('solarized', {
@@ -36,6 +37,8 @@ class Game extends Component {
 
     this.getCurrentContent();
 
+    this.hideImage = this.hideImage.bind(this);
+    this.showImage = this.showImage.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
@@ -112,6 +115,14 @@ class Game extends Component {
     answerService.submitAnswer(answer).then(response => {
       thisObj.setState({ waiting: true, question: null, answer: "", leaderboard: null });
     }).catch(error => thisObj.parseError(error));
+  }
+
+  hideImage() {
+    this.setState(Object.assign(this.state, {visible: false}));
+  }
+
+  showImage() {
+    this.setState(Object.assign(this.state, {visible: true}));
   }
 
   parseError(error) {
@@ -200,12 +211,14 @@ class Game extends Component {
 
               <CardGroup>
                 <Card className="p-6">
+                    <CardHeader tag="h1">Question</CardHeader>
                     <CardBody>
                       <h2>{this.state.question.question}</h2>
                     </CardBody>
                     <CardBody>
                       <Form onSubmit={this.handleSubmit}>
                         <FormGroup>
+
                           <Input
                               className="answer"
                               type="input"
@@ -225,7 +238,13 @@ class Game extends Component {
                           
                           {!!this.state.question.imageUri ?
                           <FormGroup>
-                            <img src={this.state.question.imageUri} class="diplay_image_size"/>
+                            
+                            <Viewer
+                              visible={this.state.visible}
+                              onClose={() => { this.hideImage() } }
+                              images={[{src: this.state.question.imageUri}]}
+                              />
+                            <img src={this.state.question.imageUri} class="diplay_image_size" onClick={this.showImage}/>
                           </FormGroup>
                           : null}
 
@@ -241,9 +260,9 @@ class Game extends Component {
 
             <CardGroup>
               <Card className="p-6">
+                <CardHeader tag="h1">Leaderboard</CardHeader>
                 <CardBody>
                   <DataTable
-                      title="Leaderboard"
                       columns={this.columns}
                       data={this.state.leaderboard}
                       theme="solarized"
@@ -258,9 +277,7 @@ class Game extends Component {
           {!!this.state.roundSummary ? 
               <CardGroup>
                 <Card className="p-6">
-                  <CardBody>
-                    <h2>{this.state.roundSummary.name} - Summary</h2>
-                  </CardBody>
+                  <CardHeader tag="h1">{this.state.roundSummary.name} - Summary</CardHeader>
                   <CardBody>
 
                       <Table>
