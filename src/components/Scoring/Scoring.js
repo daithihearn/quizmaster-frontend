@@ -122,7 +122,7 @@ class Scoring extends Component {
 
     let answers = this.state.answers;
     let answer = answers[index].answer;
-    answer.score = this.state.score;
+    answer.score = event.target.elements.score.value;
 
     answerService.submitCorrection(answer).then(response => {
       answers.splice(index, 1);
@@ -365,6 +365,7 @@ class Scoring extends Component {
                           <th>Question</th>
                           <th>Correct Answer</th>
                           <th>Provided Answer</th>
+                          <th>Max Points</th>
                           <th>Score</th>
                         </tr>
                       </thead>
@@ -376,6 +377,7 @@ class Scoring extends Component {
                               <td align="left">{answer.question.question}</td>
                               <td>{answer.question.answer}</td>
                               <td>{answer.answer.answer}</td>
+                              <td>{answer.question.points}</td>
                               <td>
                                 <Form onSubmit={this.handleCorrectAnswer}>
                                 <FormGroup>
@@ -391,10 +393,9 @@ class Scoring extends Component {
                                       className="score"
                                       type="input"
                                       name="score"
+                                      pattern="[0-9]*"
                                       placeholder="Score"
                                       autoComplete="Score"
-                                      value={answer.question.score}
-                                      onChange={this.handleChange}
                                       required
                                     />
                                 </FormGroup>
@@ -412,7 +413,7 @@ class Scoring extends Component {
                       </tbody>
                     </Table>
                   </CardGroup>
-                : <CardGroup>No answers availble for correction at this time..</CardGroup>}
+                : <CardGroup><h3>No answers availble for correction at this time..</h3></CardGroup>}
 
                 </Card>
               </CardGroup>

@@ -1,8 +1,8 @@
-import React, { Component, useState } from 'react';
+import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
-import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
+import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
 import nextId from "react-id-generator";
 
 class Createquiz extends Component {
@@ -13,13 +13,15 @@ class Createquiz extends Component {
     this.state = { 
       questions: [],
       rounds: [],
+      newForceManualCorrection: false,
+      newPoints: 1,
       quizName:'',
-      isQuizCreated: false, 
-      isQuizSubmited:false,
+      isQuizCreated: false,
       newImage: {}
     };
 
     this.handleChange = this.handleChange.bind(this);
+    this.handleChangeCheckbox = this.handleChangeCheckbox.bind(this);
     this.handleChangeImage = this.handleChangeImage.bind(this);
     this.addQuestion = this.addQuestion.bind(this);
     this.addRound = this.addRound.bind(this);
@@ -47,10 +49,17 @@ class Createquiz extends Component {
     this.setState(Object.assign(this.state, updateObj));
   }
 
+  handleChangeCheckbox(event) {
+    let key = event.target.getAttribute("name");
+    let updateObj = { [key]: event.target.checked };
+    console.log(JSON.stringify(updateObj));
+    this.setState(Object.assign(this.state, updateObj));
+  }
+
   handleChangeImage(event) {
     let file = event.target.files[0]
     
-    let reader = new FileReader()
+    let reader = new FileReader();
 
     reader.onloadend = () => {
       this.setState(Object.assign(this.state, {newImage: {
@@ -65,9 +74,14 @@ class Createquiz extends Component {
   addQuestion = event => {
     event.preventDefault();
     let updatedQuestions = this.state.questions;
-    updatedQuestions.push({ question: this.state.newQuestion, answer: this.state.newAnswer, imageUri: this.state.newImage.imagePreviewUrl, id: nextId() });
+    updatedQuestions.push({ question: this.state.newQuestion, 
+      answer: this.state.newAnswer, 
+      imageUri: this.state.newImage.imagePreviewUrl, 
+      forceManualCorrection: this.state.newForceManualCorrection,
+      points: this.state.newPoints,
+      id: nextId() });
 
-    this.setState(Object.assign(this.state, {questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}}));
+    this.setState(Object.assign(this.state, {questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false }));
     event.currentTarget.reset();
   }
 
@@ -81,7 +95,7 @@ class Createquiz extends Component {
     let updatedRounds = this.state.rounds;
     updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: nextId() });
 
-    this.setState(Object.assign(this.state, {rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newRoundName: ''}));
+    this.setState(Object.assign(this.state, {rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false, newRoundName: ''}));
   }
 
   removeRound(idx) {
@@ -97,7 +111,9 @@ class Createquiz extends Component {
     let quiz = { name: this.state.quizName, rounds: this.state.rounds };
     
     quizService.putQuiz(quiz).then(response =>
-      thisObj.setState ({isQuizSubmited: true})
+      thisObj.props.history.push({
+        pathname: '/home'
+      })
     ).catch(error => thisObj.parseError(error));
   };
 
@@ -185,95 +201,109 @@ class Createquiz extends Component {
             {!!this.state.isQuizCreated ?
           
               <div>
-                
-                  {this.state.isQuizSubmited  ?
-                      <CardHeader tag="h1">Created Quiz: {this.state.quizName}</CardHeader>
-                    :
-                      <CardHeader tag="h1">Quiz: {this.state.quizName}</CardHeader>
-                  }
-                
-
-
-
-                  
-                  {!this.state.isQuizSubmited ?
-                    <div>
-                      <CardBody>
-                          <Form onSubmit={this.addQuestion}>
-                              <FormGroup>
-                                <Input
-                                    className="newRoundName"
-                                    type="input"
-                                    name="newRoundName"
-                                    placeholder="Round Name"
-                                    autoComplete="Round Name"
-                                    value={this.state.newRoundName}
-                                    onChange={this.handleChange}
-                                    required
-                                  />
-                                
+                <CardHeader tag="h1">Quiz: {this.state.quizName}</CardHeader>
+                  <CardBody>
+                      <Form onSubmit={this.addQuestion}>
+                          <FormGroup>
+                            <Input
+                                className="newRoundName"
+                                type="input"
+                                name="newRoundName"
+                                placeholder="Round Name"
+                                autoComplete="Round Name"
+                                value={this.state.newRoundName}
+                                onChange={this.handleChange}
+                                required
+                              />
                             
-                                <Input
-                                  className="newQuestion"
-                                  type="input"
-                                  name="newQuestion"
-                                  placeholder="Question"
-                                  autoComplete="Question"
-                                  value={this.state.newQuestion}
-                                  onChange={this.handleChange}
-                                  required
-                                />
-                              </FormGroup>
-                              <FormGroup>
-                                  <Input type="file" name="newImage" onChange={this.handleChangeImage} />
-                                  {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
+                        
+                            <Input
+                              className="newQuestion"
+                              type="input"
+                              name="newQuestion"
+                              placeholder="Question"
+                              autoComplete="Question"
+                              value={this.state.newQuestion}
+                              onChange={this.handleChange}
+                              required
+                            />
+                          </FormGroup>
+                          <FormGroup>
+                              <Input type="file" name="newImage" onChange={this.handleChangeImage} />
+                              {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
 
-                              </FormGroup>
-                              <FormGroup>
-                                <Input
-                                  className="newAnswer"
-                                  type="input"
-                                  name="newAnswer"
-                                  placeholder="Answer"
-                                  autoComplete="Answer"
-                                  value={this.state.newAnswer}
-                                  onChange={this.handleChange}
-                                  required
-                                />
-                              </FormGroup>
-                              <ButtonGroup>
-                                <Button type="submit" color="primary">
-                                  Add question
-                                </Button>
-                              </ButtonGroup> 
+                          </FormGroup>
+                          <FormGroup>
+                            <Input
+                              className="newAnswer"
+                              type="input"
+                              name="newAnswer"
+                              placeholder="Answer"
+                              autoComplete="Answer"
+                              value={this.state.newAnswer}
+                              onChange={this.handleChange}
+                              required
+                            />
+                          </FormGroup>
+                          <FormGroup>
+                          
+                            <Input
+                              className="newPoints"
+                              type="input"
+                              pattern="[0-9]*"
+                              name="newPoints"
+                              placeholder="Points"
+                              autoComplete="Points"
+                              value={this.state.newPoints}
+                              onChange={this.handleChange}
+                              required
+                            />
+                          </FormGroup>
+                          <FormGroup check>
+                            <Label check>
+                              <Input
+                                className="newForceManualCorrection"
+                                type="checkbox"
+                                name="newForceManualCorrection"
+                                value={this.state.newForceManualCorrection}
+                                onChange={this.handleChangeCheckbox}
+                              />
+                              Force a manual correction?
+                            </Label>
+                          </FormGroup>
+                          <FormGroup>
+                            <ButtonGroup>
+                              <Button type="submit" color="primary">
+                                Add question
+                              </Button>
+                            </ButtonGroup> 
+                          </FormGroup>
 
-                            </Form>
-                          </CardBody>
-                          <CardBody>
-                            <h2>Questions</h2>
-                          </CardBody>
-                          <CardBody>
+                        </Form>
+                      </CardBody>
+                      <CardBody>
+                        <h2>Questions</h2>
+                      </CardBody>
+                      <CardBody>
 
-                            <Table>
-                              <thead>
-                                <tr>
-                                  <th>Question</th>
-                                  <th>Remove</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {this.state.questions.map((question, idx) => 
-                                  <tr>
-                                    <td align="left">{question.question}</td>
-                                    <td><Button type="button" color="danger" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></td>
-                                    
-                                  </tr>
-                                )}
-                              </tbody>
-                            </Table>
-                        </CardBody>
-                        </div>
-                        : null} 
+                        <Table>
+                          <thead>
+                            <tr>
+                              <th>Question</th>
+                              <th>Remove</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {this.state.questions.map((question, idx) => 
+                              <tr>
+                                <td align="left">{question.question}</td>
+                                <td><Button type="button" color="danger" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></td>
+                                
+                              </tr>
+                            )}
+                          </tbody>
+                        </Table>
+                    </CardBody>
 
                      
                      <CardBody>
@@ -291,11 +321,6 @@ class Createquiz extends Component {
                       </ButtonGroup>
                      </CardBody>
                   
-
-
-
-
-
 
                     {!!this.state.rounds || this.state.rounds.length == 0 ?
                       <div>
