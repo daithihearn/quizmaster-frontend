@@ -255,7 +255,7 @@ class Scoring extends Component {
                             <thead>
                               <tr>
                                 <th>Question</th>
-                                <th>Image</th>
+                                <th></th>
                                 <th>Answer</th>
                                 <th>Action</th>
                               </tr>

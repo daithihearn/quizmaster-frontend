@@ -284,7 +284,7 @@ class Game extends Component {
                         <thead>
                           <tr>
                             <th>Question</th>
-                            <th>Image</th>
+                            <th></th>
                             <th>Answer</th>
                           </tr>
                         </thead>
