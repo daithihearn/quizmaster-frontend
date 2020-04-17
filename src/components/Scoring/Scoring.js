@@ -281,12 +281,8 @@ class Scoring extends Component {
                   <CardHeader tag="h1">Leaderboard</CardHeader>
                   <CardBody>
                     <DataTable
-                       defaultSorted={[
-                        {
-                          id: 'score',
-                          desc: true
-                        }
-                      ]}
+                        defaultSortField="score"
+                        defaultSortAsc={false}
                         columns={[
                           {
                             name: 'Player',
