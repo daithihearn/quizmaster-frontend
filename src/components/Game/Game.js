@@ -251,12 +251,8 @@ class Game extends Component {
                 <CardHeader tag="h1">Leaderboard</CardHeader>
                 <CardBody>
                   <DataTable
-                    defaultSorted={[
-                     {
-                      id: 'score',
-                      desc: true
-                     }
-                    ]}
+                    defaultSortField="score"
+                    defaultSortAsc={false}
                     columns={[
                       {
                         name: 'Player',
@@ -290,7 +286,7 @@ class Game extends Component {
                         <thead>
                           <tr>
                             <th>Question</th>
-                            <th>Image</th>
+                            <th></th>
                             <th>Answer</th>
                           </tr>
                         </thead>
