@@ -170,7 +170,6 @@ class Game extends Component {
 
   render() {
    
-    //new login
     return (
       <div className="app">
          <div className="game_wrap">

@@ -2,10 +2,12 @@ import axios from 'axios';
 import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import queryString from 'query-string'
+import { Card, CardBody, CardGroup, Alert } from 'reactstrap';
 
 class AutoLogin extends Component {
   constructor(props) {
     super(props);
+    this.state = { };
     const values = queryString.parse(this.props.location.search);
     this.attemptLogin(values);
   }
@@ -19,14 +21,13 @@ class AutoLogin extends Component {
         sessionStorage.setItem('JWT-TOKEN', response.headers.authorization);
         thisObj.redirectToHomePage();
       }).catch(function (error) {
-        console.log(error);
-        thisObj.setState(Object.assign(thisObj.state, { _error: thisObj.parseError(error) }));
+        thisObj.parseError(error);
       });
   }
 
   redirectToHomePage() {
 
-    // const { history } = this.props;
+    let thisObj = this;
 
     sessionUtils.checkUserType().then(function(response) {
       let authority = response.data[0].authority;
@@ -39,17 +40,68 @@ class AutoLogin extends Component {
       }
     })
     .catch(function(error) {
-      console.log(error);
-      window.location.href = '/#/login';
+      thisObj.parseError(error);
     });
   }
 
+  parseError(error) {
+    let errorMessage = 'Undefined error';
+    if (
+      typeof error.response !== 'undefined' &&
+      typeof error.response.data !== 'undefined' &&
+      typeof error.response.data.message !== 'undefined' &&
+      error.response.data.message !== ''
+    ) {
+      errorMessage = error.response.data.message;
+    } else if (
+      typeof error.response !== 'undefined' &&
+      typeof error.response.statusText !== 'undefined' &&
+      error.response.statusText !== ''
+    ) {
+      errorMessage = error.response.statusText;
+    }
+    if (typeof error.message !== 'undefined') {
+      errorMessage = error.message;
+    }
+    this.setState(Object.assign(this.state, {_error: errorMessage}));
+  }
+
+  showError() {
+    if (!this.state._error) {
+      return false;
+    }
+    return true;
+  }
+
+  readErrorMessage() {
+    if (!this.state._error) {
+      return '';
+    }
+    let error = this.state._error;
+    delete this.state._error;
+    return error;
+  }
 
   render() {
-    //new login
     return (
       <div className="app">
-        Attempting login....
+        <div className="game_wrap">
+          <div className="game_container">
+          <CardGroup>
+            <Card className="p-6">
+                { this.showError() ?
+                    
+                        <CardBody>
+                          <Alert className="mt-3" color="danger" isOpen={this.showError()}>
+                            {this.readErrorMessage()}
+                          </Alert>
+                        </CardBody>
+                      
+                  : <h2>Attempting login....</h2>}
+              </Card>
+            </CardGroup>
+          </div>
+        </div>
       </div>
     );
   }

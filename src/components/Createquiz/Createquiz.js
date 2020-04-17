@@ -157,7 +157,6 @@ class Createquiz extends Component {
   
   render() {
 
-    //new login
     return (
       
         <div className="app">
