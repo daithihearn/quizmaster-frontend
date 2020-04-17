@@ -224,6 +224,14 @@ class Scoring extends Component {
               </CardGroup>
             : null}
 
+
+              <CardGroup>
+                <Card>
+                <CardBody>
+                Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
+                </CardBody>
+                </Card>
+              </CardGroup>
               <CardGroup>
                 <Card className="p-6">
 
@@ -375,7 +383,7 @@ class Scoring extends Component {
                       </tbody>
                     </Table>
                   </CardGroup>
-                : <CardGroup><h3>No answers availble for correction at this time..</h3></CardGroup>}
+                : <CardGroup><CardBody> No answers available for correction at this time..</CardBody></CardGroup>}
 
                 </Card>
               </CardGroup>
@@ -388,9 +396,7 @@ class Scoring extends Component {
                       <Button type="button" color="primary" onClick={this.publishLeaderboard.bind(this)}>
                         Publish Leaderboard
                       </Button>
-                      <Button type="button" color="secondary" onClick={this.redirectToHome.bind(this)}>
-                        Back to Home
-                      </Button>
+        
                     </ButtonGroup>
                   </CardBody>
 
@@ -421,7 +427,14 @@ class Scoring extends Component {
               
               </Card>
             </CardGroup>
-          
+            <CardGroup>
+                <Card>
+                <CardBody>
+                Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
+                </CardBody>
+                </Card>
+              </CardGroup>  
+            
           </div>
         </div>
               

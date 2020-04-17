@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
+import RemoveImage from '../../assets/icons/remove.png';
+
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
 
 class Home extends Component {
@@ -297,10 +299,14 @@ class Home extends Component {
                             <Button type="submit" color="secondary">
                               Add Player
                             </Button>
-                    
+                            &nbsp;
+                              
+                           {!!this.state.emails && this.state.emails.length >0?
                             <Button color="primary" type="button" onClick={this.startGameWithEmails.bind(this)}>
                                 Start Game 
                             </Button>
+                            : null
+                          }
                           </ButtonGroup>
                       </Form>
                     </CardBody>
@@ -340,7 +346,8 @@ class Home extends Component {
                       {this.state.emails.map((email, idx) =>
                         <tr>
                           <td align="left">{email}</td>
-                          <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, idx)}>Remove</Button></td>
+                          <td><a class="remove_link" color="link" onClick={this.removePlayer.bind(this, idx)} > 
+                          <img src={RemoveImage} width="20px" height="20px"/></a></td>
                         </tr>
                       )}
                       </tbody>

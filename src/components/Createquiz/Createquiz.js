@@ -4,6 +4,8 @@ import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
 import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
 import nextId from "react-id-generator";
+import RemoveImage from '../../assets/icons/remove.png';
+
 
 class Createquiz extends Component {
 
@@ -179,6 +181,16 @@ class Createquiz extends Component {
          <div className="game_wrap">
           <div className="game_container">
 
+
+          <CardGroup>
+                <Card>
+                <CardBody>
+                Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
+                </CardBody>
+                </Card>
+          </CardGroup>
+
+
           { this.showError() || this.showResponse() ?
               <CardGroup>
                 <Card className="p-6">
@@ -297,7 +309,9 @@ class Createquiz extends Component {
                             {this.state.questions.map((question, idx) => 
                               <tr>
                                 <td align="left">{question.question}</td>
-                                <td><Button type="button" color="danger" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></td>
+                                <td><a type="button" color="danger" onClick={this.removeQuestion.bind(this, idx)}>
+                                  <img src={RemoveImage} width="20px" height="20px"/>
+                                  </a></td>
                                 
                               </tr>
                             )}
@@ -339,7 +353,7 @@ class Createquiz extends Component {
                             {this.state.rounds.map((round, idx) =>
                               <tr>
                                 <td align="left">{round.name}</td>
-                                <td><Button type="button" color="danger" onClick={this.removeRound.bind(this, idx)}>Remove</Button></td>
+                                <td><a type="button" color="danger" onClick={this.removeRound.bind(this, idx)}> <img src={RemoveImage} width="20px" height="20px"/></a></td>
                                 
                               </tr>
                           )}
@@ -382,15 +396,9 @@ class Createquiz extends Component {
             
             }
 
-          
-          <CardBody>
-            
-            Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
-           
-          </CardBody>
         </Card>
       </CardGroup>
-
+     
         
 
         </div>
