@@ -14,7 +14,8 @@
   &_issuerImage {
     height: 100vh;
     width: 38%;
-    background: url('../assets/img/brand/Login_Banner.jpg') 0% 0% / cover;
+   // background: url('../assets/img/brand/Login_Banner.jpg') 0% 0% / cover;
+    background: black 0% 0% / cover;
   }
 }
 
@@ -79,7 +80,6 @@
       color:$blue;
       font-weight: $fontWeightBold;
       font-family: $fontFamily;
-      padding: 10%;
       cursor: pointer;
     }
   }

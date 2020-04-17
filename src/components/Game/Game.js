@@ -44,19 +44,7 @@ class Game extends Component {
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
   }
 
-  columns = [
-    {
-      name: 'Player',
-      selector: 'playerId',
-      sortable: true,
-    },
-    {
-      name: 'Score',
-      selector: 'score',
-      sortable: true,
-      right: true,
-    },
-  ];
+
 
   getCurrentContent() {
     let thisObj = this;
@@ -263,7 +251,21 @@ class Game extends Component {
                 <CardHeader tag="h1">Leaderboard</CardHeader>
                 <CardBody>
                   <DataTable
-                      columns={this.columns}
+                    defaultSortField="score"
+                    defaultSortAsc={false}
+                    columns={[
+                      {
+                        name: 'Player',
+                        selector: 'playerId',
+                        sortable: true,
+                      },
+                      {
+                        name: 'Score',
+                        selector: 'score',
+                        sortable: true,
+                        right: true,
+                      },
+                    ]}
                       data={this.state.leaderboard}
                       theme="solarized"
                   />
@@ -284,7 +286,7 @@ class Game extends Component {
                         <thead>
                           <tr>
                             <th>Question</th>
-                            <th>Image</th>
+                            <th></th>
                             <th>Answer</th>
                           </tr>
                         </thead>
