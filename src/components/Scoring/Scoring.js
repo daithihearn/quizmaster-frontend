@@ -52,20 +52,6 @@ class Scoring extends Component {
     this.loadQuiz();
   }
 
-  columns = [
-    {
-      name: 'Player',
-      selector: 'playerId',
-      sortable: true,
-    },
-    {
-      name: 'Score',
-      selector: 'score',
-      sortable: true,
-      right: true,
-    },
-  ];
-
   redirectToHome() {
     this.props.history.push({
       pathname: '/home'
@@ -295,7 +281,25 @@ class Scoring extends Component {
                   <CardHeader tag="h1">Leaderboard</CardHeader>
                   <CardBody>
                     <DataTable
-                        columns={this.columns}
+                       defaultSorted={[
+                        {
+                          id: 'score',
+                          desc: true
+                        }
+                      ]}
+                        columns={[
+                          {
+                            name: 'Player',
+                            selector: 'playerId',
+                            sortable: true,
+                          },
+                          {
+                            name: 'Score',
+                            selector: 'score',
+                            sortable: true,
+                            right: true,
+                          },
+                        ]}
                         data={this.state.leaderboard}
                         theme="solarized"
                     />
