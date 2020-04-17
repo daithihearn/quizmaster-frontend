@@ -239,7 +239,7 @@ class Home extends Component {
                       {this.state.activeGames.map((game, idx) => 
                         <tr>
                           <td align="left">{game.name}</td>
-                          <td><Button type="button" color="danger" onClick={this.deleteGame.bind(this, game, idx)}>Delete</Button></td>
+                          <td><a type="button" color="danger" onClick={this.deleteGame.bind(this, game, idx)}><img src={RemoveImage} width="20px" height="20px"/></a></td>
                           <td><Button type="button" color="link" onClick={this.redirectToGame.bind(this, game)}>Open</Button></td>
                         </tr>
                       )}
