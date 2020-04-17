@@ -11,8 +11,6 @@ exports.get = (id) => {
     };
     const result = axios
       .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?id=${id}`, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when getting game: ', error));
     return result;
   }
 };
@@ -29,8 +27,22 @@ exports.getAll = () => {
     };
     const result = axios
       .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/all`, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when getting all quizzes: ', error));
+    return result;
+  }
+};
+
+exports.getActive = () => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/json"
+      }
+    };
+    const result = axios
+      .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/active`, config)
     return result;
   }
 };
@@ -46,11 +58,40 @@ exports.put = (createGame) => {
     };
     const result = axios
       .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game`, createGame, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when putting game: ', error));
     return result;
   }
 };
+
+exports.finish = (id) => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader
+      }
+    };
+    const result = axios
+      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/finish?id=${id}`, null, config)
+    return result;
+  }
+};
+
+exports.cancel = (id) => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader
+      }
+    };
+    const result = axios
+      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/cancel?id=${id}`, null, config)
+    return result;
+  }
+};
+
 
 exports.delete = (id) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
@@ -63,8 +104,6 @@ exports.delete = (id) => {
     };
     const result = axios
       .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?id=${id}`, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when deleting quiz: ', error));
     return result;
   }
 };
@@ -80,8 +119,6 @@ exports.publishQuestion = (pointer) => {
     };
     const result = axios
       .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/publishQuestion`, pointer, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when publishing question: ', error));
     return result;
   }
 };
@@ -98,8 +135,6 @@ exports.getCurrentContent = () => {
     };
     const result = axios
       .get(`${process.env.REACT_APP_API_URL}/api/v1/game/currentContent`, config)
-      .then(response => response)
-      .catch(error => console.error('Error occurred when getting current content: ', error));
     return result;
   }
 };

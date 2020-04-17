@@ -2,39 +2,38 @@ import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link
-} from "react-router-dom";
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
 
 class Home extends Component {
   constructor(props) {
     super(props);
    
     this.state = { 
-      
-       quizzes: [],
-       emails:[''],
-       quizSelected:{},
-       isGameCreated:false,
-       isQuizSelected:false,
-       game:{}
-      
-      };
-    
-   
+      activeGames: [],
+      quizzes: [],
+      emails:[],
+      currentEmail: '',
+      quizSelected: null,
+      game:{},
+      dropDownOpen: false
+    };
     
     sessionUtils.checkLoggedIn();
 
     this.getAllQuizzes();
+    this.getActiveGames();
 
-    this.onClickHandler = this.onClickHandler.bind (this);
-    //this.getAllQuizzes = this.getAllQuizzes.bind(this);
+    this.addPlayer = this.addPlayer.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.toggle = this.toggle.bind(this);
+    this.onQuizSelect = this.onQuizSelect.bind(this);
+    this.getAllQuizzes = this.getAllQuizzes.bind(this);
     this.startGameWithEmails = this.startGameWithEmails.bind(this);
   }
 
+  toggle() {
+    this.setState(Object.assign(this.state, { dropDownOpen: !this.state.dropDownOpen }));
+  }
  
   getAllQuizzes()  {
     let thisObj = this;
@@ -45,22 +44,26 @@ class Home extends Component {
       .catch(error => thisObj.parseError(error));
   };
 
-  startGameWithEmails = event => {
-    event.preventDefault();
+  getActiveGames()  {
+    let thisObj = this;
+
+    gameService.getActive().then(response => {
+      thisObj.setState(Object.assign(thisObj.state, { activeGames: response.data }));
+    })
+      .catch(error => thisObj.parseError(error));
+  };
+
+  startGameWithEmails() {
 
     let thisObj = this;
-    let gameEmails= 
-    {
+    let gameEmails = {
       playerEmails: this.state.emails,
-      quizId: this.state.quizSelected.id
+      quizId: this.state.quizSelected.id,
+      name: this.state.quizSelected.name
     }
 
-   
-    this.setState(Object.assign(this.state, { isGameCreated:true}));
     gameService.put(gameEmails).then(response => {
-
-      thisObj.setState(Object.assign(thisObj.state, { game: response.data }));
-      console.log(`Game created with id: ${JSON.stringify(response.data)}`);
+      thisObj.redirectToGame(response.data);
      })
        .catch(error => thisObj.parseError(error));
        
@@ -74,148 +77,91 @@ class Home extends Component {
     }
   }
 
-  onClickHandler = event => {
+  onQuizSelect(event) {
 
-    let key = event.target.id; 
-    let name = event.target.innerText;
-    let quiz = {name:'', id:''}
-    quiz.name=name;
-    quiz.id=key;
-    console.log("Clicked: " + key + " - " +  name);
-    this.setState(Object.assign(this.state, {quizSelected: quiz, isQuizSelected:true}));
-    console.log(`Quiz select4ed********: ${JSON.stringify(this.state.quizSelected)}`);
+    let quiz = { name: event.target.name, id:event.target.value };
+    if (quiz.name === "None") {
+      this.setState(Object.assign(this.state, {quizSelected: null}));
+    } else {
+      this.setState(Object.assign(this.state, {quizSelected: quiz}));
+    }
   };
 
- 
+  submitQuiz(event) {
 
-  submitQuiz = event => {
-
-    console.log(`Quiz submitted********: ${JSON.stringify(this.state.quizToPersist)}`);
+    let thisObj = this;
 
     quizService.putQuiz(this.state.quizToPersist).then(response =>
       console.log(response)
-    ).catch(error =>
-      console.log(error)
-    );
+    ).catch(error => thisObj.parseError(error));
 
     event.preventDefault();
 
   };
 
-  getGameInfo(){
-    let gameId= this.state.game.id;
-    //this.props.navigation.navigate('Scoring', { gameId: gameId })
-    //const membersToRender = this.state.game.players.filter(players => players.display);
-    //const numPlayers = membersToRender.length;
-    const players= this.state.game.players;
-    if(!!players){
-      const numPlayers=players.length;
-      console.log(`Players  ${JSON.stringify(numPlayers)}`);
-      return(
-         
-          <p>     Game Id generated: {gameId}
-              
-          <br></br>
-            Number of Player for this game: {numPlayers}
+  addPlayer(event) {
+    event.preventDefault();
+    let updatedEmails = this.state.emails;
+    updatedEmails.push(this.state.currentEmail);
 
-            <br></br>
-            <Link to={{
-            pathname: '/scoring',
-            gameId: gameId,
-            quizId: this.state.quizSelected.id
-
-          }}> Start Game </Link>
-             {/* <a href="/#/scoring"><span className="form_container_text_link"> Start Game</span></a> */}
-
-
-          </p>
-         
-    
-        );
-    }
- 
-
+    this.setState(Object.assign(this.state,{email: updatedEmails, currentEmail: ''}));
   }
 
-  getEmailAdresses() {
-
-    return this.state.emails.map((v, i) =>
-    
-        <div key={i}>
-            
-            <input
-              className="email"
-              type="input"
-              name="email"
-              placeholder="Email"
-              autoComplete="Email"
-              value={v || ''}
-              onChange={this.handleChange.bind(this, i)}
-              required
-            />
-            {/* <input type="text" value={v.value||''} onChange={this.handleChangeValue.bind(this, i)} /> */}
-          
-            <button type="button" color="primary" className="login_button" onClick={this.removeClick.bind(this, i)}>
-              Remove Player
-                        <span>
-                <img
-                  style={{ marginLeft: '5px' }}
-                  alt="description"
-                  src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                />
-              </span>
-            </button>
-            {/* {v.value}, {v.answer} */}
-
-            <button type="btuoo" color="primary" className="login_button" onClick={this.addClick.bind(this)}>
-                            Add Another Player
-                                <span>
-                              <img
-                                style={{ marginLeft: '5px' }}
-                                alt="description"
-                                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                              />
-                            </span>
-              </button>
-              
-          </div>
-     
-    )
-  }
-
-  addClick() {
-    
-    this.setState(prevState => ({ emails: [...prevState.emails, ""] }))
-  
-  
-  }
-
-  removeClick(i) {
+  removePlayer(idx) {
     let emails = [...this.state.emails];
-    emails.splice(i, 1);
+    emails.splice(idx, 1);
     this.setState({ emails });
-  
+  }
+
+  redirectToGame(game) {
+    this.props.history.push({
+      pathname: '/scoring',
+      state: { game: game }
+    });
+  }
+
+  redirectToCreateQuiz() {
+    this.props.history.push({
+      pathname: '/createQuiz'
+    });
+  }
+
+  deleteGame(game, idx) {
+    let thisObj = this;
+    let activeGames = [...this.state.activeGames];
+    activeGames.splice(idx, 1);
+
+    gameService.delete(game.id)
+      .then(response => thisObj.setState(Object.assign(thisObj.state, { activeGames: activeGames })))
+      .catch(error => thisObj.parseError(error));
+  }
+
+  handleChange(event) {
+    let key = event.target.getAttribute("name");
+    let updateObj = { [key]: event.target.value };
+    this.setState(Object.assign(this.state, updateObj));
   }
 
   parseError(error) {
+    let errorMessage = 'Undefined error';
     if (
       typeof error.response !== 'undefined' &&
       typeof error.response.data !== 'undefined' &&
       typeof error.response.data.message !== 'undefined' &&
       error.response.data.message !== ''
     ) {
-      return error.response.data.message;
+      errorMessage = error.response.data.message;
     } else if (
       typeof error.response !== 'undefined' &&
       typeof error.response.statusText !== 'undefined' &&
       error.response.statusText !== ''
     ) {
-      return error.response.statusText;
+      errorMessage = error.response.statusText;
     }
     if (typeof error.message !== 'undefined') {
-      return error.message;
+      errorMessage = error.message;
     }
-    return 'Undefined error';
+    this.setState(Object.assign(this.state, {_error: errorMessage}));
   }
 
   showError() {
@@ -235,164 +181,180 @@ class Home extends Component {
   }
 
   showResponse() {
-    if (!this.state._txHash) {
+    if (!this.state._message) {
       return false;
     }
     return true;
   }
 
-  handleChange(i, event) {
-
-    let emails = [...this.state.emails];
-    console.log(`emails   BEGIN: ${JSON.stringify(emails)}`);
-    
-    //let email = { [key]: event.target.value };
-     emails[i]=event.target.value;
-    console.log (" what " + emails[i].concat(event.target.value));
-    console.log(`emails: ${JSON.stringify(emails)}`);
-    
-    this.setState({ emails });
-  };
-
+  readResponseMessage() {
+    if (!this.state._message) {
+      return '';
+    }
+    let message = this.state._message;
+    delete this.state._message;
+    return message;
+  }
   
-
-
   render() {
 
-    //new login
     return (
       <div className="app">
-        
-        {/* Choose previous quiz */}
-        <div className="login_background">
-          <div className="login_background_cloumn">
-            <div className="ISSUER_Logo" />
-            {/* <div className="login_background_issuerImage" /> */}
-            <div className="tile_wrap">
-              <div className="card-product_Stats">
-                <div className="form_wrap">
-                  <div className="form_container2">
-                
-                    
-
-                  
-                {this.state.isGameCreated ? ''
-                  :
-                   <div>
-                    <div className="form_container_subtext">
-                      Select a previous Quiz
-                    </div>
-                    <div className="dropdown-menu-quizzes"  >
-                      {this.state.quizzes.map((rowdata, i) => {
-                        return (
-                           <option  className="dropdown-item" key={i} id={rowdata.id} onClick={this.onClickHandler}> 
-                           {rowdata.name} 
-                           </option>
-                           
-                        )
-                      })
-                      }
-                    </div>  
-                  </div>
-                  }
-                 
-                   
-
-
-                    {this.state.isQuizSelected  && !this.state.isGameCreated ?  
-                    <div>
-                        <h3>
-                        Selected quiz : {this.state.quizSelected.name}  
-                        </h3> 
-                    
-                         <p>      Enter email adresses and start a game
-                      </p>
-                      </div>
-                    
-                      : [
-                        
-                          (!this.state.isGameCreated ? 
-                            <div> 
-                                    <p>
-                                      <br></br>
-                                      OR
-                                    </p>
-                                        {/* <button href="/#/createquiz"><span className="form_container_text_link"> Create a brand new Quiz </span></button>   */}
-                                      <form action="/#/createquiz"> 
-                                        <button color="primary" className="login_button"  href="/#/createquiz">
-                                          Create a brand new Quiz 
-                                          <span>
-                                          <img
-                                            style={{ marginLeft: '5px' }}
-                                            alt="description"
-                                            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                                          />
-                                          
-                                        </span>
-                                      </button>
-                                       </form> 
-                               
-                                </div>
-                            : null
-                          )
-                      ]
-                    }
-                    {this.state.isQuizSelected && !this.state.isGameCreated  ?  
-                    <form  onSubmit={this.startGameWithEmails}>
-                       {this.getEmailAdresses()}
-                    <button type="submit" color="primary" className="login_button" >
-                                Start Game 
-                                  <span>
-                                  <img
-                                    style={{ marginLeft: '5px' }}
-                                    alt="description"
-                                    src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                                  />
-                                </span>
-                              </button>
-                      </form>
-                     
-                   : <br></br>
-                    }
-
-                    {this.state.isGameCreated ?  
-                    <div>
-                      {this.getGameInfo()}
-                    </div>
-                       : ''                 
-                    } 
+         <div className="game_wrap">
+          <div className="game_container">
             
-                </div>
+            
+            { this.showError() || this.showResponse() ?
+              <CardGroup>
+                <Card className="p-6">
+                  <CardBody>
+                    <Alert className="mt-3" color="danger" isOpen={this.showError()}>
+                      {this.readErrorMessage()}
+                    </Alert>
+                    <Alert className="mt-3" color="primary" isOpen={this.showResponse()}>
+                      {this.readErrorMessage()}
+                    </Alert>
+                  </CardBody>
+                </Card>
+              </CardGroup>
+            : null}
+              
+
+            {this.state.activeGames.length > 0 ?  
+              <CardGroup>
+                <Card className="p-6">
+                  <CardHeader tag="h1">Active Games</CardHeader>
+                <CardBody>
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Delete</th>
+                        <th>Open</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {this.state.activeGames.map((game, idx) => 
+                        <tr>
+                          <td align="left">{game.name}</td>
+                          <td><Button type="button" color="danger" onClick={this.deleteGame.bind(this, game, idx)}>Delete</Button></td>
+                          <td><Button type="button" color="link" onClick={this.redirectToGame.bind(this, game)}>Open</Button></td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </Table>
+                </CardBody>
+              </Card>
+              </CardGroup>
+            : null}
+
+
+            <CardGroup>
+              <Card className="p-6">
+                <CardHeader tag="h1">Available Quizzes</CardHeader>
+                <CardBody>
+                    <Dropdown isOpen={this.state.dropDownOpen} toggle={this.toggle}>
+                      <DropdownToggle caret>
+                          {!!this.state.quizSelected?this.state.quizSelected.name:"Please select a quiz"}
+                        </DropdownToggle>
+                      <DropdownMenu>
+                      <DropdownItem onClick={this.onQuizSelect} value="None" name="None">
+                          None
+                      </DropdownItem>
+                      {this.state.quizzes.map((rowdata, i) => 
+                        <DropdownItem onClick={this.onQuizSelect} value={rowdata.id} name={rowdata.name}>
+                          {rowdata.name}
+                        </DropdownItem>
+                      )}
+                      </DropdownMenu>
+                    </Dropdown>
+                </CardBody>
+              
+                
+
+
+                {!!this.state.quizSelected ?  
+                  <div>
+                    <CardBody>
+                      <h3>Enter email addresses and start a game</h3>
+                    </CardBody>
+                    <CardBody>
+                      <Form onSubmit={this.addPlayer}>
+                          <FormGroup>
+                            <Input
+                                className="currentEmail"
+                                id="currentEmail"
+                                type="input"
+                                name="currentEmail"
+                                placeholder="Email"
+                                autoComplete="Email"
+                                onChange={this.handleChange}
+                                value={this.state.currentEmail}
+                              />
+
+                          </FormGroup>
+                          <ButtonGroup>
+                            <Button type="submit" color="secondary">
+                              Add Player
+                            </Button>
+                    
+                            <Button color="primary" type="button" onClick={this.startGameWithEmails.bind(this)}>
+                                Start Game 
+                            </Button>
+                          </ButtonGroup>
+                      </Form>
+                    </CardBody>
                   </div>
+                
+                  :
+                    
+                  <div>
+                    <CardBody>
+                      <h3>OR</h3>
+                    </CardBody>
+                    <CardBody>
+
+                      <Button color="primary" onClick={this.redirectToCreateQuiz.bind(this)}>
+                        Create Quiz 
+                      </Button>
+
+                    </CardBody>
                   </div>
-                 
 
-             </div>
-            </div>
-          </div>
-          
-          
-                      
-      
-      
+                }
 
-       {/* New Quiz
-      <div className="login_background">
-        <div className="login_background_cloumn">
-         <div className="ISSUER_Logo" />
-            <div className="form_wrap">
-              {this.buildQuiz()}
-              </div>
-              </div>
-            </div>
-       */}
-      
-      {/* App div */}
-      </div>      
-
-      
-    
-    
+                {this.state.emails.length > 0 ?
+                  <div>
+                  <CardBody>
+                    <h2>Players added</h2>
+                  </CardBody>
+                  <CardBody>
+                    <Table>
+                      <thead>
+                        <tr>
+                          <th>Player</th>
+                          <th>Remove</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {this.state.emails.map((email, idx) =>
+                        <tr>
+                          <td align="left">{email}</td>
+                          <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, idx)}>Remove</Button></td>
+                        </tr>
+                      )}
+                      </tbody>
+                    </Table>
+                  </CardBody>
+                  </div>
+                : null}
+            
+            </Card>
+          </CardGroup>
+         
+        </div>
+       </div> 
+    </div>
    
     );
   }

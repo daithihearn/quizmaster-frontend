@@ -4,11 +4,13 @@ import answerService from '../../services/AnswerService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
+import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
+import Viewer from 'react-viewer';
 
 class Game extends Component {
   constructor(props) {
     super(props);
-    this.state = { waiting: true, question: null, answer: "", leaderboard: null };
+    this.state = { waiting: true, question: null, answer: "", leaderboard: null, roundSummary: null, visible: false };
     sessionUtils.checkLoggedIn();
 
     createTheme('solarized', {
@@ -35,6 +37,8 @@ class Game extends Component {
 
     this.getCurrentContent();
 
+    this.hideImage = this.hideImage.bind(this);
+    this.showImage = this.showImage.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
@@ -76,12 +80,14 @@ class Game extends Component {
 
     switch (content.type) {
       case("QUESTION"):
-        this.setState(Object.assign(this.state,{waiting: false, question: content.content, answer: "", leaderboard: null}));
+        this.setState(Object.assign(this.state,{waiting: false, question: content.content, answer: "", leaderboard: null, roundSummary: null}));
         break;
       case("LEADERBOARD"): 
-        this.setState(Object.assign(this.state,{waiting: false, question: null, answer: "", leaderboard: content.content}));
+        this.setState(Object.assign(this.state,{waiting: false, question: null, answer: "", leaderboard: content.content, roundSummary: null}));
         break;
       case("ROUND_SUMMARY"):
+        this.setState(Object.assign(this.state,{waiting: false, question: null, answer: "", leaderboard: null , roundSummary: content.content}));
+        break;
       case("GAME_SUMMARY"):
       default:
         this.setState({ waiting: true, question: null, answer: "", leaderboard: null })
@@ -101,8 +107,8 @@ class Game extends Component {
     
     let answer = {
       gameId: this.state.question.gameId,
-      roundIndex: this.state.question.roundIndex,
-      questionIndex: this.state.question.questionIndex,
+      roundId: this.state.question.roundId,
+      questionId: this.state.question.questionId,
       answer: this.state.answer
     }
     
@@ -111,25 +117,34 @@ class Game extends Component {
     }).catch(error => thisObj.parseError(error));
   }
 
+  hideImage() {
+    this.setState(Object.assign(this.state, {visible: false}));
+  }
+
+  showImage() {
+    this.setState(Object.assign(this.state, {visible: true}));
+  }
+
   parseError(error) {
+    let errorMessage = 'Undefined error';
     if (
       typeof error.response !== 'undefined' &&
       typeof error.response.data !== 'undefined' &&
       typeof error.response.data.message !== 'undefined' &&
       error.response.data.message !== ''
     ) {
-      return error.response.data.message;
+      errorMessage = error.response.data.message;
     } else if (
       typeof error.response !== 'undefined' &&
       typeof error.response.statusText !== 'undefined' &&
       error.response.statusText !== ''
     ) {
-      return error.response.statusText;
+      errorMessage = error.response.statusText;
     }
     if (typeof error.message !== 'undefined') {
-      return error.message;
+      errorMessage = error.message;
     }
-    return 'Undefined error';
+    this.setState(Object.assign(this.state, {_error: errorMessage}));
   }
 
   showError() {
@@ -148,84 +163,163 @@ class Game extends Component {
     return error;
   }
 
+  showResponse() {
+    if (!this.state._message) {
+      return false;
+    }
+    return true;
+  }
+
+  readResponseMessage() {
+    if (!this.state._message) {
+      return '';
+    }
+    let message = this.state._message;
+    delete this.state._message;
+    return message;
+  }
+
   render() {
    
-    //new login
     return (
       <div className="app">
-        <div className="login_background">
-          <div className="login_background_cloumn">
-            <div className="ISSUER_Logo" />
+         <div className="game_wrap">
+          <div className="game_container">
+
+        { this.showError() || this.showResponse() ?
+          <CardGroup>
+            <Card className="p-6">
+              <CardBody>
+                <Alert className="mt-3" color="danger" isOpen={this.showError()}>
+                  {this.readErrorMessage()}
+                </Alert>
+                <Alert className="mt-3" color="primary" isOpen={this.showResponse()}>
+                  {this.readErrorMessage()}
+                </Alert>
+              </CardBody>
+            </Card>
+          </CardGroup>
+        : null}
 
             {!!this.state.waiting ? 
-              <div className="form_wrap">
-                <div className="form_container">
-                  <div>Please wait for the next question...</div>
-                </div>
-              </div>
+
+              <h1>Please wait for the next question...</h1>
+
             : null}
 
             {!!this.state.question ? 
 
-            <div className="form_wrap">
-              <div className="form_container">
-              <form onSubmit={this.handleSubmit}>
-              
-              {this.state.question.question}
-              <input
-                  className="answer"
-                  type="input"
-                  name="answer"
-                  placeholder="answer"
-                  autoComplete="answer"
-                  value={this.state.answer}
-                  onChange={this.handleChange}
-                  required
-                />
-                <button  type="submit" color="primary" className="login_button">
-                  Submit
-                    <span>
-                    <img
-                      style={{ marginLeft: '5px' }}
-                      alt="description"
-                      src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHg9IjBweCIgeT0iMHB4Igp3aWR0aD0iMTUiIGhlaWdodD0iMTUiCnZpZXdCb3g9IjAgMCAxNzIgMTcyIgpzdHlsZT0iIGZpbGw6IzAwMDAwMDsiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0ibm9uemVybyIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZvbnQtZmFtaWx5PSJub25lIiBmb250LXdlaWdodD0ibm9uZSIgZm9udC1zaXplPSJub25lIiB0ZXh0LWFuY2hvcj0ibm9uZSIgc3R5bGU9Im1peC1ibGVuZC1tb2RlOiBub3JtYWwiPjxwYXRoIGQ9Ik0wLDE3MnYtMTcyaDE3MnYxNzJ6IiBmaWxsPSJub25lIj48L3BhdGg+PGcgZmlsbD0iIzg2YmMyNSI+PHBhdGggZD0iTTY4LjgsMTU0LjhoLTExLjQ2NjY3Yy0yLjIxMzA3LDAgLTQuMjMxMiwtMS4yNzg1MyAtNS4xODI5MywtMy4yNzk0N2MtMC45NTE3MywtMi4wMDA5MyAtMC42NTkzMywtNC4zNjg4IDAuNzQ1MzMsLTYuMDg4OGw0OC42MzAxMywtNTkuNDMxNzNsLTQ4LjYzMDEzLC01OS40Mzc0N2MtMS40MDQ2NywtMS43MTQyNyAtMS42OTEzMywtNC4wODIxMyAtMC43NDUzMywtNi4wODg4YzAuOTQ2LC0yLjAwNjY3IDIuOTY5ODcsLTMuMjczNzMgNS4xODI5MywtMy4yNzM3M2gxMS40NjY2N2MxLjcyLDAgMy4zNDgyNywwLjc3NCA0LjQzNzYsMi4xMDQxM2w1MS42LDYzLjA2NjY3YzEuNzI1NzMsMi4xMTU2IDEuNzI1NzMsNS4xNDg1MyAwLDcuMjY0MTNsLTUxLjYsNjMuMDY2NjdjLTEuMDg5MzMsMS4zMjQ0IC0yLjcxNzYsMi4wOTg0IC00LjQzNzYsMi4wOTg0eiI+PC9wYXRoPjwvZz48L2c+PC9zdmc+"
-                    />
-                  </span>
-                </button>
-              </form>
-              <img src={this.state.question.imageUri}/>
-            </div>
-            </div>
+              <CardGroup>
+                <Card className="p-6">
+                    <CardHeader tag="h1">Question</CardHeader>
+                    <CardBody>
+                      <h2>{this.state.question.question}</h2>
+                    </CardBody>
+                    <CardBody>
+                      <Form onSubmit={this.handleSubmit}>
+                        <FormGroup>
+
+                          <Input
+                              className="answer"
+                              type="input"
+                              name="answer"
+                              placeholder="answer"
+                              autoComplete="answer"
+                              value={this.state.answer}
+                              onChange={this.handleChange}
+                              required
+                            />
+                          </FormGroup>
+                          <ButtonGroup>
+                            <Button type="submit" color="primary">
+                              Submit
+                            </Button>
+                          </ButtonGroup>
+                          
+                          {!!this.state.question.imageUri ?
+                          <FormGroup>
+                            
+                            <Viewer
+                              visible={this.state.visible}
+                              onClose={() => { this.hideImage() } }
+                              images={[{src: this.state.question.imageUri}]}
+                              />
+                            <img src={this.state.question.imageUri} class="diplay_image_size" onClick={this.showImage}/>
+                          </FormGroup>
+                          : null}
+
+                      </Form>
+                    </CardBody>
+                </Card>
+              </CardGroup>
             
             : null
             }
 
           {!!this.state.leaderboard ? 
-            <div className="form_wrap">
-              <div className="form_container">
-            <DataTable
-                title="Leaderboard"
-                columns={this.columns}
-                data={this.state.leaderboard}
-                theme="solarized"
-            />
 
-              </div>
-            </div>
+            <CardGroup>
+              <Card className="p-6">
+                <CardHeader tag="h1">Leaderboard</CardHeader>
+                <CardBody>
+                  <DataTable
+                      columns={this.columns}
+                      data={this.state.leaderboard}
+                      theme="solarized"
+                  />
+                </CardBody>
+              </Card>
+            </CardGroup>
+
           : null
           }
 
-            
+          {!!this.state.roundSummary ? 
+              <CardGroup>
+                <Card className="p-6">
+                  <CardHeader tag="h1">{this.state.roundSummary.name} - Summary</CardHeader>
+                  <CardBody>
 
-              
+                      <Table>
+                        <thead>
+                          <tr>
+                            <th>Question</th>
+                            <th>Image</th>
+                            <th>Answer</th>
+                          </tr>
+                        </thead>
+                        <tbody>
 
-          
-        </div>
-      </div>
+                          {this.state.roundSummary.questions.map(question => 
+
+                            <tr>
+                              <td align="left">
+                                {question.question}
+                              </td>
+                              <td>
+                                {question.imageUri ?<img src={question.imageUri} class="thumbnail_size" />:null}
+                              </td>
+                              <td> 
+                                {question.answer}
+                              </td>
+                            </tr>
+
+                          )}
+                        </tbody>
+                      </Table>
+
+                    </CardBody>
+                  </Card>
+              </CardGroup>
+          : null
+          }
+
       <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/game', '/user/game']}
                 onMessage={ this.handleWebsocketMessage.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
+      </div>
     </div>
+  </div>
     );
   }
 }

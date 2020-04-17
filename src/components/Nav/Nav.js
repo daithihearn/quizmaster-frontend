@@ -44,7 +44,7 @@ class Nav extends Component {
           })
         );
       })
-      .catch(error => console.error('Error occurred in fetching employer details: ', error));
+      .catch(error => console.error('Error occurred in fetching gamer details: ', error));
     }
   }
 
@@ -52,9 +52,9 @@ class Nav extends Component {
     return (
       <div className="navigation_Tab">
         <div className="navigation_Tab_container">
-          <div className="navigation_Tab_logo">
+          {/* <div className="navigation_Tab_logo">
             <img className="navigation_Tab_logo_image" src={logo} alt="description" />
-          </div>
+          </div>  */}
           <div className="navigation_Tab_content">
             <img className="navigation_Tab_ProfilePic" src={Employer} alt="description" />
             <div className="navigation_Tab_Title"> Hi {this.state.usersName} </div>

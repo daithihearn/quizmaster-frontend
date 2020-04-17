@@ -14,7 +14,6 @@ import { HashRouter, Route, Switch } from 'react-router-dom';
 // Import Simple Line Icons Set
 import 'simple-line-icons/css/simple-line-icons.css';
 import LoadingIcon from '../src/assets/img/brand/loading.gif';
-import './App.css';
 // Import Main styles for this application
 import './scss/style.css';
 

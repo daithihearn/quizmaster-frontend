@@ -5,6 +5,81 @@
   position: relative;
 }
 
+.card-group {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.game_wrap {
+  min-width: 650px;
+  max-height: auto;
+  overflow: overlay;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  background-color: $white;
+}
+
+.game_container {
+  font-size: 16px;
+  line-height: 24px;
+  padding: 50px 20px 0 20px;
+
+ 
+  
+  &_headerText {
+    height: 40px;
+    width: 92px;
+    color: #000000;
+    font-size: $fontSizeH2;
+    line-height: 40px;
+    font-weight: $fontWeightBold;
+    font-family: $fontFamily;
+    margin: 0 auto 24px auto;
+  }
+
+  &_subtext {
+    min-height: 44px;
+    max-width: 293px;
+    color: #0f0f0f;
+    font-family: $fontFamily;
+    font-size: $fontSizeBody;
+    line-height: 22px;
+    text-align: center;
+    margin: 0 auto 34px auto;
+  }
+
+  &_text {
+    height: auto;
+    max-width: 304px;
+    color: $black;
+    font-family: $fontFamily;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+    margin: 40px auto 20px auto;
+
+    &_link {
+      color:$blue;
+      font-weight: $fontWeightBold;
+      font-family: $fontFamily;
+      padding: 10%;
+      cursor: pointer;
+    }
+  }
+}
+
+.thumbnail_size {
+  max-width: 128px;
+  max-height: 128px;
+}
+
+.diplay_image_size {
+  max-width: 512px;
+  max-height: 512px;
+}
+
+
 .dropdown-menu-quizzes {
   // position: absolute;
   /* top: 100%; */
@@ -170,7 +245,7 @@
   &_Content {
     font-size: $fontSizeH1;
     line-height: 68px;
-    color: #86bc25;
+    color: #000000;
     font-weight: $fontWeightBold;
     font-family: $fontFamily;
     margin-top: 10px;
@@ -269,6 +344,12 @@
 }
 
 @media only screen and (max-width: 385px) {
+
+  .diplay_image_size {
+    max-width: 380px;
+    max-height: 380px;
+  }
+  
   .card-product_StatsHome {
     &_Content {
       font-size: 38px !important ;

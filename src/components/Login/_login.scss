@@ -18,7 +18,7 @@
   }
 }
 
-// .ISSUER_Logo {
+// .Logo {
 //   background: url('../assets/icons/logo.svg');
 //   height: 56px;
 //   width: 122px;
@@ -39,8 +39,10 @@
 .form_container {
   font-size: 16px;
   line-height: 24px;
-  padding: 200px 20px 0 20px;
+  padding: 50px 20px 0 20px;
 
+ 
+  
   &_headerText {
     height: 40px;
     width: 92px;
@@ -74,12 +76,26 @@
     margin: 40px auto 20px auto;
 
     &_link {
-      color: #86bc25;
+      color:$blue;
       font-weight: $fontWeightBold;
       font-family: $fontFamily;
+      padding: 10%;
       cursor: pointer;
     }
   }
+}
+
+.row{
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 0px 20px;
+
+  &_min { 
+    margin-top: 0px;
+    margin-bottom: 0px;
+ 
+  }
+
 }
 
 .firstName {
@@ -177,12 +193,17 @@
     }
   }
 
-  .ISSUER_Logo {
-    background: url('../assets/icons/logo2.svg');
+  .Logo {
+    background: url('../assets/icons/logo.jpg');
     display: none;
   }
 
   .form_wrap {
+    min-width: 0;
+    max-width: 599px;
+  }
+
+  .game_wrap {
     min-width: 0;
     max-width: 599px;
   }

@@ -11655,6 +11655,65 @@ html body .app.flex-row.align-items-center {
   flex: 1;
   position: relative; }
 
+.card-group {
+  padding-top: 10px;
+  padding-bottom: 10px; }
+
+.game_wrap {
+  min-width: 650px;
+  max-height: auto;
+  overflow: overlay;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  background-color: white; }
+
+.game_container {
+  font-size: 16px;
+  line-height: 24px;
+  padding: 50px 20px 0 20px; }
+  .game_container_headerText {
+    height: 40px;
+    width: 92px;
+    color: #000000;
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 700;
+    font-family: "Open Sans";
+    margin: 0 auto 24px auto; }
+  .game_container_subtext {
+    min-height: 44px;
+    max-width: 293px;
+    color: #0f0f0f;
+    font-family: "Open Sans";
+    font-size: 18px;
+    line-height: 22px;
+    text-align: center;
+    margin: 0 auto 34px auto; }
+  .game_container_text {
+    height: auto;
+    max-width: 304px;
+    color: #262f3a;
+    font-family: "Open Sans";
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+    margin: 40px auto 20px auto; }
+    .game_container_text_link {
+      color: #355ea3;
+      font-weight: 700;
+      font-family: "Open Sans";
+      padding: 10%;
+      cursor: pointer; }
+
+.thumbnail_size {
+  max-width: 128px;
+  max-height: 128px; }
+
+.diplay_image_size {
+  max-width: 512px;
+  max-height: 512px; }
+
 .dropdown-menu-quizzes {
   /* top: 100%; */
   /* left: 0; */
@@ -11773,7 +11832,7 @@ html body .app.flex-row.align-items-center {
   .card-product_Stats_Content {
     font-size: 56px;
     line-height: 68px;
-    color: #86bc25;
+    color: #000000;
     font-weight: 700;
     font-family: "Open Sans";
     margin-top: 10px;
@@ -11847,6 +11906,9 @@ html body .app.flex-row.align-items-center {
       margin-left: 0; } }
 
 @media only screen and (max-width: 385px) {
+  .diplay_image_size {
+    max-width: 380px;
+    max-height: 380px; }
   .card-product_StatsHome_Content {
     font-size: 38px !important; } }
 
@@ -11901,7 +11963,7 @@ html body .app.flex-row.align-items-center {
   transition-delay: 0s;
   font-weight: 700; }
   .headerPageButtons:hover {
-    color: #86bc25; }
+    color: #000000; }
 
 .headerPageProfile {
   right: 0;
@@ -12043,7 +12105,7 @@ html body .app.flex-row.align-items-center {
     right: 24px;
     transition: 0.2s ease-in;
     transition-delay: 0.1s;
-    background: #86bc25;
+    background: #000000;
     height: 38px;
     width: 38px;
     border-radius: 50%;
@@ -12060,7 +12122,7 @@ html body .app.flex-row.align-items-center {
     right: 24px;
     transition: 0.2s ease-in;
     transition-delay: 0.1s;
-    background: #86bc25;
+    background: #000000;
     height: 38px;
     width: 38px;
     border-radius: 50%;
@@ -12118,7 +12180,7 @@ html body .app.flex-row.align-items-center {
 .form_container {
   font-size: 16px;
   line-height: 24px;
-  padding: 200px 20px 0 20px; }
+  padding: 50px 20px 0 20px; }
   .form_container_headerText {
     height: 40px;
     width: 92px;
@@ -12147,10 +12209,19 @@ html body .app.flex-row.align-items-center {
     text-align: center;
     margin: 40px auto 20px auto; }
     .form_container_text_link {
-      color: #86bc25;
+      color: #355ea3;
       font-weight: 700;
       font-family: "Open Sans";
+      padding: 10%;
       cursor: pointer; }
+
+.row {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 0px 20px; }
+  .row_min {
+    margin-top: 0px;
+    margin-bottom: 0px; }
 
 .firstName {
   height: 60px;
@@ -12230,10 +12301,13 @@ html body .app.flex-row.align-items-center {
     display: block; }
   .login_background_issuerImage {
     display: none; }
-  .ISSUER_Logo {
-    background: url("../assets/icons/logo2.svg");
+  .Logo {
+    background: url("../assets/icons/logo.jpg");
     display: none; }
   .form_wrap {
+    min-width: 0;
+    max-width: 599px; }
+  .game_wrap {
     min-width: 0;
     max-width: 599px; } }
 
@@ -12243,7 +12317,8 @@ html body .app.flex-row.align-items-center {
   background-color: #212121; }
   .navigation_Tab_container {
     background-color: black;
-    height: 350px; }
+    height: 350px;
+    padding-top: 50%; }
   .navigation_Tab_logo {
     margin: 0 0 15px 15px;
     pointer-events: none; }
@@ -12255,7 +12330,7 @@ html body .app.flex-row.align-items-center {
     height: 100px;
     border-radius: 50%;
     border-style: solid;
-    border-color: #86bc25;
+    border-color: #000000;
     border-width: 8px; }
   .navigation_Tab_content {
     text-align: center;
@@ -12298,12 +12373,12 @@ html body .app.flex-row.align-items-center {
     text-decoration: none;
     transition: 0.2s ease-in; }
     .navigation_Tab_MenuContent_text:hover {
-      color: #86bc25;
+      color: #000000;
       border-bottom: none;
       text-decoration: none; }
 
 .active {
-  color: #86bc25;
+  color: #000000;
   cursor: pointer;
   margin: 0 0 20px 0;
   font-size: 18px;
