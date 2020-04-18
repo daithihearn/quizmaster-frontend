@@ -5,6 +5,7 @@ import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
+import nextId from "react-id-generator";
 import { Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
 
 class Scoring extends Component {
@@ -114,6 +115,7 @@ class Scoring extends Component {
       answers.splice(index, 1);
       thisObj.setState(Object.assign(thisObj.state, {score: null, answers: answers}));
     }).catch(error => thisObj.parseError(error));
+    event.currentTarget.reset();
   }
 
   handlePublishQuestion(roundId, questionId) {
@@ -329,6 +331,7 @@ class Scoring extends Component {
                       <thead>
                         <tr>
                           <th>Question</th>
+                          <th>Player</th>
                           <th>Correct Answer</th>
                           <th>Provided Answer</th>
                           <th>Max Points</th>
@@ -341,34 +344,36 @@ class Scoring extends Component {
                           <tr>
                             
                               <td align="left">{answer.question.question}</td>
+                              <td>{answer.answer.playerId}</td>
                               <td>{answer.question.answer}</td>
                               <td>{answer.answer.answer}</td>
                               <td>{answer.question.points}</td>
                               <td>
-                                <Form onSubmit={this.handleCorrectAnswer}>
-                                <FormGroup>
-                                <Input
-                                  className="index"
-                                  type="input"
-                                  name="index"
-                                  value={idx}
-                                  hidden
-                                  required
-                                  />
-                                  <Input
-                                      className="score"
+                                <Form onSubmit={this.handleCorrectAnswer} id={"correction_form_" + nextId() }>
+                                  <FormGroup>
+                                    <Input
+                                      className="index"
                                       type="input"
-                                      name="score"
-                                      pattern="[0-9]*"
-                                      placeholder="Score"
-                                      autoComplete="Score"
+                                      name="index"
+                                      value={idx}
+                                      hidden
                                       required
-                                    />
-                                </FormGroup>
-                              
-                                <Button color="primary" type="submit">
-                                  Submit
-                                </Button> 
+                                      />
+                                    <Input
+                                        className="score"
+                                        type="input"
+                                        name="score"
+                                        pattern="[0-9]*"
+                                        placeholder="Score"
+                                        autoComplete="Score"
+                                        disabled={idx > 0}
+                                        required
+                                      />
+                                  </FormGroup>
+                                
+                                  <Button color="primary" type="submit">
+                                    Submit
+                                  </Button> 
                                 </Form>
                             </td>
 

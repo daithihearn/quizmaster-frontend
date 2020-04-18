@@ -6,9 +6,7 @@ import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, Car
 import nextId from "react-id-generator";
 import RemoveImage from '../../assets/icons/remove.png';
 
-
 class Createquiz extends Component {
-
 
   constructor(props) {
     super(props);
