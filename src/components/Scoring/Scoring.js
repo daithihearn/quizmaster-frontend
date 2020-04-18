@@ -4,9 +4,8 @@ import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
-import DataTable, { createTheme } from 'react-data-table-component';
 import nextId from "react-id-generator";
-import { Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
+import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
 
 class Scoring extends Component {
   constructor(props) {
@@ -20,43 +19,30 @@ class Scoring extends Component {
     }
     sessionStorage.setItem("game", JSON.stringify(game));
     
-    this.state = { game: game, answers: []};
+    this.state = { modal: false, game: game, answers: [], selectedPlayersAnswers: []};
     
     sessionUtils.checkLoggedIn();
-
-    createTheme('solarized', {
-      text: {
-        primary: '#000000',
-        secondary: '#333333',
-      },
-      background: {
-        default: '#ffffff',
-      },
-      context: {
-        background: '#ffffff',
-        text: '#ffffff',
-      },
-      divider: {
-        default: '#073642',
-      },
-      action: {
-        button: 'rgba(0,0,0,.54)',
-        hover: 'rgba(0,0,0,.08)',
-        disabled: 'rgba(0,0,0,.12)',
-      },
-    });
     
     this.handleChange = this.handleChange.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
     this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
-    this.loadAllUnscoredAnswers();
+    this.handleUpdateAnswer = this.handleUpdateAnswer.bind(this);
+    this.updateLeaderboard = this.updateLeaderboard.bind(this);
+
     this.loadQuiz();
+    this.loadAllUnscoredAnswers();
+    this.updateLeaderboard();
   }
 
   redirectToHome() {
     this.props.history.push({
       pathname: '/home'
     });
+  }
+
+  closeModal() {
+    let thisObj = this;
+    this.setState(Object.assign(thisObj.state, { modal: false, selectedPlayersAnswers: [] }));
   }
 
   loadQuiz() {
@@ -84,6 +70,17 @@ class Scoring extends Component {
     }).catch(error => thisObj.parseError(error));
   }
 
+  openEditScoreModal(playerId) {
+    let thisObj = this;
+
+    console.log(`PlayerID: ${playerId}`);
+
+    answerService.getAnswers(this.state.game.id, null, playerId).then(response => {
+      console.log(JSON.stringify(response.data));
+      thisObj.setState(Object.assign(thisObj.state, { selectedPlayersAnswers: response.data, modal: true }));
+    }).catch(error => thisObj.parseError(error));
+  }
+
   handleWebsocketMessage(payload) {
 
     let newState = this.state;
@@ -99,6 +96,24 @@ class Scoring extends Component {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
     this.setState(Object.assign(this.state, updateObj));
+  }
+
+  handleUpdateScoreChange(index, event) {
+    
+    let newValue = event.target.value;
+
+    this.setState(state => {
+      const list = state.selectedPlayersAnswers.map((item, j) => {
+        if (j === index) {
+          return item.answer.score = newValue;
+        } else {
+          return item;
+        }
+      });
+      return {
+        list
+      };
+    });
   }
 
   handleCorrectAnswer(event) {
@@ -118,13 +133,26 @@ class Scoring extends Component {
     event.currentTarget.reset();
   }
 
+  handleUpdateAnswer(event) {
+    let thisObj = this;
+    let index = event.target.elements.index.value;
+    event.preventDefault();
+
+    let answers = this.state.selectedPlayersAnswers;
+    let answer = answers[index].answer;
+    answer.score = event.target.elements.score.value;
+
+    answerService.submitCorrection(answer).then(response => {
+      // thisObj.setState(Object.assign(thisObj.state, {_message: "Score updated."}));
+    }).catch(error => thisObj.parseError(error));
+    event.currentTarget.reset();
+  }
+
   handlePublishQuestion(roundId, questionId) {
     let thisObj = this;
     console.log(`Publishing question`);
 
     let payload = {gameId: this.state.game.id, roundId: roundId, questionId: questionId};
-
-    console.log(JSON.stringify(payload));
 
     gameService.publishQuestion(payload).then(response => {
       // TODO: Do something
@@ -286,39 +314,44 @@ class Scoring extends Component {
                 </Card>
               </CardGroup>
 
+            { !!this.state.leaderboard ? 
               <CardGroup>
                 <Card className="p-6">
                   <CardHeader tag="h1">Leaderboard</CardHeader>
                   <CardBody>
-                    <DataTable
-                        defaultSortField="score"
-                        defaultSortAsc={false}
-                        columns={[
-                          {
-                            name: 'Player',
-                            selector: 'playerId',
-                            sortable: true,
-                          },
-                          {
-                            name: 'Score',
-                            selector: 'score',
-                            sortable: true,
-                            right: true,
-                          },
-                        ]}
-                        data={this.state.leaderboard}
-                        theme="solarized"
-                    />
+
+                  <Table>
+                      <thead>
+                        <tr>
+                          <th>Player</th>
+                          <th>Score</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                        {this.state.leaderboard.map((entry) => (
+                          <tr>
+                            <td align="left">
+                              <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.playerId)}>{entry.playerId}</Button>
+                              </td>
+                            <td>{entry.score}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+
+
                   </CardBody>
                   <CardBody>
                     <ButtonGroup vertical>
-                      <Button type="button" color="primary" onClick={this.updateLeaderboard.bind(this)}>
+                      <Button type="button" color="primary" onClick={this.updateLeaderboard}>
                         Update Leaderboard
                       </Button>
                     </ButtonGroup>
                   </CardBody>
               </Card>
             </CardGroup>
+            : null }
 
             <CardGroup>
                 <Card className="p-6">
@@ -370,10 +403,11 @@ class Scoring extends Component {
                                         required
                                       />
                                   </FormGroup>
-                                
+                                  { idx == 0 ?
                                   <Button color="primary" type="submit">
                                     Submit
                                   </Button> 
+                                  : null }
                                 </Form>
                             </td>
 
@@ -438,6 +472,67 @@ class Scoring extends Component {
             
           </div>
         </div>
+
+        <Modal isOpen={this.state.modal}>
+          <ModalHeader><Button type="button" color="link" onClick={this.closeModal.bind(this)}>Close</Button></ModalHeader>
+          <ModalBody>
+            <Row className="justify-content-center">
+              <Table>
+                <thead>
+                  <tr>
+                    <th>Question</th>
+                    <th>Correct Answer</th>
+                    <th>Provided Answer</th>
+                    <th>Max Points</th>
+                    <th>Score</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {this.state.selectedPlayersAnswers.map((wrapper, idx) => 
+                    <tr>
+                      <td align="left">{wrapper.question.question}</td>
+                      <td>{wrapper.question.answer}</td>
+                      <td>{wrapper.answer.answer}</td>
+                      <td>{wrapper.question.points}</td>
+                      <td>
+                        <Form onSubmit={this.handleUpdateAnswer}>
+                          <FormGroup>
+                            <Input
+                              className="index"
+                              type="input"
+                              name="index"
+                              value={idx}
+                              hidden
+                              required
+                              />
+                            <Input
+                                className="score"
+                                type="input"
+                                name="score"
+                                pattern="[0-9]*"
+                                placeholder="Score"
+                                autoComplete="Score"
+                                onChange={this.handleUpdateScoreChange.bind(this, idx)}
+                                value={this.state.selectedPlayersAnswers[idx].answer.score}
+                                required
+                              />
+                          </FormGroup>
+                        
+                          <Button color="primary" type="submit">
+                            Submit
+                          </Button> 
+                        </Form>
+                    </td>
+
+                        
+                      </tr>
+                  )}
+                  </tbody>
+              </Table>
+            </Row>
+          </ModalBody>
+        </Modal>
+
               
         <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
           onMessage={ this.handleWebsocketMessage.bind(this) }
