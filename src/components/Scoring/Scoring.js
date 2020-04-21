@@ -84,10 +84,13 @@ class Scoring extends Component {
   handleWebsocketMessage(payload) {
 
     let newState = this.state;
-    let answer = JSON.parse(payload.payload);
+    let content = JSON.parse(payload.payload);
 
-    console.log(payload.payload);
-    newState.answers.push(answer);
+    if (content.gameId !== this.state.game.id) {
+      return;
+    }
+
+    newState.answers.push(content.content);
 
     this.setState(newState);
   }
