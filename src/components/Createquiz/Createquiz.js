@@ -10,51 +10,61 @@ class Createquiz extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { 
-      questions: [],
-      rounds: [],
-      newForceManualCorrection: false,
-      newPoints: 1,
-      quizName:'',
-      newRoundName:'',
-      isQuizCreated: false,
-      newImage: {}
-    };
-
+    let rawState = localStorage.getItem("createQuizState");
+    if (!!rawState) {
+      this.state = JSON.parse(rawState);
+    } else {
+      this.state = { 
+        questions: [],
+        rounds: [],
+        newForceManualCorrection: false,
+        newPoints: 1,
+        quizName:'',
+        newRoundName:'',
+        isQuizCreated: false,
+        newImage: {}
+      }
+      localStorage.setItem("createQuizState", JSON.stringify(this.state));
+    }
+    
+    this.replaceState = this.replaceState.bind(this);
+    this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleChangeCheckbox = this.handleChangeCheckbox.bind(this);
     this.handleChangeImage = this.handleChangeImage.bind(this);
     this.addQuestion = this.addQuestion.bind(this);
     this.addRound = this.addRound.bind(this);
+    this.clearQuiz = this.clearQuiz.bind(this);
     sessionUtils.checkLoggedIn();
     sessionUtils.checkUserType();
-  
+  }
+
+  replaceState(newState) {
+    this.setState(newState);
+    localStorage.setItem("createQuizState", JSON.stringify(newState));
+  }
+  updateState(stateDelta) {
+    this.setState(prevState => (stateDelta));
+    localStorage.setItem("createQuizState", JSON.stringify(this.state));
   }
 
   createQuiz = event => {
     event.preventDefault();
-    this.setState(prevState => ({ isQuizCreated: !prevState.isQuizCreated})); 
-  } 
-    
-  checkLoginStatus() {
-    let authHeader = sessionStorage.getItem('JWT-TOKEN');
-    if (authHeader) {
-      window.location.href = '/#/home';
-      return;
-    }
+    let newValue = !this.state.isQuizCreated;
+    this.updateState({ isQuizCreated: newValue}); 
   }
 
   handleChange(event) {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
-    this.setState(Object.assign(this.state, updateObj));
+    this.updateState(updateObj);
   }
 
   handleChangeCheckbox(event) {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.checked };
-    console.log(JSON.stringify(updateObj));
-    this.setState(Object.assign(this.state, updateObj));
+    
+    this.updateState(updateObj);
   }
 
   handleChangeImage(event) {
@@ -63,13 +73,27 @@ class Createquiz extends Component {
     let reader = new FileReader();
 
     reader.onloadend = () => {
-      this.setState(Object.assign(this.state, {newImage: {
+      this.updateState({ newImage: {
         file: file,
         imagePreviewUrl: reader.result
-      }}));
+      }});
     }
 
     reader.readAsDataURL(file);
+  }
+
+  clearQuiz() {
+    this.replaceState({ 
+      questions: [],
+      rounds: [],
+      newForceManualCorrection: false,
+      newPoints: 1,
+      quizName:'',
+      newRoundName:'',
+      isQuizCreated: false,
+      newImage: {}
+    });
+    window.location.reload();
   }
 
   addQuestion = event => {
@@ -82,27 +106,27 @@ class Createquiz extends Component {
       points: this.state.newPoints,
       id: nextId() });
 
-    this.setState(Object.assign(this.state, {questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false }));
+      this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false });
     event.currentTarget.reset();
   }
 
   removeQuestion(idx) {
     let questions = [...this.state.questions];
     questions.splice(idx, 1);
-    this.setState(Object.assign(this.state, { questions: questions }));
+    this.updateState({ questions: questions });
   }
 
   addRound = event => {
     let updatedRounds = this.state.rounds;
     updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: nextId() });
 
-    this.setState(Object.assign(this.state, {rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false, newRoundName: ''}));
+    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false, newRoundName: ''});
   }
 
   removeRound(idx) {
     let rounds = [...this.state.rounds];
     rounds.splice(idx, 1);
-    this.setState(Object.assign(this.state, { rounds: rounds }));
+    this.updateState({ rounds: rounds });
   }
 
   submitQuiz = event => {
@@ -110,11 +134,13 @@ class Createquiz extends Component {
     let thisObj = this;
     
     let quiz = { name: this.state.quizName, rounds: this.state.rounds };
-    
-    quizService.putQuiz(quiz).then(response =>
+
+    quizService.putQuiz(quiz).then(response => {
+      thisObj.replaceState({});
       thisObj.props.history.push({
         pathname: '/home'
-      })
+      });
+    }
     ).catch(error => thisObj.parseError(error));
   };
 
@@ -137,7 +163,7 @@ class Createquiz extends Component {
     if (typeof error.message !== 'undefined') {
       errorMessage = error.message;
     }
-    this.setState(Object.assign(this.state, {_error: errorMessage}));
+    this.updateState({_error: errorMessage});
   }
 
   showError() {
@@ -226,7 +252,8 @@ class Createquiz extends Component {
                                 onChange={this.handleChange}
                                 required
                               />
-                            
+                          </FormGroup>
+                          <FormGroup>
                         
                             <Input
                               className="newQuestion"
@@ -321,6 +348,9 @@ class Createquiz extends Component {
                      
                      <CardBody>
                       <ButtonGroup>
+                          <Button type="button" color="danger" onClick={this.clearQuiz}>
+                            Clear Quiz
+                          </Button>
                           <Button type="button" color="primary" onClick={this.addRound}>
                             Submit Round
                           </Button>

@@ -292,6 +292,7 @@ class Home extends Component {
                                 autoComplete="Email"
                                 onChange={this.handleChange}
                                 value={this.state.currentEmail}
+                                required
                               />
 
                           </FormGroup>
