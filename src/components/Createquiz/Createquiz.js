@@ -16,6 +16,7 @@ class Createquiz extends Component {
       newForceManualCorrection: false,
       newPoints: 1,
       quizName:'',
+      newRoundName:'',
       isQuizCreated: false,
       newImage: {}
     };

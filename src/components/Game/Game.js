@@ -224,15 +224,17 @@ class Game extends Component {
                             </Button>
                           </ButtonGroup>
                           
+                         
+
                           {!!this.state.question.imageUri ?
                           <FormGroup>
-                            
+                            <br></br>
                             <Viewer
                               visible={this.state.visible}
                               onClose={() => { this.hideImage() } }
                               images={[{src: this.state.question.imageUri}]}
                               />
-                            <img src={this.state.question.imageUri} class="diplay_image_size" onClick={this.showImage}/>
+                             <img src={this.state.question.imageUri} class="diplay_image_size" /> {/*onClick={this.showImage}/> */}
                           </FormGroup>
                           : null}
 
