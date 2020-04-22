@@ -5,7 +5,7 @@ import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import nextId from "react-id-generator";
-import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, CardTitle, Alert, Table } from 'reactstrap';
+import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, CardTitle, UncontrolledCollapse, Alert, Table } from 'reactstrap';
 
 class Scoring extends Component {
   constructor(props) {
@@ -265,6 +265,9 @@ class Scoring extends Component {
                 </CardBody>
                 </Card>
               </CardGroup>
+
+              
+
               <CardGroup>
                 <Card className="p-6">
 
@@ -272,42 +275,47 @@ class Scoring extends Component {
                   <div>
                     <CardHeader tag="h1">{this.state.quiz.name}</CardHeader>
                     
-                      {this.state.quiz.rounds.map((round) => (
-                        <div>
+                    {this.state.quiz.rounds.map((round, idx) => (
+                      <div>
                         <CardBody>
-                          <h2>Round: {round.name}</h2>
+                            <h2>Round: {round.name}</h2> <Button color="link" id={"toggler_" + idx}>Show/Hide</Button>
                         </CardBody>
-                        <CardBody>
-                          <Table>
-                            <thead>
-                              <tr>
-                                <th>Question</th>
-                                <th></th>
-                                <th>Answer</th>
-                                <th>Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
+                        
+                        <UncontrolledCollapse toggler={"#toggler_" + idx}>
                           
-                              {round.questions.map((question) => (
+                          <CardBody>
+                            <Table>
+                              <thead>
                                 <tr>
-                                    <td align="left">{question.question}</td>
-                                    <td>
-                                    {!!question.imageUri ?
-                                      <img src={question.imageUri} class="thumbnail_size"/>
-                                    : null}
-                                    </td>
-                                    <td>{question.answer}</td>
-                                    <td>
-                                      <Button color="link" type="button" onClick={this.handlePublishQuestion.bind(this, round.id, question.id)}>
-                                        Publish
-                                      </Button> 
-                                    </td>
+                                  <th>Question</th>
+                                  <th></th>
+                                  <th>Answer</th>
+                                  <th>Action</th>
                                 </tr>
-                              ))}
-                              </tbody>
-                          </Table>
-                        </CardBody>
+                              </thead>
+                              <tbody>
+                            
+                                {round.questions.map((question) => (
+                                  <tr>
+                                      <td align="left">{question.question}</td>
+                                      <td>
+                                      {!!question.imageUri ?
+                                        <img src={question.imageUri} class="thumbnail_size"/>
+                                      : null}
+                                      </td>
+                                      <td>{question.answer}</td>
+                                      <td>
+                                        <Button color="link" type="button" onClick={this.handlePublishQuestion.bind(this, round.id, question.id)}>
+                                          Publish
+                                        </Button> 
+                                      </td>
+                                  </tr>
+                                ))}
+                                </tbody>
+                            </Table>
+                          </CardBody>
+
+                        </UncontrolledCollapse>
                       </div>
                     ))}
                     
