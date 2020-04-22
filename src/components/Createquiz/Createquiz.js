@@ -22,16 +22,18 @@ class Createquiz extends Component {
         quizName:'',
         newRoundName:'',
         isQuizCreated: false,
-        newImage: {}
+        isImageUrl: true,
+        newImage: {file:null, imagePreviewUrl:''}
       }
       localStorage.setItem("createQuizState", JSON.stringify(this.state));
     }
     
-    this.replaceState = this.replaceState.bind(this);
+    this.clearState = this.clearState.bind(this);
     this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleChangeCheckbox = this.handleChangeCheckbox.bind(this);
     this.handleChangeImage = this.handleChangeImage.bind(this);
+    this.handleChangeImageUrl = this.handleChangeImageUrl.bind(this);
     this.addQuestion = this.addQuestion.bind(this);
     this.addRound = this.addRound.bind(this);
     this.clearQuiz = this.clearQuiz.bind(this);
@@ -39,10 +41,11 @@ class Createquiz extends Component {
     sessionUtils.checkUserType();
   }
 
-  replaceState(newState) {
-    this.setState(newState);
-    localStorage.setItem("createQuizState", JSON.stringify(newState));
+  clearState(newState) {
+    this.setState({});
+    localStorage.removeItem("createQuizState");
   }
+
   updateState(stateDelta) {
     this.setState(prevState => (stateDelta));
     localStorage.setItem("createQuizState", JSON.stringify(this.state));
@@ -54,10 +57,29 @@ class Createquiz extends Component {
     this.updateState({ isQuizCreated: newValue}); 
   }
 
+    changeToLoadImage = event => {
+    event.preventDefault();
+    this.setState(Object.assign(this.state, {newImage: {
+      file: null,
+      imagePreviewUrl: ''
+    }}));
+    this.setState(prevState => ({ isImageUrl: !prevState.isImageUrl})); 
+  }
+
   handleChange(event) {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
     this.updateState(updateObj);
+  }
+
+  handleChangeImageUrl(event) {
+    let file = null;
+    let urli = event.target.value ;
+    console.log("url image " + urli)
+    this.updateState( {newImage: {
+      file: file,
+      imagePreviewUrl: urli
+    }});
   }
 
   handleChangeCheckbox(event) {
@@ -83,16 +105,7 @@ class Createquiz extends Component {
   }
 
   clearQuiz() {
-    this.replaceState({ 
-      questions: [],
-      rounds: [],
-      newForceManualCorrection: false,
-      newPoints: 1,
-      quizName:'',
-      newRoundName:'',
-      isQuizCreated: false,
-      newImage: {}
-    });
+    this.clearState();
     window.location.reload();
   }
 
@@ -136,7 +149,7 @@ class Createquiz extends Component {
     let quiz = { name: this.state.quizName, rounds: this.state.rounds };
 
     quizService.putQuiz(quiz).then(response => {
-      thisObj.replaceState({});
+      thisObj.clearState();
       thisObj.props.history.push({
         pathname: '/home'
       });
@@ -266,11 +279,41 @@ class Createquiz extends Component {
                               required
                             />
                           </FormGroup>
-                          <FormGroup>
-                              <Input type="file" name="newImage" onChange={this.handleChangeImage} />
-                              {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
 
+                          {/* Load Image  */}
+                          { this.state.isImageUrl  ?
+
+                           <FormGroup>
+                           <Input
+                             className="imagePreviewUrl"
+                             type="input"
+                             name="newImage"
+                             placeholder="Image URL"
+                             autoComplete="Image"
+                             value={this.state.newImage.imagePreviewUrl}
+                             onChange={this.handleChangeImageUrl}
+                           />
+                           <br></br>
+                            {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
+                          <br></br>
+                          <a onClick={this.changeToLoadImage}><span className="form_container_text_link">Change to load image by File</span></a>
                           </FormGroup>
+              
+                          :
+              
+                              <FormGroup>
+                                  <Input type="file" name="newImage" onChange={this.handleChangeImage} />
+                                  <br></br>
+                                  {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
+
+                                  <br></br>
+                                  <a onClick={this.changeToLoadImage}><span className="form_container_text_link"> Change to load image by URL</span></a>
+                              </FormGroup>
+                          
+                          } 
+
+                          {/* Finish load image */}
+                          
                           <FormGroup>
                             <Input
                               className="newAnswer"
