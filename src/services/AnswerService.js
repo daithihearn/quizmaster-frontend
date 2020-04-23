@@ -30,6 +30,30 @@ exports.submitCorrection = (answer) => {
   }
 };
 
+exports.getAnswers = (gameId, roundId, playerId) => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/json"
+      }
+    };
+    let queryString = `?gameId=${gameId}`;
+    if (roundId !== null) {
+      queryString = queryString + `&roundId=${roundId}`;
+    }
+    if (playerId !== null) {
+      queryString = queryString + `&playerId=${playerId}`;
+    }
+    
+    const result = axios
+      .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/answer${queryString}`, config)
+    return result;
+  }
+};
+
 exports.getUnscoredAnswers = (id) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 

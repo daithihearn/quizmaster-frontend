@@ -48,7 +48,8 @@ class Header extends Component {
         <div>
           <div>
             <span className="headerPageProfile">
-            <span className="headerPageButtons" href="/" onClick={sessionUtils.logout}>
+            {/* <a href="/#/home"><span className="form_container_text_link">Home</span></a> */}
+             <span className="headerPageButtons" href="/" onClick={sessionUtils.logout}>
                 Logout
               </span>
             </span>

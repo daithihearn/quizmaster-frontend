@@ -4,56 +4,89 @@ import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
 import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
 import nextId from "react-id-generator";
+import RemoveImage from '../../assets/icons/remove.png';
 
 class Createquiz extends Component {
 
-
   constructor(props) {
     super(props);
-    this.state = { 
-      questions: [],
-      rounds: [],
-      newForceManualCorrection: false,
-      newPoints: 1,
-      quizName:'',
-      isQuizCreated: false,
-      newImage: {}
-    };
-
+    let rawState = localStorage.getItem("createQuizState");
+    if (!!rawState) {
+      this.state = JSON.parse(rawState);
+    } else {
+      this.state = { 
+        questions: [],
+        rounds: [],
+        newForceManualCorrection: false,
+        newPoints: 1,
+        quizName:'',
+        newRoundName:'',
+        isQuizCreated: false,
+        isImageUrl: true,
+        newImage: {file:null, imagePreviewUrl:''}
+      }
+      localStorage.setItem("createQuizState", JSON.stringify(this.state));
+    }
+    
+    this.clearState = this.clearState.bind(this);
+    this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleChangeCheckbox = this.handleChangeCheckbox.bind(this);
     this.handleChangeImage = this.handleChangeImage.bind(this);
+    this.handleChangeImageUrl = this.handleChangeImageUrl.bind(this);
     this.addQuestion = this.addQuestion.bind(this);
     this.addRound = this.addRound.bind(this);
+    this.clearQuiz = this.clearQuiz.bind(this);
     sessionUtils.checkLoggedIn();
     sessionUtils.checkUserType();
-  
+  }
+
+  clearState(newState) {
+    this.setState({});
+    localStorage.removeItem("createQuizState");
+  }
+
+  updateState(stateDelta) {
+    this.setState(prevState => (stateDelta));
+    localStorage.setItem("createQuizState", JSON.stringify(this.state));
   }
 
   createQuiz = event => {
     event.preventDefault();
-    this.setState(prevState => ({ isQuizCreated: !prevState.isQuizCreated})); 
-  } 
-    
-  checkLoginStatus() {
-    let authHeader = sessionStorage.getItem('JWT-TOKEN');
-    if (authHeader) {
-      window.location.href = '/#/home';
-      return;
-    }
+    let newValue = !this.state.isQuizCreated;
+    this.updateState({ isQuizCreated: newValue}); 
+  }
+
+    changeToLoadImage = event => {
+    event.preventDefault();
+    this.setState(Object.assign(this.state, {newImage: {
+      file: null,
+      imagePreviewUrl: ''
+    }}));
+    this.setState(prevState => ({ isImageUrl: !prevState.isImageUrl})); 
   }
 
   handleChange(event) {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
-    this.setState(Object.assign(this.state, updateObj));
+    this.updateState(updateObj);
+  }
+
+  handleChangeImageUrl(event) {
+    let file = null;
+    let urli = event.target.value ;
+    console.log("url image " + urli)
+    this.updateState( {newImage: {
+      file: file,
+      imagePreviewUrl: urli
+    }});
   }
 
   handleChangeCheckbox(event) {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.checked };
-    console.log(JSON.stringify(updateObj));
-    this.setState(Object.assign(this.state, updateObj));
+    
+    this.updateState(updateObj);
   }
 
   handleChangeImage(event) {
@@ -62,13 +95,18 @@ class Createquiz extends Component {
     let reader = new FileReader();
 
     reader.onloadend = () => {
-      this.setState(Object.assign(this.state, {newImage: {
+      this.updateState({ newImage: {
         file: file,
         imagePreviewUrl: reader.result
-      }}));
+      }});
     }
 
     reader.readAsDataURL(file);
+  }
+
+  clearQuiz() {
+    this.clearState();
+    window.location.reload();
   }
 
   addQuestion = event => {
@@ -81,27 +119,27 @@ class Createquiz extends Component {
       points: this.state.newPoints,
       id: nextId() });
 
-    this.setState(Object.assign(this.state, {questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false }));
+      this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false });
     event.currentTarget.reset();
   }
 
   removeQuestion(idx) {
     let questions = [...this.state.questions];
     questions.splice(idx, 1);
-    this.setState(Object.assign(this.state, { questions: questions }));
+    this.updateState({ questions: questions });
   }
 
   addRound = event => {
     let updatedRounds = this.state.rounds;
     updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: nextId() });
 
-    this.setState(Object.assign(this.state, {rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false, newRoundName: ''}));
+    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false, newRoundName: ''});
   }
 
   removeRound(idx) {
     let rounds = [...this.state.rounds];
     rounds.splice(idx, 1);
-    this.setState(Object.assign(this.state, { rounds: rounds }));
+    this.updateState({ rounds: rounds });
   }
 
   submitQuiz = event => {
@@ -109,11 +147,13 @@ class Createquiz extends Component {
     let thisObj = this;
     
     let quiz = { name: this.state.quizName, rounds: this.state.rounds };
-    
-    quizService.putQuiz(quiz).then(response =>
+
+    quizService.putQuiz(quiz).then(response => {
+      thisObj.clearState();
       thisObj.props.history.push({
         pathname: '/home'
-      })
+      });
+    }
     ).catch(error => thisObj.parseError(error));
   };
 
@@ -136,7 +176,7 @@ class Createquiz extends Component {
     if (typeof error.message !== 'undefined') {
       errorMessage = error.message;
     }
-    this.setState(Object.assign(this.state, {_error: errorMessage}));
+    this.updateState({_error: errorMessage});
   }
 
   showError() {
@@ -179,6 +219,16 @@ class Createquiz extends Component {
          <div className="game_wrap">
           <div className="game_container">
 
+
+          <CardGroup>
+                <Card>
+                <CardBody>
+                Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
+                </CardBody>
+                </Card>
+          </CardGroup>
+
+
           { this.showError() || this.showResponse() ?
               <CardGroup>
                 <Card className="p-6">
@@ -215,7 +265,8 @@ class Createquiz extends Component {
                                 onChange={this.handleChange}
                                 required
                               />
-                            
+                          </FormGroup>
+                          <FormGroup>
                         
                             <Input
                               className="newQuestion"
@@ -228,11 +279,41 @@ class Createquiz extends Component {
                               required
                             />
                           </FormGroup>
-                          <FormGroup>
-                              <Input type="file" name="newImage" onChange={this.handleChangeImage} />
-                              {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
 
+                          {/* Load Image  */}
+                          { this.state.isImageUrl  ?
+
+                           <FormGroup>
+                           <Input
+                             className="imagePreviewUrl"
+                             type="input"
+                             name="newImage"
+                             placeholder="Image URL"
+                             autoComplete="Image"
+                             value={this.state.newImage.imagePreviewUrl}
+                             onChange={this.handleChangeImageUrl}
+                           />
+                           <br></br>
+                            {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
+                          <br></br>
+                          <a onClick={this.changeToLoadImage}><span className="form_container_text_link">Change to load image by File</span></a>
                           </FormGroup>
+              
+                          :
+              
+                              <FormGroup>
+                                  <Input type="file" name="newImage" onChange={this.handleChangeImage} />
+                                  <br></br>
+                                  {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
+
+                                  <br></br>
+                                  <a onClick={this.changeToLoadImage}><span className="form_container_text_link"> Change to load image by URL</span></a>
+                              </FormGroup>
+                          
+                          } 
+
+                          {/* Finish load image */}
+                          
                           <FormGroup>
                             <Input
                               className="newAnswer"
@@ -297,7 +378,9 @@ class Createquiz extends Component {
                             {this.state.questions.map((question, idx) => 
                               <tr>
                                 <td align="left">{question.question}</td>
-                                <td><Button type="button" color="danger" onClick={this.removeQuestion.bind(this, idx)}>Remove</Button></td>
+                                <td><a type="button" color="danger" onClick={this.removeQuestion.bind(this, idx)}>
+                                  <img src={RemoveImage} width="20px" height="20px"/>
+                                  </a></td>
                                 
                               </tr>
                             )}
@@ -308,6 +391,9 @@ class Createquiz extends Component {
                      
                      <CardBody>
                       <ButtonGroup>
+                          <Button type="button" color="danger" onClick={this.clearQuiz}>
+                            Clear Quiz
+                          </Button>
                           <Button type="button" color="primary" onClick={this.addRound}>
                             Submit Round
                           </Button>
@@ -339,7 +425,7 @@ class Createquiz extends Component {
                             {this.state.rounds.map((round, idx) =>
                               <tr>
                                 <td align="left">{round.name}</td>
-                                <td><Button type="button" color="danger" onClick={this.removeRound.bind(this, idx)}>Remove</Button></td>
+                                <td><a type="button" color="danger" onClick={this.removeRound.bind(this, idx)}> <img src={RemoveImage} width="20px" height="20px"/></a></td>
                                 
                               </tr>
                           )}
@@ -382,15 +468,9 @@ class Createquiz extends Component {
             
             }
 
-          
-          <CardBody>
-            
-            Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
-           
-          </CardBody>
         </Card>
       </CardGroup>
-
+     
         
 
         </div>
