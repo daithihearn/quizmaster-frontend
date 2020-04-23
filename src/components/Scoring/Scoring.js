@@ -4,6 +4,8 @@ import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
+import { Snackbar } from "material-ui";
+import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import nextId from "react-id-generator";
 import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, CardTitle, UncontrolledCollapse, Alert, Table } from 'reactstrap';
 
@@ -19,7 +21,7 @@ class Scoring extends Component {
     }
     sessionStorage.setItem("game", JSON.stringify(game));
     
-    this.state = { modal: false, game: game, answers: [], selectedPlayersAnswers: []};
+    this.state = { modal: false, game: game, answers: [], selectedPlayersAnswers: [], snack: {open: false, message: ""}};
     
     sessionUtils.checkLoggedIn();
     
@@ -34,6 +36,11 @@ class Scoring extends Component {
     this.updateLeaderboard();
   }
 
+  updateState(stateDelta) {
+    this.setState(prevState => (stateDelta));
+    localStorage.setItem("createQuizState", JSON.stringify(this.state));
+  }
+
   redirectToHome() {
     this.props.history.push({
       pathname: '/home'
@@ -42,14 +49,14 @@ class Scoring extends Component {
 
   closeModal() {
     let thisObj = this;
-    this.setState(Object.assign(thisObj.state, { modal: false, selectedPlayersAnswers: [] }));
+    this.updateState({ modal: false, selectedPlayersAnswers: [] });
   }
 
   loadQuiz() {
     let thisObj = this;
     
     quizService.getQuiz(this.state.game.quizId).then(response => {
-      thisObj.setState(Object.assign(thisObj.state, { quiz: response.data }));
+      thisObj.updateState({ quiz: response.data });
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -57,7 +64,7 @@ class Scoring extends Component {
     let thisObj = this;
     
     answerService.getLeaderboard(this.state.game.id).then(response => {
-      thisObj.setState(Object.assign(thisObj.state, { leaderboard: response.data }));
+      thisObj.updateState( { leaderboard: response.data });
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -66,7 +73,7 @@ class Scoring extends Component {
     let thisObj = this;
 
     answerService.getUnscoredAnswers(this.state.game.id).then(response => {
-      thisObj.setState(Object.assign(thisObj.state, { answers: response.data }));
+      thisObj.updateState( { answers: response.data });
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -77,7 +84,7 @@ class Scoring extends Component {
 
     answerService.getAnswers(this.state.game.id, null, playerId).then(response => {
       console.log(JSON.stringify(response.data));
-      thisObj.setState(Object.assign(thisObj.state, { selectedPlayersAnswers: response.data, modal: true }));
+      thisObj.updateState( { selectedPlayersAnswers: response.data, modal: true });
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -98,7 +105,7 @@ class Scoring extends Component {
   handleChange(event) {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
-    this.setState(Object.assign(this.state, updateObj));
+    this.updateState(updateObj);
   }
 
   handleUpdateScoreChange(index, event) {
@@ -131,7 +138,7 @@ class Scoring extends Component {
 
     answerService.submitCorrection(answer).then(response => {
       answers.splice(index, 1);
-      thisObj.setState(Object.assign(thisObj.state, {score: null, answers: answers}));
+      thisObj.updateState({score: null, answers: answers});
     }).catch(error => thisObj.parseError(error));
     event.currentTarget.reset();
   }
@@ -146,7 +153,7 @@ class Scoring extends Component {
     answer.score = event.target.elements.score.value;
 
     answerService.submitCorrection(answer).then(response => {
-      // thisObj.setState(Object.assign(thisObj.state, {_message: "Score updated."}));
+      thisObj.updateState({ snack: { open: true, message: "Score updated"}});
     }).catch(error => thisObj.parseError(error));
     event.currentTarget.reset();
   }
@@ -158,7 +165,7 @@ class Scoring extends Component {
     let payload = {gameId: this.state.game.id, roundId: roundId, questionId: questionId};
 
     gameService.publishQuestion(payload).then(response => {
-      // TODO: Do something
+      thisObj.updateState({ snack: { open: true, message: "Question published"}});
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -168,7 +175,16 @@ class Scoring extends Component {
     console.log(`Publishing Leaderboard`)
 
     answerService.publishLeaderboard(this.state.game.id).then(response => {
-      // TODO: Do something
+      thisObj.updateState({ snack: { open: true, message: "Full leaderboard published"}});
+    }).catch(error => thisObj.parseError(error));
+  }
+
+  publishLeaderboardForRound(round) {
+    let thisObj = this;
+
+    answerService.publishLeaderboard(this.state.game.id, round.id)
+      .then(response => {
+        thisObj.updateState({ snack: { open: true, message: "Round leaderboard published"}});
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -177,7 +193,7 @@ class Scoring extends Component {
 
     answerService.publishAnswersForRound(this.state.game.id, round.id)
       .then(response => {
-        // TODO: Do something
+        thisObj.updateState({ snack: { open: true, message: "Answers published"}});
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -200,39 +216,7 @@ class Scoring extends Component {
     if (typeof error.message !== 'undefined') {
       errorMessage = error.message;
     }
-    this.setState(Object.assign(this.state, {_error: errorMessage}));
-  }
-
-  showError() {
-    if (!this.state._error) {
-      return false;
-    }
-    return true;
-  }
-
-  readErrorMessage() {
-    if (!this.state._error) {
-      return '';
-    }
-    let error = this.state._error;
-    delete this.state._error;
-    return error;
-  }
-
-  showResponse() {
-    if (!this.state._message) {
-      return false;
-    }
-    return true;
-  }
-
-  readResponseMessage() {
-    if (!this.state._message) {
-      return '';
-    }
-    let message = this.state._message;
-    delete this.state._message;
-    return message;
+    this.updateState({ snack: { open: true, message: errorMessage}});
   }
 
   render() {
@@ -241,22 +225,6 @@ class Scoring extends Component {
         <div className="app">
          <div className="game_wrap">
           <div className="game_container">
-
-            { this.showError() || this.showResponse() ?
-              <CardGroup>
-                <Card className="p-6">
-                  <CardBody>
-                    <Alert className="mt-3" color="danger" isOpen={this.showError()}>
-                      {this.readErrorMessage()}
-                    </Alert>
-                    <Alert className="mt-3" color="primary" isOpen={this.showResponse()}>
-                      {this.readErrorMessage()}
-                    </Alert>
-                  </CardBody>
-                </Card>
-              </CardGroup>
-            : null}
-
 
               <CardGroup>
                 <Card>
@@ -340,7 +308,7 @@ class Scoring extends Component {
                       </thead>
                       <tbody>
 
-                        {this.state.leaderboard.map((entry) => (
+                        {this.state.leaderboard.scores.map((entry) => (
                           <tr>
                             <td align="left">
                               <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.playerId)}>{entry.playerId}</Button>
@@ -440,7 +408,7 @@ class Scoring extends Component {
                   <CardBody>
                     <ButtonGroup vertical>
                       <Button type="button" color="primary" onClick={this.publishLeaderboard.bind(this)}>
-                        Publish Leaderboard
+                        Publish Full Leaderboard
                       </Button>
         
                     </ButtonGroup>
@@ -452,13 +420,17 @@ class Scoring extends Component {
                       <thead>
                         <tr>
                           <th>Round</th>
-                          <th>Action</th>
+                          <th>Leaderboard</th>
+                          <th>Answers</th>
                         </tr>
                       </thead>
                       <tbody>
                           {this.state.quiz.rounds.map((round) => 
                             <tr>
                               <td align="left">Round: {round.name}</td>
+                              <td><Button type="button" color="secondary" onClick={this.publishLeaderboardForRound.bind(this, round)}>
+                                  Publish Round Leaderboard
+                              </Button></td>
                               <td><Button type="button" color="danger" onClick={this.publishAnswersForRound.bind(this, round)}>
                                   Publish Answers
                             </Button></td>
@@ -470,7 +442,6 @@ class Scoring extends Component {
                     </CardBody>
                   : null}
 
-              
               </Card>
             </CardGroup>
             <CardGroup>
@@ -548,6 +519,19 @@ class Scoring extends Component {
         <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
           onMessage={ this.handleWebsocketMessage.bind(this) }
           ref={ (client) => { this.clientRef = client }}/>
+
+
+      <MuiThemeProvider>
+        <div>
+          {this.state.snack.text}
+        </div>
+      <Snackbar
+        message={this.state.snack.message}
+        open={this.state.snack.open}
+        onRequestClose={() => this.updateState({ snack: { open: false, message: ""} })}
+        autoHideDuration={2000}
+      />
+      </MuiThemeProvider>
 
        </div>
     );

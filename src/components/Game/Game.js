@@ -250,7 +250,11 @@ class Game extends Component {
 
             <CardGroup>
               <Card className="p-6">
-                <CardHeader tag="h1">Leaderboard</CardHeader>
+                {!!this.state.leaderboard.roundId ? 
+                  <CardHeader tag="h1">Round Leaderboard</CardHeader>
+                :
+                  <CardHeader tag="h1">Full Leaderboard</CardHeader>
+                }
                 <CardBody>
                   <DataTable
                     defaultSortField="score"
@@ -268,7 +272,7 @@ class Game extends Component {
                         right: true,
                       },
                     ]}
-                      data={this.state.leaderboard}
+                      data={this.state.leaderboard.scores}
                       theme="solarized"
                   />
                 </CardBody>
