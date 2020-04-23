@@ -41,10 +41,10 @@ exports.getAnswers = (gameId, roundId, playerId) => {
       }
     };
     let queryString = `?gameId=${gameId}`;
-    if (roundId !== null) {
+    if (roundId !== null && roundId !== undefined) {
       queryString = queryString + `&roundId=${roundId}`;
     }
-    if (playerId !== null) {
+    if (playerId !== null && playerId !== undefined) {
       queryString = queryString + `&playerId=${playerId}`;
     }
     
@@ -70,7 +70,7 @@ exports.getUnscoredAnswers = (id) => {
   }
 };
 
-exports.getLeaderboard = (id) => {
+exports.getLeaderboard = (gameId, roundId) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 
   if (authHeader) {
@@ -80,13 +80,17 @@ exports.getLeaderboard = (id) => {
         "Content-Type": "application/json"
       }
     };
+    let queryString = `?gameId=${gameId}`;
+    if (roundId !== null && roundId !== undefined) {
+      queryString = queryString + `&roundId=${roundId}`;
+    }
     const result = axios
-      .get(`${process.env.REACT_APP_API_URL}/api/v1/answer/leaderboard?id=${id}`, config)
+      .get(`${process.env.REACT_APP_API_URL}/api/v1/answer/leaderboard${queryString}`, config)
     return result;
   }
 };
 
-exports.publishLeaderboard = (id) => {
+exports.publishLeaderboard = (gameId, roundId) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 
   if (authHeader) {
@@ -96,8 +100,12 @@ exports.publishLeaderboard = (id) => {
         "Content-Type": "application/json"
       }
     };
+    let queryString = `?gameId=${gameId}`;
+    if (roundId !== null && roundId !== undefined) {
+      queryString = queryString + `&roundId=${roundId}`;
+    }
     const result = axios
-      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/answer/publishLeaderboard?id=${id}`, null, config)
+      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/answer/publishLeaderboard${queryString}`, null, config)
     return result;
   }
 };

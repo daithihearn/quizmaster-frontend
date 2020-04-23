@@ -11,7 +11,8 @@ class Createquiz extends Component {
   constructor(props) {
     super(props);
     let rawState = localStorage.getItem("createQuizState");
-    if (!!rawState) {
+    
+    if (rawState !== undefined && rawState !== null && rawState !== '') {
       this.state = JSON.parse(rawState);
     } else {
       this.state = { 
@@ -41,7 +42,7 @@ class Createquiz extends Component {
     sessionUtils.checkUserType();
   }
 
-  clearState(newState) {
+  clearState() {
     this.setState({});
     localStorage.removeItem("createQuizState");
   }
@@ -57,13 +58,12 @@ class Createquiz extends Component {
     this.updateState({ isQuizCreated: newValue}); 
   }
 
-    changeToLoadImage = event => {
+  changeToLoadImage = event => {
     event.preventDefault();
-    this.setState(Object.assign(this.state, {newImage: {
+    this.setState(prevState => ({ isImageUrl: !prevState.isImageUrl, newImage: {
       file: null,
       imagePreviewUrl: ''
     }}));
-    this.setState(prevState => ({ isImageUrl: !prevState.isImageUrl})); 
   }
 
   handleChange(event) {
@@ -114,12 +114,13 @@ class Createquiz extends Component {
     let updatedQuestions = this.state.questions;
     updatedQuestions.push({ question: this.state.newQuestion, 
       answer: this.state.newAnswer, 
-      imageUri: this.state.newImage.imagePreviewUrl, 
+      imageUri: this.state.newImage.imagePreviewUrl,
+      mediaUri: this.state.newMedia,
       forceManualCorrection: this.state.newForceManualCorrection,
       points: this.state.newPoints,
       id: nextId() });
 
-      this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false });
+      this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false });
     event.currentTarget.reset();
   }
 
@@ -133,7 +134,7 @@ class Createquiz extends Component {
     let updatedRounds = this.state.rounds;
     updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: nextId() });
 
-    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newPoints: 1, newForceManualCorrection: false, newRoundName: ''});
+    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false, newRoundName: ''});
   }
 
   removeRound(idx) {
@@ -313,6 +314,18 @@ class Createquiz extends Component {
                           } 
 
                           {/* Finish load image */}
+
+                          <FormGroup>
+                            <Input
+                              className="newMedia"
+                              type="input"
+                              name="newMedia"
+                              placeholder="Soundcloud link"
+                              autoComplete="Soundcloud link"
+                              value={this.state.newMedia}
+                              onChange={this.handleChange}
+                            />
+                          </FormGroup>
                           
                           <FormGroup>
                             <Input

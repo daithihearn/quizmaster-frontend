@@ -5,12 +5,12 @@ import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
 import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
-import Viewer from 'react-viewer';
+import ReactPlayer from 'react-player'
 
 class Game extends Component {
   constructor(props) {
     super(props);
-    this.state = { waiting: true, question: null, answer: "", leaderboard: null, roundSummary: null, visible: false };
+    this.state = { waiting: true, question: null, answer: "", leaderboard: null, roundSummary: null };
     sessionUtils.checkLoggedIn();
 
     createTheme('solarized', {
@@ -37,8 +37,6 @@ class Game extends Component {
 
     this.getCurrentContent();
 
-    this.hideImage = this.hideImage.bind(this);
-    this.showImage = this.showImage.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
@@ -103,14 +101,6 @@ class Game extends Component {
     answerService.submitAnswer(answer).then(response => {
       thisObj.setState({ waiting: true, question: null, answer: "", leaderboard: null });
     }).catch(error => thisObj.parseError(error));
-  }
-
-  hideImage() {
-    this.setState(Object.assign(this.state, {visible: false}));
-  }
-
-  showImage() {
-    this.setState(Object.assign(this.state, {visible: true}));
   }
 
   parseError(error) {
@@ -228,13 +218,15 @@ class Game extends Component {
 
                           {!!this.state.question.imageUri ?
                           <FormGroup>
+                              <br></br>
+                              <img src={this.state.question.imageUri} class="diplay_image_size" />
+                          </FormGroup>
+                          : null}
+
+                          {!!this.state.question.mediaUri ?
+                          <FormGroup>
                             <br></br>
-                            <Viewer
-                              visible={this.state.visible}
-                              onClose={() => { this.hideImage() } }
-                              images={[{src: this.state.question.imageUri}]}
-                              />
-                             <img src={this.state.question.imageUri} class="diplay_image_size" /> {/*onClick={this.showImage}/> */}
+                            <ReactPlayer url={this.state.question.mediaUri} playing />
                           </FormGroup>
                           : null}
 
@@ -250,7 +242,11 @@ class Game extends Component {
 
             <CardGroup>
               <Card className="p-6">
-                <CardHeader tag="h1">Leaderboard</CardHeader>
+                {!!this.state.leaderboard.roundId ? 
+                  <CardHeader tag="h1">Round Leaderboard</CardHeader>
+                :
+                  <CardHeader tag="h1">Full Leaderboard</CardHeader>
+                }
                 <CardBody>
                   <DataTable
                     defaultSortField="score"
@@ -268,7 +264,7 @@ class Game extends Component {
                         right: true,
                       },
                     ]}
-                      data={this.state.leaderboard}
+                      data={this.state.leaderboard.scores}
                       theme="solarized"
                   />
                 </CardBody>
