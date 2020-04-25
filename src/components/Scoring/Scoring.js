@@ -15,11 +15,11 @@ class Scoring extends Component {
 
     let game = {};
     if (!props.location.state) {
-      game = JSON.parse(sessionStorage.getItem("game"));
+      game = JSON.parse(sessionStorage.getItem("scoringState"));
     } else {
       game = props.location.state.game;
     }
-    sessionStorage.setItem("game", JSON.stringify(game));
+    sessionStorage.setItem("scoringState", JSON.stringify(game));
     
     this.state = { modal: false, game: game, answers: [], selectedPlayersAnswers: [], snackOpen: false, snackMessage: "", snackType: ""};
     
@@ -39,7 +39,7 @@ class Scoring extends Component {
 
   updateState(stateDelta) {
     this.setState(prevState => (stateDelta));
-    localStorage.setItem("createQuizState", JSON.stringify(this.state));
+    sessionStorage.setItem("scoringState", JSON.stringify(this.state));
   }
 
   handleClose() {

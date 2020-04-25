@@ -45,7 +45,6 @@ class Home extends Component {
 
   updateState(stateDelta) {
     this.setState(prevState => (stateDelta));
-    localStorage.setItem("createQuizState", JSON.stringify(this.state));
   }
 
   toggle() {

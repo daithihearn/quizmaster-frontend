@@ -4,6 +4,7 @@ import answerService from '../../services/AnswerService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
+import PlayImage from '../../assets/icons/play.png';
 import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
 import ReactPlayer from 'react-player'
 import Snackbar from "@material-ui/core/Snackbar";
@@ -51,7 +52,6 @@ class Game extends Component {
 
   updateState(stateDelta) {
     this.setState(prevState => (stateDelta));
-    localStorage.setItem("createQuizState", JSON.stringify(this.state));
   }
 
   getCurrentContent() {
@@ -188,7 +188,7 @@ class Game extends Component {
                           {!!this.state.question.mediaUri ?
                           <FormGroup>
                             <br></br>
-                            <ReactPlayer url={this.state.question.mediaUri} playing />
+                            <ReactPlayer url={this.state.question.mediaUri} playing light controls playIcon={<img src={PlayImage} class="diplay_image_size" />} />
                           </FormGroup>
                           : null}
 

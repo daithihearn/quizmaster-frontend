@@ -2,7 +2,7 @@ import axios from 'axios';
 import React, { Component } from 'react';
 import logo from '../../assets/img/brand/logo.png';
 import sessionUtils from '../../utils/SessionUtils';
-import Employer from '../../assets/img/brand/employer.png';
+import sidebarImage from '../../assets/img/brand/sidebar_image.jpg';
 
 class Nav extends Component {
   constructor(props) {
@@ -56,7 +56,7 @@ class Nav extends Component {
             <img className="navigation_Tab_logo_image" src={logo} alt="description" />
           </div>  */}
           <div className="navigation_Tab_content">
-            <img className="navigation_Tab_ProfilePic" src={Employer} alt="description" />
+            <img className="navigation_Tab_ProfilePic" src={sidebarImage} alt="description" />
             <div className="navigation_Tab_Title"> Hi {this.state.usersName} </div>
           </div>
         </div>

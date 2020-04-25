@@ -264,7 +264,7 @@ class Createquiz extends Component {
                               <FormGroup>
                                   <Input type="file" name="newImage" onChange={this.handleChangeImage} />
                                   <br></br>
-                                  {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
+                                  {!!this.state.newImage && !!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
 
                                   <br></br>
                                   <a onClick={this.changeToLoadImage}><span className="form_container_text_link"> Change to load image by URL</span></a>
@@ -279,8 +279,8 @@ class Createquiz extends Component {
                               className="newMedia"
                               type="input"
                               name="newMedia"
-                              placeholder="Soundcloud link"
-                              autoComplete="Soundcloud link"
+                              placeholder="Media link"
+                              autoComplete="Media link"
                               value={this.state.newMedia}
                               onChange={this.handleChange}
                             />
