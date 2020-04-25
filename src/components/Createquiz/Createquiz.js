@@ -2,9 +2,11 @@ import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
-import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
+import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
 import nextId from "react-id-generator";
 import RemoveImage from '../../assets/icons/remove.png';
+import Snackbar from "@material-ui/core/Snackbar";
+import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 
 class Createquiz extends Component {
 
@@ -24,7 +26,8 @@ class Createquiz extends Component {
         newRoundName:'',
         isQuizCreated: false,
         isImageUrl: true,
-        newImage: {file:null, imagePreviewUrl:''}
+        newImage: {file:null, imagePreviewUrl:''},
+        snackOpen: false, snackMessage: "", snackType: ""
       }
       localStorage.setItem("createQuizState", JSON.stringify(this.state));
     }
@@ -40,6 +43,10 @@ class Createquiz extends Component {
     this.clearQuiz = this.clearQuiz.bind(this);
     sessionUtils.checkLoggedIn();
     sessionUtils.checkUserType();
+  }
+
+  handleClose() {
+    this.updateState({ snackOpen: false });
   }
 
   clearState() {
@@ -74,8 +81,7 @@ class Createquiz extends Component {
 
   handleChangeImageUrl(event) {
     let file = null;
-    let urli = event.target.value ;
-    console.log("url image " + urli)
+    let urli = event.target.value;
     this.updateState( {newImage: {
       file: file,
       imagePreviewUrl: urli
@@ -120,27 +126,29 @@ class Createquiz extends Component {
       points: this.state.newPoints,
       id: nextId() });
 
-      this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false });
+    this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false, 
+        snackOpen: true, snackMessage: "Question Added", snackType: "success" });
     event.currentTarget.reset();
   }
 
   removeQuestion(idx) {
     let questions = [...this.state.questions];
     questions.splice(idx, 1);
-    this.updateState({ questions: questions });
+    this.updateState({ questions: questions, snackOpen: true, snackMessage: "Question Removed", snackType: "warning" });
   }
 
   addRound = event => {
     let updatedRounds = this.state.rounds;
     updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: nextId() });
 
-    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false, newRoundName: ''});
+    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false, newRoundName: '', 
+        snackOpen: true, snackMessage: "Round Added", snackType: "success"});
   }
 
   removeRound(idx) {
     let rounds = [...this.state.rounds];
     rounds.splice(idx, 1);
-    this.updateState({ rounds: rounds });
+    this.updateState({ rounds: rounds, snackOpen: true, snackMessage: "Round Removed", snackType: "warning" });
   }
 
   submitQuiz = event => {
@@ -161,55 +169,22 @@ class Createquiz extends Component {
   parseError(error) {
     let errorMessage = 'Undefined error';
     if (
-      typeof error.response !== 'undefined' &&
-      typeof error.response.data !== 'undefined' &&
-      typeof error.response.data.message !== 'undefined' &&
+      error.response !== undefined &&
+      error.response.data !== undefined &&
+      error.response.data.message !== undefined &&
       error.response.data.message !== ''
     ) {
       errorMessage = error.response.data.message;
     } else if (
-      typeof error.response !== 'undefined' &&
-      typeof error.response.statusText !== 'undefined' &&
+      error.response !== undefined &&
+      error.response.statusText !== undefined &&
       error.response.statusText !== ''
     ) {
       errorMessage = error.response.statusText;
-    }
-    if (typeof error.message !== 'undefined') {
+    } else if (error.message !== undefined) {
       errorMessage = error.message;
     }
-    this.updateState({_error: errorMessage});
-  }
-
-  showError() {
-    if (!this.state._error) {
-      return false;
-    }
-    return true;
-  }
-
-  readErrorMessage() {
-    if (!this.state._error) {
-      return '';
-    }
-    let error = this.state._error;
-    delete this.state._error;
-    return error;
-  }
-
-  showResponse() {
-    if (!this.state._message) {
-      return false;
-    }
-    return true;
-  }
-
-  readResponseMessage() {
-    if (!this.state._message) {
-      return '';
-    }
-    let message = this.state._message;
-    delete this.state._message;
-    return message;
+    this.updateState({ snackOpen: true, snackMessage: errorMessage, snackType: "error" });
   }
   
   render() {
@@ -228,22 +203,6 @@ class Createquiz extends Component {
                 </CardBody>
                 </Card>
           </CardGroup>
-
-
-          { this.showError() || this.showResponse() ?
-              <CardGroup>
-                <Card className="p-6">
-                  <CardBody>
-                    <Alert className="mt-3" color="danger" isOpen={this.showError()}>
-                      {this.readErrorMessage()}
-                    </Alert>
-                    <Alert className="mt-3" color="primary" isOpen={this.showResponse()}>
-                      {this.readErrorMessage()}
-                    </Alert>
-                  </CardBody>
-                </Card>
-              </CardGroup>
-            : null}
 
           <CardGroup>
             <Card className="p-6">
@@ -485,7 +444,21 @@ class Createquiz extends Component {
       </CardGroup>
      
         
-
+        <Snackbar
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right"
+          }}
+          open={ this.state.snackOpen }
+          autoHideDuration={6000}
+          onClose={this.handleClose.bind(this)}
+        >
+          <MySnackbarContentWrapper
+            onClose={this.handleClose.bind(this)}
+            variant={ this.state.snackType }
+            message={ this.state.snackMessage }
+          />
+        </Snackbar>
         </div>
       </div>
       </div>

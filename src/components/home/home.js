@@ -4,7 +4,9 @@ import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import RemoveImage from '../../assets/icons/remove.png';
 
-import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Alert, Table } from 'reactstrap';
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
+import Snackbar from "@material-ui/core/Snackbar";
+import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 
 class Home extends Component {
   constructor(props) {
@@ -17,7 +19,10 @@ class Home extends Component {
       currentEmail: '',
       quizSelected: null,
       game:{},
-      dropDownOpen: false
+      dropDownOpen: false,
+      snackOpen: false,
+      snackMessage: "",
+      snackType: ""
     };
     
     sessionUtils.checkLoggedIn();
@@ -25,6 +30,7 @@ class Home extends Component {
     this.getAllQuizzes();
     this.getActiveGames();
 
+    this.updateState = this.updateState.bind(this);
     this.addPlayer = this.addPlayer.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.toggle = this.toggle.bind(this);
@@ -33,15 +39,24 @@ class Home extends Component {
     this.startGameWithEmails = this.startGameWithEmails.bind(this);
   }
 
+  handleClose() {
+    this.updateState({ snackOpen: false });
+  }
+
+  updateState(stateDelta) {
+    this.setState(prevState => (stateDelta));
+    localStorage.setItem("createQuizState", JSON.stringify(this.state));
+  }
+
   toggle() {
-    this.setState(Object.assign(this.state, { dropDownOpen: !this.state.dropDownOpen }));
+    this.updateState( { dropDownOpen: !this.state.dropDownOpen } );
   }
  
   getAllQuizzes()  {
     let thisObj = this;
 
     quizService.getAllQuizzes().then(response => {
-      thisObj.setState(Object.assign(thisObj.state, { quizzes: response.data }));
+      thisObj.updateState({ quizzes: response.data });
     })
       .catch(error => thisObj.parseError(error));
   };
@@ -50,7 +65,7 @@ class Home extends Component {
     let thisObj = this;
 
     gameService.getActive().then(response => {
-      thisObj.setState(Object.assign(thisObj.state, { activeGames: response.data }));
+      thisObj.updateState({ activeGames: response.data });
     })
       .catch(error => thisObj.parseError(error));
   };
@@ -83,22 +98,10 @@ class Home extends Component {
 
     let quiz = { name: event.target.name, id:event.target.value };
     if (quiz.name === "None") {
-      this.setState(Object.assign(this.state, {quizSelected: null}));
+      this.updateState({quizSelected: null});
     } else {
-      this.setState(Object.assign(this.state, {quizSelected: quiz}));
+      this.updateState({quizSelected: quiz});
     }
-  };
-
-  submitQuiz(event) {
-
-    let thisObj = this;
-
-    quizService.putQuiz(this.state.quizToPersist).then(response =>
-      console.log(response)
-    ).catch(error => thisObj.parseError(error));
-
-    event.preventDefault();
-
   };
 
   addPlayer(event) {
@@ -106,13 +109,13 @@ class Home extends Component {
     let updatedEmails = this.state.emails;
     updatedEmails.push(this.state.currentEmail);
 
-    this.setState(Object.assign(this.state,{email: updatedEmails, currentEmail: ''}));
+    this.updateState( {email: updatedEmails, currentEmail: '', snackOpen: true, snackMessage: "Player Added", snackType: "success" });
   }
 
   removePlayer(idx) {
     let emails = [...this.state.emails];
     emails.splice(idx, 1);
-    this.setState({ emails });
+    this.setState({ emails, snackOpen: true, snackMessage: "Player Removed", snackType: "warning"  });
   }
 
   redirectToGame(game) {
@@ -134,68 +137,35 @@ class Home extends Component {
     activeGames.splice(idx, 1);
 
     gameService.delete(game.id)
-      .then(response => thisObj.setState(Object.assign(thisObj.state, { activeGames: activeGames })))
+      .then(response => thisObj.updateState({ activeGames: activeGames, snackOpen: true, snackMessage: "Game Deleted", snackType: "warning"  }))
       .catch(error => thisObj.parseError(error));
   }
 
   handleChange(event) {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
-    this.setState(Object.assign(this.state, updateObj));
+    this.updateState(updateObj);
   }
 
   parseError(error) {
     let errorMessage = 'Undefined error';
     if (
-      typeof error.response !== 'undefined' &&
-      typeof error.response.data !== 'undefined' &&
-      typeof error.response.data.message !== 'undefined' &&
+      error.response !== undefined &&
+      error.response.data !== undefined &&
+      error.response.data.message !== undefined &&
       error.response.data.message !== ''
     ) {
       errorMessage = error.response.data.message;
     } else if (
-      typeof error.response !== 'undefined' &&
-      typeof error.response.statusText !== 'undefined' &&
+      error.response !== undefined &&
+      error.response.statusText !== undefined &&
       error.response.statusText !== ''
     ) {
       errorMessage = error.response.statusText;
-    }
-    if (typeof error.message !== 'undefined') {
+    } else if (error.message !== undefined) {
       errorMessage = error.message;
     }
-    this.setState(Object.assign(this.state, {_error: errorMessage}));
-  }
-
-  showError() {
-    if (!this.state._error) {
-      return false;
-    }
-    return true;
-  }
-
-  readErrorMessage() {
-    if (!this.state._error) {
-      return '';
-    }
-    let error = this.state._error;
-    delete this.state._error;
-    return error;
-  }
-
-  showResponse() {
-    if (!this.state._message) {
-      return false;
-    }
-    return true;
-  }
-
-  readResponseMessage() {
-    if (!this.state._message) {
-      return '';
-    }
-    let message = this.state._message;
-    delete this.state._message;
-    return message;
+    this.updateState({ snackOpen: true, snackMessage: errorMessage, snackType: "error" });
   }
   
   render() {
@@ -204,23 +174,6 @@ class Home extends Component {
       <div className="app">
          <div className="game_wrap">
           <div className="game_container">
-            
-            
-            { this.showError() || this.showResponse() ?
-              <CardGroup>
-                <Card className="p-6">
-                  <CardBody>
-                    <Alert className="mt-3" color="danger" isOpen={this.showError()}>
-                      {this.readErrorMessage()}
-                    </Alert>
-                    <Alert className="mt-3" color="primary" isOpen={this.showResponse()}>
-                      {this.readErrorMessage()}
-                    </Alert>
-                  </CardBody>
-                </Card>
-              </CardGroup>
-            : null}
-              
 
             {this.state.activeGames.length > 0 ?  
               <CardGroup>
@@ -359,6 +312,22 @@ class Home extends Component {
             
             </Card>
           </CardGroup>
+
+          <Snackbar
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right"
+            }}
+            open={ this.state.snackOpen }
+            autoHideDuration={6000}
+            onClose={this.handleClose.bind(this)}
+          >
+            <MySnackbarContentWrapper
+              onClose={this.handleClose.bind(this)}
+              variant={ this.state.snackType }
+              message={ this.state.snackMessage }
+            />
+          </Snackbar>
          
         </div>
        </div> 

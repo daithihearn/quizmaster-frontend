@@ -4,10 +4,10 @@ import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
-import { Snackbar } from "material-ui";
-import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import nextId from "react-id-generator";
-import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, CardTitle, UncontrolledCollapse, Alert, Table } from 'reactstrap';
+import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table } from 'reactstrap';
+import Snackbar from "@material-ui/core/Snackbar";
+import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 
 class Scoring extends Component {
   constructor(props) {
@@ -21,11 +21,12 @@ class Scoring extends Component {
     }
     sessionStorage.setItem("game", JSON.stringify(game));
     
-    this.state = { modal: false, game: game, answers: [], selectedPlayersAnswers: [], snack: {open: false, message: ""}};
+    this.state = { modal: false, game: game, answers: [], selectedPlayersAnswers: [], snackOpen: false, snackMessage: "", snackType: ""};
     
     sessionUtils.checkLoggedIn();
     
     this.handleChange = this.handleChange.bind(this);
+    this.updateState = this.updateState.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
     this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
     this.handleUpdateAnswer = this.handleUpdateAnswer.bind(this);
@@ -41,6 +42,10 @@ class Scoring extends Component {
     localStorage.setItem("createQuizState", JSON.stringify(this.state));
   }
 
+  handleClose() {
+    this.updateState({ snackOpen: false });
+  }
+
   redirectToHome() {
     this.props.history.push({
       pathname: '/home'
@@ -48,7 +53,6 @@ class Scoring extends Component {
   }
 
   closeModal() {
-    let thisObj = this;
     this.updateState({ modal: false, selectedPlayersAnswers: [] });
   }
 
@@ -80,10 +84,7 @@ class Scoring extends Component {
   openEditScoreModal(playerId) {
     let thisObj = this;
 
-    console.log(`PlayerID: ${playerId}`);
-
     answerService.getAnswers(this.state.game.id, null, playerId).then(response => {
-      console.log(JSON.stringify(response.data));
       thisObj.updateState( { selectedPlayersAnswers: response.data, modal: true });
     }).catch(error => thisObj.parseError(error));
   }
@@ -130,7 +131,6 @@ class Scoring extends Component {
     let thisObj = this;
     let index = event.target.elements.index.value;
     event.preventDefault();
-    console.log(`Submitting correction`);
 
     let answers = this.state.answers;
     let answer = answers[index].answer;
@@ -153,29 +153,27 @@ class Scoring extends Component {
     answer.score = event.target.elements.score.value;
 
     answerService.submitCorrection(answer).then(response => {
-      thisObj.updateState({ snack: { open: true, message: "Score updated"}});
+      thisObj.updateState({ snackOpen: true, snackMessage: "Score updated", snackType: "success"});
     }).catch(error => thisObj.parseError(error));
     event.currentTarget.reset();
   }
 
   handlePublishQuestion(roundId, questionId) {
     let thisObj = this;
-    console.log(`Publishing question`);
 
     let payload = {gameId: this.state.game.id, roundId: roundId, questionId: questionId};
 
     gameService.publishQuestion(payload).then(response => {
-      thisObj.updateState({ snack: { open: true, message: "Question published"}});
+      thisObj.updateState({ snackOpen: true, snackMessage: "Question published", snackType: "success" });
     }).catch(error => thisObj.parseError(error));
   }
 
   publishLeaderboard(event) {
     let thisObj = this;
     event.preventDefault();
-    console.log(`Publishing Leaderboard`)
 
     answerService.publishLeaderboard(this.state.game.id).then(response => {
-      thisObj.updateState({ snack: { open: true, message: "Full leaderboard published"}});
+      thisObj.updateState({ snackOpen: true, snackMessage: "Full leaderboard published", snackType: "success" });
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -184,7 +182,7 @@ class Scoring extends Component {
 
     answerService.publishLeaderboard(this.state.game.id, round.id)
       .then(response => {
-        thisObj.updateState({ snack: { open: true, message: "Round leaderboard published"}});
+        thisObj.updateState({ snackOpen: true, snackMessage: "Round leaderboard published", snackType: "success" });
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -193,30 +191,29 @@ class Scoring extends Component {
 
     answerService.publishAnswersForRound(this.state.game.id, round.id)
       .then(response => {
-        thisObj.updateState({ snack: { open: true, message: "Answers published"}});
+        thisObj.updateState({ snackOpen: true, snackMessage: "Answers published", snackType: "success" });
     }).catch(error => thisObj.parseError(error));
   }
 
   parseError(error) {
     let errorMessage = 'Undefined error';
     if (
-      typeof error.response !== 'undefined' &&
-      typeof error.response.data !== 'undefined' &&
-      typeof error.response.data.message !== 'undefined' &&
+      error.response !== undefined &&
+      error.response.data !== undefined &&
+      error.response.data.message !== undefined &&
       error.response.data.message !== ''
     ) {
       errorMessage = error.response.data.message;
     } else if (
-      typeof error.response !== 'undefined' &&
-      typeof error.response.statusText !== 'undefined' &&
+      error.response !== undefined &&
+      error.response.statusText !== undefined &&
       error.response.statusText !== ''
     ) {
       errorMessage = error.response.statusText;
-    }
-    if (typeof error.message !== 'undefined') {
+    } else if (error.message !== undefined) {
       errorMessage = error.message;
     }
-    this.updateState({ snack: { open: true, message: errorMessage}});
+    this.updateState({ snackOpen: true, snackMessage: errorMessage, snackType: "error" });
   }
 
   render() {
@@ -521,17 +518,21 @@ class Scoring extends Component {
           ref={ (client) => { this.clientRef = client }}/>
 
 
-      <MuiThemeProvider>
-        <div>
-          {this.state.snack.text}
-        </div>
-      <Snackbar
-        message={this.state.snack.message}
-        open={this.state.snack.open}
-        onRequestClose={() => this.updateState({ snack: { open: false, message: ""} })}
-        autoHideDuration={2000}
-      />
-      </MuiThemeProvider>
+        <Snackbar
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right"
+          }}
+          open={ this.state.snackOpen }
+          autoHideDuration={6000}
+          onClose={this.handleClose.bind(this)}
+        >
+          <MySnackbarContentWrapper
+            onClose={this.handleClose.bind(this)}
+            variant={ this.state.snackType }
+            message={ this.state.snackMessage }
+          />
+        </Snackbar>
 
        </div>
     );
