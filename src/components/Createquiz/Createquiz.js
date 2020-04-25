@@ -366,15 +366,17 @@ class Createquiz extends Component {
                           <Button type="button" color="danger" onClick={this.clearQuiz}>
                             Clear Quiz
                           </Button>
-                          <Button type="button" color="primary" onClick={this.addRound}>
-                            Submit Round
-                          </Button>
+
+                          {this.state.questions.length > 0 ? 
+                            <Button type="button" color="primary" onClick={this.addRound}>
+                              Submit Round
+                            </Button>
+                          : null}
 
                           {this.state.rounds.length > 0 ? 
-                          <Button type="button" color="primary" onClick={this.submitQuiz}>
-                            Submit Quiz
-                          </Button>
-
+                            <Button type="button" color="primary" onClick={this.submitQuiz}>
+                              Submit Quiz
+                            </Button>
                           : null}
                       </ButtonGroup>
                      </CardBody>
