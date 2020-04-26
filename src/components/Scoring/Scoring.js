@@ -333,7 +333,7 @@ class Scoring extends Component {
                       </thead>
                       <tbody>
 
-                        {this.state.leaderboard.scores.map((entry) => (
+                        {[].concat(this.state.leaderboard.scores).sort((a, b) => a.score < b.score).map((entry) => (
                           <tr>
                             <td align="left">
                               <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.playerId)}>{entry.playerId}</Button>
