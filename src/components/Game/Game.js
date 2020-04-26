@@ -86,7 +86,7 @@ class Game extends Component {
         break;
       case("GAME_SUMMARY"):
       default:
-        this.setState({ waiting: true, question: null, answer: "", leaderboard: null })
+        this.parseError({message: "Unsupported content type"})
     }
   }
 
