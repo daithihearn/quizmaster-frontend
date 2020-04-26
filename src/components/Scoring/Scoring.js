@@ -13,18 +13,8 @@ class Scoring extends Component {
   constructor(props) {
     super(props);
 
-    let game = {};
-    if (!props.location.state) {
-      game = JSON.parse(sessionStorage.getItem("scoringState"));
-    } else {
-      game = props.location.state.game;
-    }
-    sessionStorage.setItem("scoringState", JSON.stringify(game));
-    
-    this.state = { modal: false, game: game, answers: [], selectedPlayersAnswers: [], snackOpen: false, snackMessage: "", snackType: ""};
-    
     sessionUtils.checkLoggedIn();
-    
+
     this.handleChange = this.handleChange.bind(this);
     this.updateState = this.updateState.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
@@ -32,9 +22,19 @@ class Scoring extends Component {
     this.handleUpdateAnswer = this.handleUpdateAnswer.bind(this);
     this.updateLeaderboard = this.updateLeaderboard.bind(this);
 
-    this.loadQuiz();
-    this.loadAllUnscoredAnswers();
-    this.updateLeaderboard();
+    let rawState = sessionStorage.getItem("scoringState");
+
+    if (!!props.location.state && !!props.location.state.game) {
+      this.state = { modal: false, game: props.location.state.game, answers: [], selectedPlayersAnswers: [], snackOpen: false, snackMessage: "", snackType: ""};
+      this.loadQuiz();
+      this.loadAllUnscoredAnswers();
+      this.updateLeaderboard();
+    } else if (rawState !== undefined && rawState !== null && rawState !== '') {
+      this.state = JSON.parse(rawState);
+    } else {
+      this.state = null;
+      sessionStorage.removeItem("scoringState");
+    }
   }
 
   updateState(stateDelta) {
@@ -231,12 +231,12 @@ class Scoring extends Component {
                 </Card>
               </CardGroup>
 
-              
-
+              {!!this.state && !!this.state.quiz ?
+                <div>
               <CardGroup>
                 <Card className="p-6">
 
-                {!!this.state.quiz ?
+                
                   <div>
                     <CardHeader tag="h1">{this.state.quiz.name}</CardHeader>
                     
@@ -285,7 +285,6 @@ class Scoring extends Component {
                     ))}
                     
                   </div>
-                : <Row>No quiz selected</Row>}
                 
                 </Card>
               </CardGroup>
@@ -332,9 +331,10 @@ class Scoring extends Component {
             <CardGroup>
                 <Card className="p-6">
                   <CardHeader tag="h1">Answers for Correction</CardHeader>
-
-                  {this.state.answers.length > 0 ?
+  
+                  {!!this.state.answers && this.state.answers.length > 0 ?
                     <CardGroup>
+                      
                     
                     <Table>
                       <thead>
@@ -449,91 +449,101 @@ class Scoring extends Component {
                 </Card>
               </CardGroup>  
             
+
+              {!!this.state.modal ?
+              <Modal isOpen={this.state.modal}>
+                <ModalHeader><Button type="button" color="link" onClick={this.closeModal.bind(this)}>Close</Button></ModalHeader>
+                <ModalBody>
+                  <Row className="justify-content-center">
+                    <Table>
+                      <thead>
+                        <tr>
+                          <th>Question</th>
+                          <th>Correct Answer</th>
+                          <th>Provided Answer</th>
+                          <th>Max Points</th>
+                          <th>Score</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {this.state.selectedPlayersAnswers.map((wrapper, idx) => 
+                          <tr>
+                            <td align="left">{wrapper.question.question}</td>
+                            <td>{wrapper.question.answer}</td>
+                            <td>{wrapper.answer.answer}</td>
+                            <td>{wrapper.question.points}</td>
+                            <td>
+                              <Form onSubmit={this.handleUpdateAnswer}>
+                                <FormGroup>
+                                  <Input
+                                    className="index"
+                                    type="input"
+                                    name="index"
+                                    value={idx}
+                                    hidden
+                                    required
+                                    />
+                                  <Input
+                                      className="score"
+                                      type="input"
+                                      name="score"
+                                      pattern="[0-9]*"
+                                      placeholder="Score"
+                                      autoComplete="Score"
+                                      onChange={this.handleUpdateScoreChange.bind(this, idx)}
+                                      value={this.state.selectedPlayersAnswers[idx].answer.score}
+                                      required
+                                    />
+                                </FormGroup>
+                              
+                                <Button color="primary" type="submit">
+                                  Submit
+                                </Button> 
+                              </Form>
+                          </td>
+
+                              
+                            </tr>
+                        )}
+                        </tbody>
+                    </Table>
+                  </Row>
+                </ModalBody>
+              </Modal>
+              : null }
+                    
+              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
+                onMessage={ this.handleWebsocketMessage.bind(this) }
+                ref={ (client) => { this.clientRef = client }}/>
+
+
+              <Snackbar
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right"
+                }}
+                open={ this.state.snackOpen }
+                autoHideDuration={6000}
+                onClose={this.handleClose.bind(this)}
+              >
+                <MySnackbarContentWrapper
+                  onClose={this.handleClose.bind(this)}
+                  variant={ this.state.snackType }
+                  message={ this.state.snackMessage }
+                />
+              </Snackbar>
+
+
+              </div>
+              : <CardGroup>
+                  <Card>
+                    <CardBody>No game selected</CardBody>
+                  </Card>
+                </CardGroup>
+              }
+            
           </div>
         </div>
-
-        <Modal isOpen={this.state.modal}>
-          <ModalHeader><Button type="button" color="link" onClick={this.closeModal.bind(this)}>Close</Button></ModalHeader>
-          <ModalBody>
-            <Row className="justify-content-center">
-              <Table>
-                <thead>
-                  <tr>
-                    <th>Question</th>
-                    <th>Correct Answer</th>
-                    <th>Provided Answer</th>
-                    <th>Max Points</th>
-                    <th>Score</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {this.state.selectedPlayersAnswers.map((wrapper, idx) => 
-                    <tr>
-                      <td align="left">{wrapper.question.question}</td>
-                      <td>{wrapper.question.answer}</td>
-                      <td>{wrapper.answer.answer}</td>
-                      <td>{wrapper.question.points}</td>
-                      <td>
-                        <Form onSubmit={this.handleUpdateAnswer}>
-                          <FormGroup>
-                            <Input
-                              className="index"
-                              type="input"
-                              name="index"
-                              value={idx}
-                              hidden
-                              required
-                              />
-                            <Input
-                                className="score"
-                                type="input"
-                                name="score"
-                                pattern="[0-9]*"
-                                placeholder="Score"
-                                autoComplete="Score"
-                                onChange={this.handleUpdateScoreChange.bind(this, idx)}
-                                value={this.state.selectedPlayersAnswers[idx].answer.score}
-                                required
-                              />
-                          </FormGroup>
-                        
-                          <Button color="primary" type="submit">
-                            Submit
-                          </Button> 
-                        </Form>
-                    </td>
-
-                        
-                      </tr>
-                  )}
-                  </tbody>
-              </Table>
-            </Row>
-          </ModalBody>
-        </Modal>
-
-              
-        <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
-          onMessage={ this.handleWebsocketMessage.bind(this) }
-          ref={ (client) => { this.clientRef = client }}/>
-
-
-        <Snackbar
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "right"
-          }}
-          open={ this.state.snackOpen }
-          autoHideDuration={6000}
-          onClose={this.handleClose.bind(this)}
-        >
-          <MySnackbarContentWrapper
-            onClose={this.handleClose.bind(this)}
-            variant={ this.state.snackType }
-            message={ this.state.snackMessage }
-          />
-        </Snackbar>
-
        </div>
     );
   }
