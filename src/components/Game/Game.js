@@ -242,7 +242,7 @@ class Game extends Component {
                   <CardHeader tag="h1">{this.state.roundSummary.name} - Summary</CardHeader>
                   <CardBody>
 
-                      <Table>
+                      <Table bordered hover responsive>
                         <thead>
                           <tr>
                             <th>Question</th>

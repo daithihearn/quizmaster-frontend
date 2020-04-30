@@ -34,7 +34,6 @@ class Home extends Component {
     this.addPlayer = this.addPlayer.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.toggle = this.toggle.bind(this);
-    this.onQuizSelect = this.onQuizSelect.bind(this);
     this.getAllQuizzes = this.getAllQuizzes.bind(this);
     this.startGameWithEmails = this.startGameWithEmails.bind(this);
   }
@@ -93,9 +92,9 @@ class Home extends Component {
     }
   }
 
-  onQuizSelect(event) {
+  onQuizSelect(name, id) {
 
-    let quiz = { name: event.target.name, id:event.target.value };
+    let quiz = { name: name, id:id };
     if (quiz.name === "None") {
       this.updateState({quizSelected: null});
     } else {
@@ -179,7 +178,7 @@ class Home extends Component {
                 <Card className="p-6">
                   <CardHeader tag="h1">Active Games</CardHeader>
                 <CardBody>
-                  <Table>
+                  <Table bordered hover responsive>
                     <thead>
                       <tr>
                         <th>Name</th>
@@ -207,21 +206,20 @@ class Home extends Component {
               <Card className="p-6">
                 <CardHeader tag="h1">Available Quizzes</CardHeader>
                 <CardBody>
-                    <Dropdown isOpen={this.state.dropDownOpen} toggle={this.toggle}>
-                      <DropdownToggle caret>
-                          {!!this.state.quizSelected?this.state.quizSelected.name:"Please select a quiz"}
-                        </DropdownToggle>
-                      <DropdownMenu>
-                      <DropdownItem onClick={this.onQuizSelect} value="None" name="None">
-                          None
-                      </DropdownItem>
-                      {this.state.quizzes.map((rowdata, i) => 
-                        <DropdownItem onClick={this.onQuizSelect} value={rowdata.id} name={rowdata.name}>
-                          {rowdata.name}
-                        </DropdownItem>
+                  <Table bordered hover responsive>
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {this.state.quizzes.map((quiz, idx) => 
+                        <tr>
+                          <td align="left" onClick={this.onQuizSelect.bind(this, quiz.name, quiz.id)}>{quiz.name}</td>
+                        </tr>
                       )}
-                      </DropdownMenu>
-                    </Dropdown>
+                    </tbody>
+                  </Table>
                 </CardBody>
               
                 
@@ -230,7 +228,8 @@ class Home extends Component {
                 {!!this.state.quizSelected ?  
                   <div>
                     <CardBody>
-                      <h3>Enter email addresses and start a game</h3>
+                <h2>You have selected: <b>{this.state.quizSelected.name}</b></h2>
+                <h3>Please add an email address for each player:</h3>
                     </CardBody>
                     <CardBody>
                       <Form onSubmit={this.addPlayer}>
@@ -288,7 +287,7 @@ class Home extends Component {
                     <h2>Players added</h2>
                   </CardBody>
                   <CardBody>
-                    <Table>
+                    <Table bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Player</th>

@@ -278,7 +278,7 @@ class Scoring extends Component {
                         <UncontrolledCollapse toggler={"#toggler_" + idx}>
                           
                           <CardBody>
-                            <Table>
+                            <Table bordered hover responsive>
                               <thead>
                                 <tr>
                                   <th>Question</th>
@@ -324,7 +324,7 @@ class Scoring extends Component {
                   <CardHeader tag="h1">Leaderboard</CardHeader>
                   <CardBody>
 
-                  <Table>
+                  <Table bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Player</th>
@@ -372,7 +372,7 @@ class Scoring extends Component {
 
                       <CardGroup>
                       
-                      <Table>
+                      <Table bordered hover responsive>
                         <thead>
                           <tr>
                             <th>Question</th>
@@ -449,7 +449,7 @@ class Scoring extends Component {
 
                   {!!this.state.quiz ?
                     <CardBody>
-                      <Table>
+                      <Table bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Round</th>
@@ -491,7 +491,7 @@ class Scoring extends Component {
                 <ModalHeader><Button type="button" color="link" onClick={this.closeModal.bind(this)}>Close</Button></ModalHeader>
                 <ModalBody>
                   <Row className="justify-content-center">
-                    <Table>
+                    <Table bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Question</th>
