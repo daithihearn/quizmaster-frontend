@@ -3,8 +3,10 @@ import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import RemoveImage from '../../assets/icons/remove.png';
+import AddIcon from '../../assets/icons/add.svg';
 
-import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
+
+import { Modal, ModalBody, ModalHeader, ModalFooter, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 
@@ -22,7 +24,9 @@ class Home extends Component {
       dropDownOpen: false,
       snackOpen: false,
       snackMessage: "",
-      snackType: ""
+      snackType: "",
+      modalStartGame:false,
+      modalDeleteGame:false,
     };
     
     sessionUtils.checkLoggedIn();
@@ -37,6 +41,20 @@ class Home extends Component {
     this.onQuizSelect = this.onQuizSelect.bind(this);
     this.getAllQuizzes = this.getAllQuizzes.bind(this);
     this.startGameWithEmails = this.startGameWithEmails.bind(this);
+  }
+
+  handleCloseStartGameModal() {
+    this.setState({ modalStartGame: false });
+  }
+  showStartGameModal() {
+    this.setState({ modalStartGame: true });
+  }
+
+  handleCloseDeleteGameModal() {
+    this.setState({ modalDeleteGame: false });
+  }
+  showDelteGameModal() {
+    this.setState({ modalDeleteGame: true });
   }
 
   handleClose() {
@@ -77,13 +95,14 @@ class Home extends Component {
       quizId: this.state.quizSelected.id,
       name: this.state.quizSelected.name
     }
-
+    
     gameService.put(gameEmails).then(response => {
       thisObj.redirectToGame(response.data);
      })
        .catch(error => thisObj.parseError(error));
        
   };
+
  
   checkLoginStatus() {
     let authHeader = sessionStorage.getItem('JWT-TOKEN');
@@ -191,12 +210,30 @@ class Home extends Component {
                       {this.state.activeGames.map((game, idx) => 
                         <tr>
                           <td align="left">{game.name}</td>
-                          <td><a type="button" color="danger" onClick={this.deleteGame.bind(this, game, idx)}><img src={RemoveImage} width="20px" height="20px"/></a></td>
+                          <td><a type="button" color="danger" onClick={this.showDelteGameModal.bind(this)}>
+                            <img src={RemoveImage} width="20px" height="20px"/></a>
+                            <Modal isOpen={this.state.modalDeleteGame}>
+                                <ModalHeader closeButton>
+                                  You are about to Delete a game
+                                </ModalHeader>
+                                <ModalBody>Are you sure you want to delete <b>{game.name}</b> game? It is an active game</ModalBody>
+                                <ModalFooter>
+                                <Button color="secondary" onClick={this.handleCloseDeleteGameModal.bind(this)}>
+                                    No
+                                  </Button>
+                                   <Button color="primary" onClick={this.deleteGame.bind(this, game, idx)}>
+                                  Yes
+                                   </Button>
+                                </ModalFooter>
+                              </Modal>
+                            </td>
                           <td><Button type="button" color="link" onClick={this.redirectToGame.bind(this, game)}>Open</Button></td>
                         </tr>
+                        
                       )}
                     </tbody>
                   </Table>
+                 
                 </CardBody>
               </Card>
               </CardGroup>
@@ -220,6 +257,7 @@ class Home extends Component {
                           {rowdata.name}
                         </DropdownItem>
                       )}
+                      
                       </DropdownMenu>
                     </Dropdown>
                 </CardBody>
@@ -229,13 +267,17 @@ class Home extends Component {
 
                 {!!this.state.quizSelected ?  
                   <div>
-                    <CardBody>
+                    {/* <CardBody>
                       <h3>Enter email addresses and start a game</h3>
-                    </CardBody>
+                    </CardBody> */}
                     <CardBody>
                       <Form onSubmit={this.addPlayer}>
                           <FormGroup>
-                            <Input
+                          <h4 colSpan="2">Enter email addresses and start a game</h4>
+                          <Table>
+                            <tbody>
+                              <tr><td>
+                                <Input
                                 className="currentEmail"
                                 id="currentEmail"
                                 type="input"
@@ -245,22 +287,15 @@ class Home extends Component {
                                 onChange={this.handleChange}
                                 value={this.state.currentEmail}
                                 required
-                              />
-
+                              /></td>
+                            <td>
+                            <a type="button" color="danger" onClick={this.addPlayer}><img src={AddIcon} width="20px" height="20px"/></a>
+                            </td>
+                            </tr>
+                            </tbody>
+                          </Table>
                           </FormGroup>
-                          <ButtonGroup>
-                            <Button type="submit" color="secondary">
-                              Add Player
-                            </Button>
-                            &nbsp;
-                              
-                           {!!this.state.emails && this.state.emails.length >0?
-                            <Button color="primary" type="button" onClick={this.startGameWithEmails.bind(this)}>
-                                Start Game 
-                            </Button>
-                            : null
-                          }
-                          </ButtonGroup>
+                        
                       </Form>
                     </CardBody>
                   </div>
@@ -284,14 +319,14 @@ class Home extends Component {
 
                 {this.state.emails.length > 0 ?
                   <div>
-                  <CardBody>
+                  {/* <CardBody>
                     <h2>Players added</h2>
-                  </CardBody>
+                  </CardBody> */}
                   <CardBody>
                     <Table>
                       <thead>
                         <tr>
-                          <th>Player</th>
+                          <th>Players Added</th>
                           <th>Remove</th>
                         </tr>
                       </thead>
@@ -305,6 +340,28 @@ class Home extends Component {
                       )}
                       </tbody>
                     </Table>
+                    {!!this.state.emails && this.state.emails.length >0?
+                            <ButtonGroup>
+                              <Button color="primary" type="button" onClick={this.showStartGameModal.bind(this)}>
+                                Start Game 
+                              </Button> 
+                              <Modal isOpen={this.state.modalStartGame}>
+                                <ModalHeader closeButton>
+                                  You are about to start a game
+                                </ModalHeader>
+                                <ModalBody>Are you sure you want to start the game?</ModalBody>
+                                <ModalFooter>
+                                <Button color="secondary" onClick={this.handleCloseStartGameModal.bind(this)}>
+                                    No
+                                  </Button>
+                                   <Button color="primary" onClick={this.startGameWithEmails.bind(this)}>
+                                  Yes
+                                   </Button>
+                                </ModalFooter>
+                              </Modal>
+                            </ButtonGroup>
+                            : null
+                          }
                   </CardBody>
                   </div>
                 : null}
