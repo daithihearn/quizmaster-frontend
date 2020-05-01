@@ -86,7 +86,7 @@ class Game extends Component {
         break;
       case("GAME_SUMMARY"):
       default:
-        this.setState({ waiting: true, question: null, answer: "", leaderboard: null })
+        this.parseError({message: "Unsupported content type"})
     }
   }
 
@@ -242,7 +242,7 @@ class Game extends Component {
                   <CardHeader tag="h1">{this.state.roundSummary.name} - Summary</CardHeader>
                   <CardBody>
 
-                      <Table>
+                      <Table bordered hover responsive>
                         <thead>
                           <tr>
                             <th>Question</th>

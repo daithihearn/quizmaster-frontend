@@ -5,7 +5,7 @@ import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import nextId from "react-id-generator";
-import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table } from 'reactstrap';
+import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 
@@ -13,32 +13,38 @@ class Scoring extends Component {
   constructor(props) {
     super(props);
 
-    let game = {};
-    if (!props.location.state) {
-      game = JSON.parse(sessionStorage.getItem("scoringState"));
-    } else {
-      game = props.location.state.game;
-    }
-    sessionStorage.setItem("scoringState", JSON.stringify(game));
-    
-    this.state = { modal: false, game: game, answers: [], selectedPlayersAnswers: [], snackOpen: false, snackMessage: "", snackType: ""};
-    
     sessionUtils.checkLoggedIn();
-    
+
     this.handleChange = this.handleChange.bind(this);
     this.updateState = this.updateState.bind(this);
+    this.replaceState = this.replaceState.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
     this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
     this.handleUpdateAnswer = this.handleUpdateAnswer.bind(this);
     this.updateLeaderboard = this.updateLeaderboard.bind(this);
 
-    this.loadQuiz();
-    this.loadAllUnscoredAnswers();
-    this.updateLeaderboard();
+    let rawState = sessionStorage.getItem("scoringState");
+
+    if (!!props.location.state && !!props.location.state.game) {
+      this.state = { modal: false, game: props.location.state.game, answers: [], selectedPlayersAnswers: [], snackOpen: false, snackMessage: "", snackType: "", answeredCurrentQuestion: []};
+      this.loadQuiz();
+      this.loadAllUnscoredAnswers();
+      this.updateLeaderboard();
+    } else if (rawState !== undefined && rawState !== null && rawState !== '') {
+      this.state = JSON.parse(rawState);
+    } else {
+      this.state = null;
+      sessionStorage.removeItem("scoringState");
+    }
   }
 
   updateState(stateDelta) {
     this.setState(prevState => (stateDelta));
+    sessionStorage.setItem("scoringState", JSON.stringify(this.state));
+  }
+
+  replaceState(newState) {
+    this.setState(newState);
     sessionStorage.setItem("scoringState", JSON.stringify(this.state));
   }
 
@@ -91,16 +97,39 @@ class Scoring extends Component {
 
   handleWebsocketMessage(payload) {
 
-    let newState = this.state;
-    let content = JSON.parse(payload.payload);
+    let publishContent = JSON.parse(payload.payload);
+    this.parseScreenContent(publishContent);
 
-    if (content.gameId !== this.state.game.id) {
-      return;
+  }
+
+  parseScreenContent(content) {
+    if (!content) {
+      return
     }
 
-    newState.answers.push(content.content);
+    let newState = this.state; 
 
-    this.setState(newState);
+    switch (content.type) {
+      
+      case("QUESTION_AND_ANSWER"):
+    
+        if (content.gameId !== this.state.game.id) {
+          return;
+        }
+    
+        newState.answers.push(content.content);
+        newState.answeredCurrentQuestion.push(content.content.answer.playerId);
+    
+        this.replaceState(newState);
+        break;
+      case("AUTO_ANSWERED"): 
+           
+        newState.answeredCurrentQuestion.push(content.content);
+        this.replaceState(newState);
+        break;
+      default:
+        this.parseError({message: "Unsupported content type"})
+    }
   }
 
   handleChange(event) {
@@ -164,7 +193,7 @@ class Scoring extends Component {
     let payload = {gameId: this.state.game.id, roundId: roundId, questionId: questionId};
 
     gameService.publishQuestion(payload).then(response => {
-      thisObj.updateState({ snackOpen: true, snackMessage: "Question published", snackType: "success" });
+      thisObj.updateState({ snackOpen: true, snackMessage: "Question published", snackType: "success", answeredCurrentQuestion: [] });
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -231,12 +260,12 @@ class Scoring extends Component {
                 </Card>
               </CardGroup>
 
-              
-
+              {!!this.state && !!this.state.quiz ?
+                <div>
               <CardGroup>
                 <Card className="p-6">
 
-                {!!this.state.quiz ?
+                
                   <div>
                     <CardHeader tag="h1">{this.state.quiz.name}</CardHeader>
                     
@@ -249,7 +278,7 @@ class Scoring extends Component {
                         <UncontrolledCollapse toggler={"#toggler_" + idx}>
                           
                           <CardBody>
-                            <Table>
+                            <Table bordered hover responsive>
                               <thead>
                                 <tr>
                                   <th>Question</th>
@@ -285,7 +314,6 @@ class Scoring extends Component {
                     ))}
                     
                   </div>
-                : <Row>No quiz selected</Row>}
                 
                 </Card>
               </CardGroup>
@@ -296,7 +324,7 @@ class Scoring extends Component {
                   <CardHeader tag="h1">Leaderboard</CardHeader>
                   <CardBody>
 
-                  <Table>
+                  <Table bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Player</th>
@@ -305,7 +333,7 @@ class Scoring extends Component {
                       </thead>
                       <tbody>
 
-                        {this.state.leaderboard.scores.map((entry) => (
+                        {[].concat(this.state.leaderboard.scores).sort((a, b) => a.score < b.score).map((entry) => (
                           <tr>
                             <td align="left">
                               <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.playerId)}>{entry.playerId}</Button>
@@ -329,71 +357,79 @@ class Scoring extends Component {
             </CardGroup>
             : null }
 
+            {!!this.state.answeredCurrentQuestion && !!this.state.game ?
+                      
+              <Progress striped={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) < 1} color={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) < 1 ?"info":"success"} value={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) * 100}>Current Question Progress</Progress>
+                      
+            : null}
+            
             <CardGroup>
                 <Card className="p-6">
                   <CardHeader tag="h1">Answers for Correction</CardHeader>
 
-                  {this.state.answers.length > 0 ?
-                    <CardGroup>
+                  {!!this.state.answers && this.state.answers.length > 0 ?
                     
-                    <Table>
-                      <thead>
-                        <tr>
-                          <th>Question</th>
-                          <th>Player</th>
-                          <th>Correct Answer</th>
-                          <th>Provided Answer</th>
-                          <th>Max Points</th>
-                          <th>Score</th>
-                        </tr>
-                      </thead>
-                      <tbody>
 
-                      {this.state.answers.map((answer, idx) => (
+                      <CardGroup>
+                      
+                      <Table bordered hover responsive>
+                        <thead>
                           <tr>
-                            
-                              <td align="left">{answer.question.question}</td>
-                              <td>{answer.answer.playerId}</td>
-                              <td>{answer.question.answer}</td>
-                              <td>{answer.answer.answer}</td>
-                              <td>{answer.question.points}</td>
-                              <td>
-                                <Form onSubmit={this.handleCorrectAnswer} id={"correction_form_" + nextId() }>
-                                  <FormGroup>
-                                    <Input
-                                      className="index"
-                                      type="input"
-                                      name="index"
-                                      value={idx}
-                                      hidden
-                                      required
-                                      />
-                                    <Input
-                                        className="score"
-                                        type="input"
-                                        name="score"
-                                        pattern="[0-9]*"
-                                        placeholder="Score"
-                                        autoComplete="Score"
-                                        disabled={idx > 0}
-                                        required
-                                      />
-                                  </FormGroup>
-                                  { idx == 0 ?
-                                  <Button color="primary" type="submit">
-                                    Submit
-                                  </Button> 
-                                  : null }
-                                </Form>
-                            </td>
+                            <th>Question</th>
+                            <th>Player</th>
+                            <th>Correct Answer</th>
+                            <th>Provided Answer</th>
+                            <th>Max Points</th>
+                            <th>Score</th>
+                          </tr>
+                        </thead>
+                        <tbody>
 
-                          
-                        </tr>
-                    
-                  ))}
-                      </tbody>
-                    </Table>
-                  </CardGroup>
+                        {this.state.answers.map((answer, idx) => (
+                            <tr>
+                              
+                                <td align="left">{answer.question.question}</td>
+                                <td>{answer.answer.playerId}</td>
+                                <td>{answer.question.answer}</td>
+                                <td>{answer.answer.answer}</td>
+                                <td>{answer.question.points}</td>
+                                <td>
+                                  <Form onSubmit={this.handleCorrectAnswer} id={"correction_form_" + nextId() }>
+                                    <FormGroup>
+                                      <Input
+                                        className="index"
+                                        type="input"
+                                        name="index"
+                                        value={idx}
+                                        hidden
+                                        required
+                                        />
+                                      <Input
+                                          className="score"
+                                          type="input"
+                                          name="score"
+                                          pattern="[0-9]*"
+                                          placeholder="Score"
+                                          autoComplete="Score"
+                                          disabled={idx > 0}
+                                          required
+                                        />
+                                    </FormGroup>
+                                    { idx == 0 ?
+                                    <Button color="primary" type="submit">
+                                      Submit
+                                    </Button> 
+                                    : null }
+                                  </Form>
+                              </td>
+
+                            
+                          </tr>
+                      
+                    ))}
+                        </tbody>
+                      </Table>
+                    </CardGroup>
                 : <CardGroup><CardBody> No answers available for correction at this time..</CardBody></CardGroup>}
 
                 </Card>
@@ -413,7 +449,7 @@ class Scoring extends Component {
 
                   {!!this.state.quiz ?
                     <CardBody>
-                      <Table>
+                      <Table bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Round</th>
@@ -449,91 +485,101 @@ class Scoring extends Component {
                 </Card>
               </CardGroup>  
             
+
+              {!!this.state.modal ?
+              <Modal isOpen={this.state.modal}>
+                <ModalHeader><Button type="button" color="link" onClick={this.closeModal.bind(this)}>Close</Button></ModalHeader>
+                <ModalBody>
+                  <Row className="justify-content-center">
+                    <Table bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th>Question</th>
+                          <th>Correct Answer</th>
+                          <th>Provided Answer</th>
+                          <th>Max Points</th>
+                          <th>Score</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {this.state.selectedPlayersAnswers.map((wrapper, idx) => 
+                          <tr>
+                            <td align="left">{wrapper.question.question}</td>
+                            <td>{wrapper.question.answer}</td>
+                            <td>{wrapper.answer.answer}</td>
+                            <td>{wrapper.question.points}</td>
+                            <td>
+                              <Form onSubmit={this.handleUpdateAnswer}>
+                                <FormGroup>
+                                  <Input
+                                    className="index"
+                                    type="input"
+                                    name="index"
+                                    value={idx}
+                                    hidden
+                                    required
+                                    />
+                                  <Input
+                                      className="score"
+                                      type="input"
+                                      name="score"
+                                      pattern="[0-9]*"
+                                      placeholder="Score"
+                                      autoComplete="Score"
+                                      onChange={this.handleUpdateScoreChange.bind(this, idx)}
+                                      value={this.state.selectedPlayersAnswers[idx].answer.score}
+                                      required
+                                    />
+                                </FormGroup>
+                              
+                                <Button color="primary" type="submit">
+                                  Submit
+                                </Button> 
+                              </Form>
+                          </td>
+
+                              
+                            </tr>
+                        )}
+                        </tbody>
+                    </Table>
+                  </Row>
+                </ModalBody>
+              </Modal>
+              : null }
+                    
+              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
+                onMessage={ this.handleWebsocketMessage.bind(this) }
+                ref={ (client) => { this.clientRef = client }}/>
+
+
+              <Snackbar
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "right"
+                }}
+                open={ this.state.snackOpen }
+                autoHideDuration={6000}
+                onClose={this.handleClose.bind(this)}
+              >
+                <MySnackbarContentWrapper
+                  onClose={this.handleClose.bind(this)}
+                  variant={ this.state.snackType }
+                  message={ this.state.snackMessage }
+                />
+              </Snackbar>
+
+
+              </div>
+              : <CardGroup>
+                  <Card>
+                    <CardBody>No game selected</CardBody>
+                  </Card>
+                </CardGroup>
+              }
+            
           </div>
         </div>
-
-        <Modal isOpen={this.state.modal}>
-          <ModalHeader><Button type="button" color="link" onClick={this.closeModal.bind(this)}>Close</Button></ModalHeader>
-          <ModalBody>
-            <Row className="justify-content-center">
-              <Table>
-                <thead>
-                  <tr>
-                    <th>Question</th>
-                    <th>Correct Answer</th>
-                    <th>Provided Answer</th>
-                    <th>Max Points</th>
-                    <th>Score</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {this.state.selectedPlayersAnswers.map((wrapper, idx) => 
-                    <tr>
-                      <td align="left">{wrapper.question.question}</td>
-                      <td>{wrapper.question.answer}</td>
-                      <td>{wrapper.answer.answer}</td>
-                      <td>{wrapper.question.points}</td>
-                      <td>
-                        <Form onSubmit={this.handleUpdateAnswer}>
-                          <FormGroup>
-                            <Input
-                              className="index"
-                              type="input"
-                              name="index"
-                              value={idx}
-                              hidden
-                              required
-                              />
-                            <Input
-                                className="score"
-                                type="input"
-                                name="score"
-                                pattern="[0-9]*"
-                                placeholder="Score"
-                                autoComplete="Score"
-                                onChange={this.handleUpdateScoreChange.bind(this, idx)}
-                                value={this.state.selectedPlayersAnswers[idx].answer.score}
-                                required
-                              />
-                          </FormGroup>
-                        
-                          <Button color="primary" type="submit">
-                            Submit
-                          </Button> 
-                        </Form>
-                    </td>
-
-                        
-                      </tr>
-                  )}
-                  </tbody>
-              </Table>
-            </Row>
-          </ModalBody>
-        </Modal>
-
-              
-        <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
-          onMessage={ this.handleWebsocketMessage.bind(this) }
-          ref={ (client) => { this.clientRef = client }}/>
-
-
-        <Snackbar
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "right"
-          }}
-          open={ this.state.snackOpen }
-          autoHideDuration={6000}
-          onClose={this.handleClose.bind(this)}
-        >
-          <MySnackbarContentWrapper
-            onClose={this.handleClose.bind(this)}
-            variant={ this.state.snackType }
-            message={ this.state.snackMessage }
-          />
-        </Snackbar>
-
        </div>
     );
   }

@@ -339,7 +339,7 @@ class Createquiz extends Component {
                       </CardBody>
                       <CardBody>
 
-                        <Table>
+                        <Table bordered hover responsive>
                           <thead>
                             <tr>
                               <th>Question</th>
@@ -388,7 +388,7 @@ class Createquiz extends Component {
                         <h2>Rounds</h2>
                       </CardBody>
                       <CardBody>
-                        <Table>
+                        <Table bordered hover responsive>
                           <thead>
                             <tr>
                               <th>Round</th>

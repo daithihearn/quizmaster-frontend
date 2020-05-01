@@ -9,6 +9,7 @@ import AddIcon from '../../assets/icons/add.svg';
 import { Modal, ModalBody, ModalHeader, ModalFooter, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
+import { blue } from '@material-ui/core/colors';
 
 class Home extends Component {
   constructor(props) {
@@ -38,9 +39,9 @@ class Home extends Component {
     this.addPlayer = this.addPlayer.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.toggle = this.toggle.bind(this);
-    this.onQuizSelect = this.onQuizSelect.bind(this);
     this.getAllQuizzes = this.getAllQuizzes.bind(this);
     this.startGameWithEmails = this.startGameWithEmails.bind(this);
+    this.myColor= this.myColor.bind(this);
   }
 
   handleCloseStartGameModal() {
@@ -112,15 +113,33 @@ class Home extends Component {
     }
   }
 
-  onQuizSelect(event) {
+  onQuizSelect(name, id) {
 
-    let quiz = { name: event.target.name, id:event.target.value };
+    let quiz = { name: name, id:id };
     if (quiz.name === "None") {
       this.updateState({quizSelected: null});
     } else {
       this.updateState({quizSelected: quiz});
     }
+ 
   };
+
+  myColor(name, isFont){
+    
+    console.log("quiz selected: " + name);
+    if(!!this.state.quizSelected){
+      if(this.state.quizSelected.name == name){
+        console.log("mark quiz");
+        if (!isFont){
+        return  'darkseagreen'; //'#43a047'; //'darkseagreen'; //'rgba(0,0,0,.18)';
+        }else{
+          return 'white';
+        }
+      }
+    } 
+    return '';
+  }
+
 
   addPlayer(event) {
     event.preventDefault();
@@ -157,7 +176,8 @@ class Home extends Component {
     gameService.delete(game.id)
       .then(response => thisObj.updateState({ activeGames: activeGames, snackOpen: true, snackMessage: "Game Deleted", snackType: "warning"  }))
       .catch(error => thisObj.parseError(error));
-  }
+    this.handleCloseDeleteGameModal();
+    }
 
   handleChange(event) {
     let key = event.target.getAttribute("name");
@@ -198,7 +218,7 @@ class Home extends Component {
                 <Card className="p-6">
                   <CardHeader tag="h1">Active Games</CardHeader>
                 <CardBody>
-                  <Table>
+                  <Table bordered hover responsive>
                     <thead>
                       <tr>
                         <th>Name</th>
@@ -244,22 +264,20 @@ class Home extends Component {
               <Card className="p-6">
                 <CardHeader tag="h1">Available Quizzes</CardHeader>
                 <CardBody>
-                    <Dropdown isOpen={this.state.dropDownOpen} toggle={this.toggle}>
-                      <DropdownToggle caret>
-                          {!!this.state.quizSelected?this.state.quizSelected.name:"Please select a quiz"}
-                        </DropdownToggle>
-                      <DropdownMenu>
-                      <DropdownItem onClick={this.onQuizSelect} value="None" name="None">
-                          None
-                      </DropdownItem>
-                      {this.state.quizzes.map((rowdata, i) => 
-                        <DropdownItem onClick={this.onQuizSelect} value={rowdata.id} name={rowdata.name}>
-                          {rowdata.name}
-                        </DropdownItem>
+                  <Table bordered hover responsive>
+                    <thead>
+                      <tr>
+                        <th>Quiz Names</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {this.state.quizzes.map((quiz, idx) => 
+                        <tr>
+                          <td  style={{background: this.myColor(quiz.name, false), color: this.myColor(quiz.name, true)}} align="left" onClick={this.onQuizSelect.bind(this, quiz.name, quiz.id)}>{quiz.name}</td>
+                        </tr>
                       )}
-                      
-                      </DropdownMenu>
-                    </Dropdown>
+                    </tbody>
+                  </Table>
                 </CardBody>
               
                 
@@ -267,13 +285,13 @@ class Home extends Component {
 
                 {!!this.state.quizSelected ?  
                   <div>
-                    {/* <CardBody>
-                      <h3>Enter email addresses and start a game</h3>
-                    </CardBody> */}
                     <CardBody>
+               
+                   
                       <Form onSubmit={this.addPlayer}>
                           <FormGroup>
-                          <h4 colSpan="2">Enter email addresses and start a game</h4>
+                          <h4 colSpan="2">You have selected: <b>{this.state.quizSelected.name}</b><br></br>Enter email addresses and start a game</h4>
+                        
                           <Table>
                             <tbody>
                               <tr><td>
@@ -323,7 +341,7 @@ class Home extends Component {
                     <h2>Players added</h2>
                   </CardBody> */}
                   <CardBody>
-                    <Table>
+                    <Table bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Players Added</th>
