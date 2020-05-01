@@ -10,6 +10,7 @@ import { Modal, ModalBody, ModalHeader, ModalFooter, Dropdown, DropdownToggle, D
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 import { blue } from '@material-ui/core/colors';
+import { black } from 'material-ui/styles/colors';
 
 class Home extends Component {
   constructor(props) {
@@ -131,7 +132,8 @@ class Home extends Component {
       if(this.state.quizSelected.name == name){
         console.log("mark quiz");
         if (!isFont){
-        return  'darkseagreen'; //'#43a047'; //'darkseagreen'; //'rgba(0,0,0,.18)';
+        return  'LightSteelBlue';  
+        // 'AliceBlue'; //'#43a047'; //'darkseagreen'; //'rgba(0,0,0,.18)';
         }else{
           return 'white';
         }
