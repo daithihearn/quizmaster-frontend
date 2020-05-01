@@ -116,12 +116,12 @@ class Home extends Component {
   onQuizSelect(name, id) {
 
     let quiz = { name: name, id:id };
-    if (quiz.name === "None") {
+    if (quiz.name === "None" || (!!this.state.quizSelected && quiz.name===this.state.quizSelected.name)) {
       this.updateState({quizSelected: null});
     } else {
       this.updateState({quizSelected: quiz});
     }
- 
+     
   };
 
   myColor(name, isFont){
