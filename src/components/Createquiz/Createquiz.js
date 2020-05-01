@@ -80,12 +80,18 @@ class Createquiz extends Component {
   }
 
   handleChangeImageUrl(event) {
+    let thisObj = this;
     let file = null;
     let urli = event.target.value;
-    this.updateState( {newImage: {
-      file: file,
-      imagePreviewUrl: urli
-    }});
+
+    quizService.uploadImage(urli).then(response => {
+      thisObj.updateState({ newImage: {
+        file: file,
+        imagePreviewUrl: response.data
+      }});
+    }
+    ).catch(error => thisObj.parseError(error));
+
   }
 
   handleChangeCheckbox(event) {
@@ -96,11 +102,21 @@ class Createquiz extends Component {
   }
 
   handleChangeImage(event) {
+    let thisObj = this;
     let file = event.target.files[0]
     
     let reader = new FileReader();
 
     reader.onloadend = () => {
+
+      quizService.uploadImage(reader.result).then(response => {
+        thisObj.updateState({ newImage: {
+          file: file,
+          imagePreviewUrl: response.data
+        }});
+      }
+      ).catch(error => thisObj.parseError(error));
+
       this.updateState({ newImage: {
         file: file,
         imagePreviewUrl: reader.result

@@ -60,3 +60,18 @@ exports.deleteQuiz = (id) => {
     return result;
   }
 };
+
+exports.uploadImage = (media) => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader
+      }
+    };
+    const result = axios
+      .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/uploadImage`, { data: media }, config)
+    return result;
+  }
+};
