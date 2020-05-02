@@ -55,7 +55,7 @@ class Home extends Component {
   handleCloseDeleteGameModal() {
     this.setState({ modalDeleteGame: false });
   }
-  showDelteGameModal() {
+  showDeleteGameModal() {
     this.setState({ modalDeleteGame: true });
   }
 
@@ -170,6 +170,17 @@ class Home extends Component {
     });
   }
 
+  finishGame(game, idx) {
+    let thisObj = this;
+    let activeGames = [...this.state.activeGames];
+    activeGames.splice(idx, 1);
+
+    gameService.finish(game.id)
+      .then(response => thisObj.updateState({ activeGames: activeGames, snackOpen: true, snackMessage: "Game Finished", snackType: "success"  }))
+      .catch(error => thisObj.parseError(error));
+    this.handleCloseDeleteGameModal();
+  }
+
   deleteGame(game, idx) {
     let thisObj = this;
     let activeGames = [...this.state.activeGames];
@@ -179,7 +190,7 @@ class Home extends Component {
       .then(response => thisObj.updateState({ activeGames: activeGames, snackOpen: true, snackMessage: "Game Deleted", snackType: "warning"  }))
       .catch(error => thisObj.parseError(error));
     this.handleCloseDeleteGameModal();
-    }
+  }
 
   handleChange(event) {
     let key = event.target.getAttribute("name");
@@ -224,6 +235,7 @@ class Home extends Component {
                     <thead>
                       <tr>
                         <th>Name</th>
+                        <th>Finish</th>
                         <th>Delete</th>
                         <th>Open</th>
                       </tr>
@@ -232,7 +244,8 @@ class Home extends Component {
                       {this.state.activeGames.map((game, idx) => 
                         <tr>
                           <td align="left">{game.name}</td>
-                          <td><a type="button" color="danger" onClick={this.showDelteGameModal.bind(this)}>
+                          <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
+                          <td><a type="button" color="danger" onClick={this.showDeleteGameModal.bind(this)}>
                             <img src={RemoveImage} width="20px" height="20px"/></a>
                             <Modal isOpen={this.state.modalDeleteGame}>
                                 <ModalHeader closeButton>

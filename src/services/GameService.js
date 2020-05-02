@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-exports.get = (id) => {
+exports.get = (gameId) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 
   if (authHeader) {
@@ -10,7 +10,7 @@ exports.get = (id) => {
       }
     };
     const result = axios
-      .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?id=${id}`, config)
+      .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?gameId=${gameId}`, config)
     return result;
   }
 };
@@ -92,7 +92,7 @@ exports.removePlayer = (gameId, playerId) => {
   }
 };
 
-exports.finish = (id) => {
+exports.finish = (gameId) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 
   if (authHeader) {
@@ -102,12 +102,12 @@ exports.finish = (id) => {
       }
     };
     const result = axios
-      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/finish?id=${id}`, null, config)
+      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/finish?gameId=${gameId}`, null, config)
     return result;
   }
 };
 
-exports.cancel = (id) => {
+exports.cancel = (gameId) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 
   if (authHeader) {
@@ -117,13 +117,13 @@ exports.cancel = (id) => {
       }
     };
     const result = axios
-      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/cancel?id=${id}`, null, config)
+      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/cancel?gameId=${gameId}`, null, config)
     return result;
   }
 };
 
 
-exports.delete = (id) => {
+exports.delete = (gameId) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 
   if (authHeader) {
@@ -133,7 +133,7 @@ exports.delete = (id) => {
       }
     };
     const result = axios
-      .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?id=${id}`, config)
+      .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?gameId=${gameId}`, config)
     return result;
   }
 };
