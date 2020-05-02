@@ -62,6 +62,36 @@ exports.put = (createGame) => {
   }
 };
 
+exports.addPlayer = (gameId, playerEmail) => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader
+      }
+    };
+    const result = axios
+      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/addPlayer?gameId=${gameId}&playerEmail=${playerEmail}`, null, config)
+    return result;
+  }
+};
+
+exports.removePlayer = (gameId, playerId) => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader
+      }
+    };
+    const result = axios
+      .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/removePlayer?gameId=${gameId}&playerId=${playerId}`, config)
+    return result;
+  }
+};
+
 exports.finish = (id) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 

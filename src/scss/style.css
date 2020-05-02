@@ -11649,11 +11649,15 @@ body {
 html body .app.flex-row.align-items-center {
   height: 100vh; }
 
+.body {
+  font-family: "Open Sans"; }
+
 .app_body {
   background-color: white;
   width: auto;
   flex: 1;
-  position: relative; }
+  position: relative;
+  font-family: "Open Sans"; }
 
 .card-group {
   padding-top: 10px;
@@ -11703,7 +11707,6 @@ html body .app.flex-row.align-items-center {
       color: #355ea3;
       font-weight: 700;
       font-family: "Open Sans";
-      padding: 10%;
       cursor: pointer; }
 
 .thumbnail_size {
@@ -12166,7 +12169,7 @@ html body .app.flex-row.align-items-center {
   .login_background_issuerImage {
     height: 100vh;
     width: 38%;
-    background: url("../assets/img/brand/Login_Banner.jpg") 0% 0%/cover; }
+    background: black 0% 0% / cover; }
 
 .form_wrap {
   min-width: 500px;
@@ -12212,7 +12215,6 @@ html body .app.flex-row.align-items-center {
       color: #355ea3;
       font-weight: 700;
       font-family: "Open Sans";
-      padding: 10%;
       cursor: pointer; }
 
 .row {

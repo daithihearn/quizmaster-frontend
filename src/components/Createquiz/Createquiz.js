@@ -3,7 +3,7 @@ import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
 import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
-import nextId from "react-id-generator";
+import uuid from 'uuid-random';
 import RemoveImage from '../../assets/icons/remove.png';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
@@ -140,7 +140,7 @@ class Createquiz extends Component {
       mediaUri: this.state.newMedia,
       forceManualCorrection: this.state.newForceManualCorrection,
       points: this.state.newPoints,
-      id: nextId() });
+      id: uuid() });
 
     this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false, 
         snackOpen: true, snackMessage: "Question Added", snackType: "success" });
@@ -155,7 +155,7 @@ class Createquiz extends Component {
 
   addRound = event => {
     let updatedRounds = this.state.rounds;
-    updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: nextId() });
+    updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: uuid() });
 
     this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false, newRoundName: '', 
         snackOpen: true, snackMessage: "Round Added", snackType: "success"});

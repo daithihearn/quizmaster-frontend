@@ -4,7 +4,6 @@ import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
-import nextId from "react-id-generator";
 import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
@@ -16,7 +15,9 @@ class Scoring extends Component {
     sessionUtils.checkLoggedIn();
 
     this.handleChange = this.handleChange.bind(this);
+    this.addPlayer = this.addPlayer.bind(this);
     this.updateState = this.updateState.bind(this);
+    this.updateGame = this.updateGame.bind(this);
     this.replaceState = this.replaceState.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
     this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
@@ -26,7 +27,7 @@ class Scoring extends Component {
     let rawState = sessionStorage.getItem("scoringState");
 
     if (!!props.location.state && !!props.location.state.game) {
-      this.state = { modal: false, game: props.location.state.game, answers: [], selectedPlayersAnswers: [], snackOpen: false, snackMessage: "", snackType: "", answeredCurrentQuestion: []};
+      this.state = { modal: false, game: props.location.state.game, answers: [], playerEmail: '', selectedPlayersAnswers: [], snackOpen: false, snackMessage: "", snackType: "", answeredCurrentQuestion: []};
       this.loadQuiz();
       this.loadAllUnscoredAnswers();
       this.updateLeaderboard();
@@ -51,6 +52,30 @@ class Scoring extends Component {
   handleClose() {
     this.updateState({ snackOpen: false });
   }
+
+  updateGame() {
+    let thisObj = this;
+    gameService.get(this.state.game.id).then(response => {
+      thisObj.updateState({game: response.data});
+    }).catch(error => thisObj.parseError(error));
+  }
+
+  removePlayer(playerId) {
+    let thisObj = this;
+    gameService.removePlayer(this.state.game.id, playerId).then(response => {
+      thisObj.updateGame();
+    }).catch(error => thisObj.parseError(error));
+  }
+
+  addPlayer(event) {
+    event.preventDefault();
+    let thisObj = this;
+    gameService.addPlayer(this.state.game.id, this.state.playerEmail).then(response => {
+      thisObj.updateState({playerEmail: ''});
+      thisObj.updateGame();
+    }).catch(error => thisObj.parseError(error));
+  }
+
 
   redirectToHome() {
     this.props.history.push({
@@ -318,6 +343,58 @@ class Scoring extends Component {
                 </Card>
               </CardGroup>
 
+              <CardGroup>
+                <Card className="p-6">
+                  <CardHeader tag="h1">Players</CardHeader>
+                  <CardBody>
+
+                  <Table bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th>Player</th>
+                          <th>Remove</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                        {[].concat(this.state.game.players).map((entry) => (
+                          <tr>
+                            <td align="left">
+                              {entry.displayName}
+                            </td>
+                            <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, entry.id)}>Remove</Button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+
+
+                  </CardBody>
+                  <CardBody>
+                    <Form onSubmit={this.addPlayer}>
+                      <FormGroup>
+                        <Input
+                          className="playerEmail"
+                          type="input"
+                          name="playerEmail"
+                          value={this.state.playerEmail}
+                          onChange={this.handleChange}
+                          required
+                          />
+                      </FormGroup>
+                        <ButtonGroup vertical>
+                          <Button type="submit">
+                            Add Player
+                          </Button>
+                        </ButtonGroup>
+                    </Form>
+                  </CardBody>
+              </Card>
+            </CardGroup>
+
+
+
+
             { !!this.state.leaderboard ? 
               <CardGroup>
                 <Card className="p-6">
@@ -394,7 +471,7 @@ class Scoring extends Component {
                                 <td>{answer.answer.answer}</td>
                                 <td>{answer.question.points}</td>
                                 <td>
-                                  <Form onSubmit={this.handleCorrectAnswer} id={"correction_form_" + nextId() }>
+                                  <Form onSubmit={this.handleCorrectAnswer}>
                                     <FormGroup>
                                       <Input
                                         className="index"
