@@ -247,6 +247,9 @@ class Home extends Component {
                           <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
                           <td><a type="button" color="danger" onClick={this.showDeleteGameModal.bind(this)}>
                             <img src={RemoveImage} width="20px" height="20px"/></a>
+
+{/* TODO Fix this. There should only be on modal. */}
+
                             <Modal isOpen={this.state.modalDeleteGame}>
                                 <ModalHeader closeButton>
                                   You are about to Delete a game
