@@ -567,9 +567,11 @@ class Scoring extends Component {
                                 <ModalHeader closeButton>
                                   You are about to delete a player
                                 </ModalHeader>
-                               
-                          <ModalBody>Are you sure you want to delete {this.state.modalDeletePlayer.displayName}?</ModalBody> 
-                                 
+                         
+                          <ModalBody>Are you sure you want to delete &nbsp; 
+                             {!! this.state.modalDeletePlayer ?  
+                               this.state.modalDeletePlayer.displayName : '' }</ModalBody> 
+                           
                                 <ModalFooter>
                                 <Button color="secondary" onClick={this.handleCloseDeletePlayerModal.bind(this)}>
                                     No
