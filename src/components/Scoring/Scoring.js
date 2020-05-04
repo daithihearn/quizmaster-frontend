@@ -3,6 +3,9 @@ import sessionUtils from '../../utils/SessionUtils';
 import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
+import RemoveImage from '../../assets/icons/remove.png';
+import AddIcon from '../../assets/icons/add.svg';
+
 import SockJsClient from 'react-stomp';
 import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
@@ -23,11 +26,20 @@ class Scoring extends Component {
     this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
     this.handleUpdateAnswer = this.handleUpdateAnswer.bind(this);
     this.updateLeaderboard = this.updateLeaderboard.bind(this);
-
+   
     let rawState = sessionStorage.getItem("scoringState");
 
     if (!!props.location.state && !!props.location.state.game) {
-      this.state = { modal: false, game: props.location.state.game, answers: [], playerEmail: '', selectedPlayersAnswers: [], snackOpen: false, snackMessage: "", snackType: "", answeredCurrentQuestion: []};
+      this.state = { 
+        modal: false, 
+        game: props.location.state.game, 
+        answers: [], 
+        playerEmail: '', 
+        selectedPlayersAnswers: [], 
+        snackOpen: false, 
+        snackMessage: "", 
+        snackType: "", 
+        answeredCurrentQuestion: []};
       this.loadQuiz();
       this.loadAllUnscoredAnswers();
       this.updateLeaderboard();
@@ -101,6 +113,8 @@ class Scoring extends Component {
     answerService.getLeaderboard(this.state.game.id).then(response => {
       thisObj.updateState( { leaderboard: response.data });
     }).catch(error => thisObj.parseError(error));
+    console.log("leader board object:  " + JSON.stringify (this.state.leaderboard))
+
   }
 
   loadAllUnscoredAnswers() {
@@ -115,6 +129,8 @@ class Scoring extends Component {
   openEditScoreModal(playerId) {
     let thisObj = this;
 
+    console.log("player id: " + playerId);
+
     answerService.getAnswers(this.state.game.id, null, playerId).then(response => {
       thisObj.updateState( { selectedPlayersAnswers: response.data, modal: true });
     }).catch(error => thisObj.parseError(error));
@@ -127,6 +143,24 @@ class Scoring extends Component {
 
   }
 
+  markColorRound(roundIdRow, isFont){
+    
+    console.log("round selected: " + this.state.roundId);
+    console.log("round row: " + roundIdRow);
+    if(!!this.state.roundId){
+      if(this.state.roundId == roundIdRow){
+        console.log("mark round");
+        if (!isFont){
+        return 'LightSteelBlue'; //'rgba(0,0,0,.18)';  
+        // 'AliceBlue'; //'# 43a047'; //'darkseagreen'; //'rgba(0,0,0,.18)';
+        }else{
+          return 'white';
+        }
+      }
+    } 
+    return '';
+  }
+  
   parseScreenContent(content) {
     if (!content) {
       return
@@ -216,6 +250,7 @@ class Scoring extends Component {
     let thisObj = this;
 
     let payload = {gameId: this.state.game.id, roundId: roundId, questionId: questionId};
+    this.setState ({roundId: roundId});
 
     gameService.publishQuestion(payload).then(response => {
       thisObj.updateState({ snackOpen: true, snackMessage: "Question published", snackType: "success", answeredCurrentQuestion: [] });
@@ -292,18 +327,18 @@ class Scoring extends Component {
 
                 
                   <div>
-                    <CardHeader tag="h1">{this.state.quiz.name}</CardHeader>
+                    <CardHeader tag="h2">{this.state.quiz.name}</CardHeader>
                     
                     {this.state.quiz.rounds.map((round, idx) => (
                       <div>
                         <CardBody>
-                            <h2>Round: {round.name}</h2> <Button color="link" id={"toggler_" + idx}>Show/Hide</Button>
-                        </CardBody>
+                        <Button color="link" id={"toggler_" + idx}><h4>Round: {round.name} </h4></Button>
+                           </CardBody>
                         
                         <UncontrolledCollapse toggler={"#toggler_" + idx}>
                           
                           <CardBody>
-                            <Table bordered hover responsive>
+                            <Table size="sm"  bordered hover responsive>
                               <thead>
                                 <tr>
                                   <th>Question</th>
@@ -343,96 +378,10 @@ class Scoring extends Component {
                 </Card>
               </CardGroup>
 
-              <CardGroup>
-                <Card className="p-6">
-                  <CardHeader tag="h1">Players</CardHeader>
-                  <CardBody>
-
-                  <Table bordered hover responsive>
-                      <thead>
-                        <tr>
-                          <th>Player</th>
-                          <th>Remove</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-
-                        {[].concat(this.state.game.players).map((entry) => (
-                          <tr>
-                            <td align="left">
-                              {entry.displayName}
-                            </td>
-                            <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, entry.id)}>Remove</Button></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-
-
-                  </CardBody>
-                  <CardBody>
-                    <Form onSubmit={this.addPlayer}>
-                      <FormGroup>
-                        <Input
-                          className="playerEmail"
-                          type="input"
-                          name="playerEmail"
-                          value={this.state.playerEmail}
-                          onChange={this.handleChange}
-                          required
-                          />
-                      </FormGroup>
-                        <ButtonGroup vertical>
-                          <Button type="submit">
-                            Add Player
-                          </Button>
-                        </ButtonGroup>
-                    </Form>
-                  </CardBody>
-              </Card>
-            </CardGroup>
+            
 
 
 
-
-            { !!this.state.leaderboard ? 
-              <CardGroup>
-                <Card className="p-6">
-                  <CardHeader tag="h1">Leaderboard</CardHeader>
-                  <CardBody>
-
-                  <Table bordered hover responsive>
-                      <thead>
-                        <tr>
-                          <th>Player</th>
-                          <th>Score</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-
-                        {[].concat(this.state.leaderboard.scores).sort((a, b) => a.score < b.score).map((entry) => (
-                          <tr>
-                            <td align="left">
-                              <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.playerId)}>{entry.playerId}</Button>
-                              </td>
-                            <td>{entry.score}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-
-
-                  </CardBody>
-                  <CardBody>
-                    <ButtonGroup vertical>
-                      <Button type="button" color="primary" onClick={this.updateLeaderboard}>
-                        Update Leaderboard
-                      </Button>
-                    </ButtonGroup>
-                  </CardBody>
-              </Card>
-            </CardGroup>
-            : null }
 
             {!!this.state.answeredCurrentQuestion && !!this.state.game ?
                       
@@ -440,16 +389,18 @@ class Scoring extends Component {
                       
             : null}
             
-            <CardGroup>
+            {/* <CardGroup>
                 <Card className="p-6">
-                  <CardHeader tag="h1">Answers for Correction</CardHeader>
+                  <CardHeader tag="h2">Answers for Correction</CardHeader> */}
 
                   {!!this.state.answers && this.state.answers.length > 0 ?
                     
 
                       <CardGroup>
                       
-                      <Table bordered hover responsive>
+                      <Table  size="sm" bordered hover responsive="xl"
+                      
+                       >
                         <thead>
                           <tr>
                             <th>Question</th>
@@ -458,6 +409,7 @@ class Scoring extends Component {
                             <th>Provided Answer</th>
                             <th>Max Points</th>
                             <th>Score</th>
+                            <th></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -499,6 +451,7 @@ class Scoring extends Component {
                                     : null }
                                   </Form>
                               </td>
+                              <td>bla bla</td>
 
                             
                           </tr>
@@ -509,15 +462,53 @@ class Scoring extends Component {
                     </CardGroup>
                 : <CardGroup><CardBody> No answers available for correction at this time..</CardBody></CardGroup>}
 
-                </Card>
-              </CardGroup>
+                {/* </Card>
+              </CardGroup> */}
+
+
+              { !!this.state.leaderboard && !!this.state.leaderboard.scores.length >0 ? 
+              <CardGroup>
+                <Card className="p-6">
+                  <CardHeader tag="h2">Leaderboard</CardHeader>
+                  <CardBody>
+
+                  <Table bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th>Player</th>
+                          <th>Score</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                        {[].concat(this.state.leaderboard.scores).sort((a, b) => a.score < b.score).map((entry) => (
+                          <tr>
+                            <td align="left">
+                              {/* <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.playerId)}> */}
+                                {entry.playerId}
+                                {/* </Button> */}
+                              </td>
+                            <td>{entry.score}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                 </CardBody>
+                
+              </Card>
+            </CardGroup>
+            : null }
+
 
               <CardGroup>
                 <Card className="p-6">
-                  <CardHeader tag="h1">Actions</CardHeader>
+                  <CardHeader tag="h2">Actions</CardHeader>
                   <CardBody>
-                    <ButtonGroup vertical>
-                      <Button type="button" color="primary" onClick={this.publishLeaderboard.bind(this)}>
+                    <ButtonGroup horizontal>
+                    <Button type="button" color="primary" onClick={this.updateLeaderboard}>
+                        Update Leaderboard
+                      </Button>
+                      <Button type="button" color="warning" onClick={this.publishLeaderboard.bind(this)}>
                         Publish Full Leaderboard
                       </Button>
         
@@ -526,7 +517,7 @@ class Scoring extends Component {
 
                   {!!this.state.quiz ?
                     <CardBody>
-                      <Table bordered hover responsive>
+                      <Table    bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Round</th>
@@ -536,9 +527,10 @@ class Scoring extends Component {
                       </thead>
                       <tbody>
                           {this.state.quiz.rounds.map((round) => 
-                            <tr>
-                              <td align="left">Round: {round.name}</td>
-                              <td><Button type="button" color="secondary" onClick={this.publishLeaderboardForRound.bind(this, round)}>
+                            <tr  style={{background: this.markColorRound(round.id, false), color: this.markColorRound( round.id,true)}}>
+                             
+                              <td   align="left">Round: {round.name}</td>
+                              <td><Button type="button" color="warning" onClick={this.publishLeaderboardForRound.bind(this, round)}>
                                   Publish Round Leaderboard
                               </Button></td>
                               <td><Button type="button" color="danger" onClick={this.publishAnswersForRound.bind(this, round)}>
@@ -554,6 +546,85 @@ class Scoring extends Component {
 
               </Card>
             </CardGroup>
+
+
+            {/* Players section */}
+            <CardGroup>
+                <Card className="p-6">
+                  <CardHeader tag="h2">Players</CardHeader>
+                  <CardBody>
+
+                  <Table size="sm"  bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th>Player</th>
+                          <th>Remove</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                        {[].concat(this.state.game.players).map((entry) => (
+                          <tr>
+                            <td align="left">
+                              <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.displayName)}> {entry.displayName}</Button>
+                            </td>
+                            {/* <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, entry.id)}>Remove</Button></td> */}
+                            <td><a class="remove_link" color="link" onClick={this.removePlayer.bind(this, entry.id)} > 
+                            <img src={RemoveImage} width="20px" height="20px"/></a></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+
+
+                  </CardBody>
+                  <CardBody>
+                    {/* <Form onSubmit={this.addPlayer}>
+                      <FormGroup>
+                        <Input
+                          className="playerEmail"
+                          type="input"
+                          name="playerEmail"
+                          value={this.state.playerEmail}
+                          onChange={this.handleChange}
+                          required
+                          />
+                      </FormGroup>
+                        <ButtonGroup vertical>
+                          <Button type="submit">
+                            Add Player
+                          </Button>
+                        </ButtonGroup>
+                    </Form>  */}
+                     <Form onSubmit={this.addPlayer}>
+                          <FormGroup>
+                        
+                          <Table size="sm" >
+                            <tbody>
+                              <tr><td>
+                                <Input
+                                className="playerEmail"
+                                type="input"
+                                name="playerEmail"
+                                onChange={this.handleChange}
+                                value={this.state.playerEmail}
+                                required
+                              /></td>
+                            <td>
+                            <a type="button" color="danger" onClick={this.addPlayer}><img src={AddIcon} width="20px" height="20px"/></a>
+                            </td>
+                            </tr>
+                            </tbody>
+                          </Table>
+                          </FormGroup>
+                        
+                      </Form>
+                  </CardBody>
+              </Card>
+            </CardGroup>
+
+
+
             <CardGroup>
                 <Card>
                 <CardBody>
@@ -564,11 +635,13 @@ class Scoring extends Component {
             
 
               {!!this.state.modal ?
-              <Modal isOpen={this.state.modal}>
+              <Modal isOpen={this.state.modal}   
+              className="Modal"
+              overlayClassName="Overlay">
                 <ModalHeader><Button type="button" color="link" onClick={this.closeModal.bind(this)}>Close</Button></ModalHeader>
                 <ModalBody>
                   <Row className="justify-content-center">
-                    <Table bordered hover responsive>
+                    <Table size="sm"  bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Question</th>

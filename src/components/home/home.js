@@ -11,6 +11,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 import { blue } from '@material-ui/core/colors';
 import { black } from 'material-ui/styles/colors';
+import { NotificationPhoneBluetoothSpeaker } from 'material-ui/svg-icons';
 
 class Home extends Component {
   constructor(props) {
@@ -29,6 +30,8 @@ class Home extends Component {
       snackType: "",
       modalStartGame:false,
       modalDeleteGame:false,
+      modalDeleteGameIdx: 0,
+      modalDelteGameObject: {}
     };
     
     sessionUtils.checkLoggedIn();
@@ -42,6 +45,7 @@ class Home extends Component {
     this.toggle = this.toggle.bind(this);
     this.getAllQuizzes = this.getAllQuizzes.bind(this);
     this.startGameWithEmails = this.startGameWithEmails.bind(this);
+    this.showDeleteGameModal = this.showDeleteGameModal.bind (this);
     this.myColor= this.myColor.bind(this);
   }
 
@@ -55,8 +59,10 @@ class Home extends Component {
   handleCloseDeleteGameModal() {
     this.setState({ modalDeleteGame: false });
   }
-  showDeleteGameModal() {
-    this.setState({ modalDeleteGame: true });
+  showDeleteGameModal(game, idx) {
+    this.setState({ modalDeleteGame: true , modalDeleteGameIdx: idx, modalDelteGameObject: game});
+    console.log(JSON.stringify(this.state.modalDeleteGameIdx));
+   
   }
 
   handleClose() {
@@ -181,12 +187,12 @@ class Home extends Component {
     this.handleCloseDeleteGameModal();
   }
 
-  deleteGame(game, idx) {
+  deleteGame() {
     let thisObj = this;
     let activeGames = [...this.state.activeGames];
-    activeGames.splice(idx, 1);
+    activeGames.splice(this.state.modalDeleteGameIdx, 1);
 
-    gameService.delete(game.id)
+    gameService.delete(this.state.modalDelteGameObject.id)
       .then(response => thisObj.updateState({ activeGames: activeGames, snackOpen: true, snackMessage: "Game Deleted", snackType: "warning"  }))
       .catch(error => thisObj.parseError(error));
     this.handleCloseDeleteGameModal();
@@ -229,9 +235,9 @@ class Home extends Component {
             {this.state.activeGames.length > 0 ?  
               <CardGroup>
                 <Card className="p-6">
-                  <CardHeader tag="h1">Active Games</CardHeader>
+                  <CardHeader tag="h2">Active Games</CardHeader>
                 <CardBody>
-                  <Table bordered hover responsive>
+                  <Table  size="sm" bordered hover responsive>
                     <thead>
                       <tr>
                         <th>Name</th>
@@ -241,29 +247,33 @@ class Home extends Component {
                       </tr>
                     </thead>
                     <tbody>
-                      {this.state.activeGames.map((game, idx) => 
-                        <tr>
-                          <td align="left">{game.name}</td>
-                          <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
-                          <td><a type="button" color="danger" onClick={this.showDeleteGameModal.bind(this)}>
-                            <img src={RemoveImage} width="20px" height="20px"/></a>
 
-{/* TODO Fix this. There should only be on modal. */}
-
-                            <Modal isOpen={this.state.modalDeleteGame}>
+                    <Modal isOpen={this.state.modalDeleteGame}>
                                 <ModalHeader closeButton>
                                   You are about to Delete a game
                                 </ModalHeader>
-                                <ModalBody>Are you sure you want to delete <b>{game.name}</b> game? It is an active game</ModalBody>
+                               
+                                <ModalBody>Are you sure you want to delete 
+                                { !! this.state.modalDelteGameObject ?
+                                  <b>&nbsp;{this.state.modalDelteGameObject.name}&nbsp;</b>  : null }
+                                
+                                  game? It is an active game</ModalBody> 
+                                 
                                 <ModalFooter>
                                 <Button color="secondary" onClick={this.handleCloseDeleteGameModal.bind(this)}>
                                     No
                                   </Button>
-                                   <Button color="primary" onClick={this.deleteGame.bind(this, game, idx)}>
+                                   <Button color="primary" onClick={this.deleteGame.bind(this)}>
                                   Yes
                                    </Button>
                                 </ModalFooter>
                               </Modal>
+                      {this.state.activeGames.map((game, idx) => 
+                        <tr>
+                          <td align="left">{game.name}</td>
+                          <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
+                          <td><a type="button" color="danger" onClick={this.showDeleteGameModal.bind(this, game, idx)}>
+                            <img src={RemoveImage} width="20px" height="20px"/></a>                  
                             </td>
                           <td><Button type="button" color="link" onClick={this.redirectToGame.bind(this, game)}>Open</Button></td>
                         </tr>
@@ -280,9 +290,9 @@ class Home extends Component {
 
             <CardGroup>
               <Card className="p-6">
-                <CardHeader tag="h1">Available Quizzes</CardHeader>
+                <CardHeader tag="h2">Available Quizzes</CardHeader>
                 <CardBody>
-                  <Table bordered hover responsive>
+                  <Table  bordered hover responsive>
                     <thead>
                       <tr>
                         <th>Quiz Names</th>
@@ -310,7 +320,7 @@ class Home extends Component {
                           <FormGroup>
                           <h4 colSpan="2">You have selected: <b>{this.state.quizSelected.name}</b><br></br>Enter email addresses and start a game</h4>
                         
-                          <Table>
+                          <Table size="sm" >
                             <tbody>
                               <tr><td>
                                 <Input
@@ -359,7 +369,7 @@ class Home extends Component {
                     <h2>Players added</h2>
                   </CardBody> */}
                   <CardBody>
-                    <Table bordered hover responsive>
+                    <Table size="sm"  bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Players Added</th>

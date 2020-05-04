@@ -167,7 +167,9 @@ class Game extends Component {
                               autoComplete="answer"
                               value={this.state.answer}
                               onChange={this.handleChange}
+                              autoFocus
                               required
+                              
                             />
                           </FormGroup>
                           <ButtonGroup>
