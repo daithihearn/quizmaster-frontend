@@ -61,7 +61,7 @@ class Home extends Component {
   }
   showDeleteGameModal(game, idx) {
     this.setState({ modalDeleteGame: true , modalDeleteGameIdx: idx, modalDelteGameObject: game});
-    console.log(JSON.stringify(this.state.modalDeleteGameIdx));
+   // console.log(JSON.stringify(this.state.modalDeleteGameIdx));
    
   }
 
@@ -133,10 +133,10 @@ class Home extends Component {
 
   myColor(name, isFont){
     
-    console.log("quiz selected: " + name);
+   // console.log("quiz selected: " + name);
     if(!!this.state.quizSelected){
       if(this.state.quizSelected.name == name){
-        console.log("mark quiz");
+       // console.log("mark quiz");
         if (!isFont){
         return  'LightSteelBlue';  
         // 'AliceBlue'; //'#43a047'; //'darkseagreen'; //'rgba(0,0,0,.18)';

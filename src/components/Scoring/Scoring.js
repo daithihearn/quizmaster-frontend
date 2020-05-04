@@ -7,7 +7,7 @@ import RemoveImage from '../../assets/icons/remove.png';
 import AddIcon from '../../assets/icons/add.svg';
 
 import SockJsClient from 'react-stomp';
-import { Modal, ModalBody, ModalHeader, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
+import { Modal, ModalBody, ModalHeader, ModalFooter, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 
@@ -26,7 +26,7 @@ class Scoring extends Component {
     this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
     this.handleUpdateAnswer = this.handleUpdateAnswer.bind(this);
     this.updateLeaderboard = this.updateLeaderboard.bind(this);
-   
+    
     let rawState = sessionStorage.getItem("scoringState");
 
     if (!!props.location.state && !!props.location.state.game) {
@@ -39,6 +39,7 @@ class Scoring extends Component {
         snackOpen: false, 
         snackMessage: "", 
         snackType: "", 
+        showModalDeletePlayer: false,
         answeredCurrentQuestion: []};
       this.loadQuiz();
       this.loadAllUnscoredAnswers();
@@ -61,6 +62,15 @@ class Scoring extends Component {
     sessionStorage.setItem("scoringState", JSON.stringify(this.state));
   }
 
+  handleCloseDeletePlayerModal(id) {
+    this.setState({ showModalDeletePlayer: false});
+  }
+
+  showDeletePlayerModal(player) {
+    this.setState({ showModalDeletePlayer: true , modalDeletePlayer: player});
+      
+  }
+
   handleClose() {
     this.updateState({ snackOpen: false });
   }
@@ -72,9 +82,10 @@ class Scoring extends Component {
     }).catch(error => thisObj.parseError(error));
   }
 
-  removePlayer(playerId) {
+  removePlayer() {
     let thisObj = this;
-    gameService.removePlayer(this.state.game.id, playerId).then(response => {
+    this.setState({ showModalDeletePlayer: false});
+    gameService.removePlayer(this.state.game.id, this.state.modalDeletePlayer.id).then(response => {
       thisObj.updateGame();
     }).catch(error => thisObj.parseError(error));
   }
@@ -145,11 +156,11 @@ class Scoring extends Component {
 
   markColorRound(roundIdRow, isFont){
     
-    console.log("round selected: " + this.state.roundId);
-    console.log("round row: " + roundIdRow);
+    //console.log("round selected: " + this.state.roundId);
+    //console.log("round row: " + roundIdRow);
     if(!!this.state.roundId){
       if(this.state.roundId == roundIdRow){
-        console.log("mark round");
+       // console.log("mark round");
         if (!isFont){
         return 'LightSteelBlue'; //'rgba(0,0,0,.18)';  
         // 'AliceBlue'; //'# 43a047'; //'darkseagreen'; //'rgba(0,0,0,.18)';
@@ -389,9 +400,9 @@ class Scoring extends Component {
                       
             : null}
             
-            {/* <CardGroup>
+            <CardGroup>
                 <Card className="p-6">
-                  <CardHeader tag="h2">Answers for Correction</CardHeader> */}
+                  <CardHeader tag="h2">Answers for Correction</CardHeader>
 
                   {!!this.state.answers && this.state.answers.length > 0 ?
                     
@@ -399,8 +410,7 @@ class Scoring extends Component {
                       <CardGroup>
                       
                       <Table  size="sm" bordered hover responsive="xl"
-                      
-                       >
+                      >
                         <thead>
                           <tr>
                             <th>Question</th>
@@ -409,7 +419,7 @@ class Scoring extends Component {
                             <th>Provided Answer</th>
                             <th>Max Points</th>
                             <th>Score</th>
-                            <th></th>
+                           
                           </tr>
                         </thead>
                         <tbody>
@@ -451,7 +461,7 @@ class Scoring extends Component {
                                     : null }
                                   </Form>
                               </td>
-                              <td>bla bla</td>
+                             
 
                             
                           </tr>
@@ -462,8 +472,8 @@ class Scoring extends Component {
                     </CardGroup>
                 : <CardGroup><CardBody> No answers available for correction at this time..</CardBody></CardGroup>}
 
-                {/* </Card>
-              </CardGroup> */}
+                </Card>
+              </CardGroup>
 
 
               { !!this.state.leaderboard && !!this.state.leaderboard.scores.length >0 ? 
@@ -553,7 +563,22 @@ class Scoring extends Component {
                 <Card className="p-6">
                   <CardHeader tag="h2">Players</CardHeader>
                   <CardBody>
-
+                  <Modal isOpen={this.state.showModalDeletePlayer}>
+                                <ModalHeader closeButton>
+                                  You are about to delete a player
+                                </ModalHeader>
+                               
+                          <ModalBody>Are you sure you want to delete {this.state.modalDeletePlayer.displayName}?</ModalBody> 
+                                 
+                                <ModalFooter>
+                                <Button color="secondary" onClick={this.handleCloseDeletePlayerModal.bind(this)}>
+                                    No
+                                  </Button>
+                                   <Button color="primary" onClick={this.removePlayer.bind(this)}>
+                                  Yes
+                                   </Button>
+                                </ModalFooter>
+                              </Modal>
                   <Table size="sm"  bordered hover responsive>
                       <thead>
                         <tr>
@@ -569,7 +594,7 @@ class Scoring extends Component {
                               <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.displayName)}> {entry.displayName}</Button>
                             </td>
                             {/* <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, entry.id)}>Remove</Button></td> */}
-                            <td><a class="remove_link" color="link" onClick={this.removePlayer.bind(this, entry.id)} > 
+                            <td><a class="remove_link" color="link" onClick={this.showDeletePlayerModal.bind(this, entry)} > 
                             <img src={RemoveImage} width="20px" height="20px"/></a></td>
                           </tr>
                         ))}
@@ -636,8 +661,8 @@ class Scoring extends Component {
 
               {!!this.state.modal ?
               <Modal isOpen={this.state.modal}   
-              className="Modal"
-              overlayClassName="Overlay">
+              className="modal-dialog2"
+              >
                 <ModalHeader><Button type="button" color="link" onClick={this.closeModal.bind(this)}>Close</Button></ModalHeader>
                 <ModalBody>
                   <Row className="justify-content-center">
