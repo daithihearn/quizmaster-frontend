@@ -449,7 +449,7 @@ class Scoring extends Component {
                                           name="score"
                                           pattern="[0-9]*"
                                           placeholder="Score"
-                                          autoComplete="Score"
+                                          autoComplete="off"
                                           disabled={idx > 0}
                                           required
                                         />
@@ -702,7 +702,7 @@ class Scoring extends Component {
                                       name="score"
                                       pattern="[0-9]*"
                                       placeholder="Score"
-                                      autoComplete="Score"
+                                      autoComplete="off"
                                       onChange={this.handleUpdateScoreChange.bind(this, idx)}
                                       value={this.state.selectedPlayersAnswers[idx].answer.score}
                                       required

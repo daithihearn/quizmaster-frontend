@@ -5,13 +5,9 @@ import gameService from '../../services/GameService';
 import RemoveImage from '../../assets/icons/remove.png';
 import AddIcon from '../../assets/icons/add.svg';
 
-
-import { Modal, ModalBody, ModalHeader, ModalFooter, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
+import { Modal, ModalBody, ModalHeader, ModalFooter, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
-import { blue } from '@material-ui/core/colors';
-import { black } from 'material-ui/styles/colors';
-import { NotificationPhoneBluetoothSpeaker } from 'material-ui/svg-icons';
 
 class Home extends Component {
   constructor(props) {
@@ -44,7 +40,6 @@ class Home extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.toggle = this.toggle.bind(this);
     this.getAllQuizzes = this.getAllQuizzes.bind(this);
-    this.startGameWithEmails = this.startGameWithEmails.bind(this);
     this.showDeleteGameModal = this.showDeleteGameModal.bind (this);
     this.myColor= this.myColor.bind(this);
   }
@@ -96,6 +91,10 @@ class Home extends Component {
   };
 
   startGameWithEmails() {
+    if (this.state.startGameDisabled) {
+      return;
+    }
+    this.updateState({startGameDisabled: true});
 
     let thisObj = this;
     let gameEmails = {
@@ -105,10 +104,12 @@ class Home extends Component {
     }
     
     gameService.put(gameEmails).then(response => {
+      thisObj.updateState({startGameDisabled: false});
       thisObj.redirectToGame(response.data);
-     })
-       .catch(error => thisObj.parseError(error));
-       
+    }).catch(error => {
+      thisObj.parseError(error);
+      thisObj.updateState({startGameDisabled: false}); 
+    });
   };
 
  
@@ -177,24 +178,38 @@ class Home extends Component {
   }
 
   finishGame(game, idx) {
+    if (this.state.finishGameDisabled) {
+      return;
+    }
+    this.updateState({finishGameDisabled: true});
     let thisObj = this;
     let activeGames = [...this.state.activeGames];
     activeGames.splice(idx, 1);
 
     gameService.finish(game.id)
-      .then(response => thisObj.updateState({ activeGames: activeGames, snackOpen: true, snackMessage: "Game Finished", snackType: "success"  }))
-      .catch(error => thisObj.parseError(error));
+      .then(response => thisObj.updateState({ finishGameDisabled: false, activeGames: activeGames, snackOpen: true, snackMessage: "Game Finished", snackType: "success"  }))
+      .catch(error => { 
+        thisObj.parseError(error); 
+        thisObj.updateState({ finishGameDisabled: false });  
+      });
     this.handleCloseDeleteGameModal();
   }
 
   deleteGame() {
+    if (this.state.deleteGameDisabled) {
+      return;
+    }
+    this.updateState({deleteGameDisabled: true});
     let thisObj = this;
     let activeGames = [...this.state.activeGames];
     activeGames.splice(this.state.modalDeleteGameIdx, 1);
 
     gameService.delete(this.state.modalDelteGameObject.id)
-      .then(response => thisObj.updateState({ activeGames: activeGames, snackOpen: true, snackMessage: "Game Deleted", snackType: "warning"  }))
-      .catch(error => thisObj.parseError(error));
+      .then(response => thisObj.updateState({ deleteGameDisabled: false, activeGames: activeGames, snackOpen: true, snackMessage: "Game Deleted", snackType: "warning"  }))
+      .catch(error => {
+        thisObj.parseError(error); 
+        thisObj.updateState({ deleteGameDisabled: false });  
+      });
     this.handleCloseDeleteGameModal();
   }
 
@@ -248,26 +263,26 @@ class Home extends Component {
                     </thead>
                     <tbody>
 
-                    <Modal isOpen={this.state.modalDeleteGame}>
-                                <ModalHeader closeButton>
-                                  You are about to Delete a game
-                                </ModalHeader>
-                               
-                                <ModalBody>Are you sure you want to delete 
-                                { !! this.state.modalDelteGameObject ?
-                                  <b>&nbsp;{this.state.modalDelteGameObject.name}&nbsp;</b>  : null }
-                                
-                                  game? It is an active game</ModalBody> 
-                                 
-                                <ModalFooter>
-                                <Button color="secondary" onClick={this.handleCloseDeleteGameModal.bind(this)}>
-                                    No
-                                  </Button>
-                                   <Button color="primary" onClick={this.deleteGame.bind(this)}>
-                                  Yes
-                                   </Button>
-                                </ModalFooter>
-                              </Modal>
+                      <Modal isOpen={this.state.modalDeleteGame}>
+                        <ModalHeader closeButton>
+                          You are about to Delete a game
+                        </ModalHeader>
+                        
+                        <ModalBody>Are you sure you want to delete 
+                        { !! this.state.modalDelteGameObject ?
+                          <b>&nbsp;{this.state.modalDelteGameObject.name}&nbsp;</b>  : null }
+                        
+                          game? It is an active game</ModalBody> 
+                          
+                        <ModalFooter>
+                        <Button color="secondary" onClick={this.handleCloseDeleteGameModal.bind(this)}>
+                            No
+                          </Button>
+                            <Button color="primary" onClick={this.deleteGame.bind(this)}>
+                          Yes
+                            </Button>
+                        </ModalFooter>
+                      </Modal>
                       {this.state.activeGames.map((game, idx) => 
                         <tr>
                           <td align="left">{game.name}</td>
@@ -329,13 +344,14 @@ class Home extends Component {
                                 type="input"
                                 name="currentEmail"
                                 placeholder="Email"
-                                autoComplete="Email"
+                                autoComplete="off"
                                 onChange={this.handleChange}
                                 value={this.state.currentEmail}
                                 required
                               /></td>
                             <td>
-                            <a type="button" color="danger" onClick={this.addPlayer}><img src={AddIcon} width="20px" height="20px"/></a>
+                              <Button type="submit" color="link"><img src={AddIcon} width="20px" height="20px"/></Button>
+                            {/* <button type="submit" color="danger"><img src={AddIcon} width="20px" height="20px"/></button> */}
                             </td>
                             </tr>
                             </tbody>
@@ -401,7 +417,7 @@ class Home extends Component {
                                     No
                                   </Button>
                                    <Button color="primary" onClick={this.startGameWithEmails.bind(this)}>
-                                  Yes
+                                    Yes
                                    </Button>
                                 </ModalFooter>
                               </Modal>

@@ -97,6 +97,11 @@ class Game extends Component {
   }
 
   handleSubmit = event => {
+    if (this.state.submitDisabled) {
+      return;
+    }
+    this.updateState({submitDisabled: true});
+
     let thisObj = this;
     event.preventDefault();
     
@@ -108,9 +113,13 @@ class Game extends Component {
     }
     
     answerService.submitAnswer(answer).then(response => {
-      thisObj.setState({ waiting: true, answeredQuestion: { answer: thisObj.state.answer, question: thisObj.state.question }, 
+      thisObj.setState({ submitDisabled: false, waiting: true, answeredQuestion: { answer: thisObj.state.answer, question: thisObj.state.question }, 
         question: null, answer: "", leaderboard: null,  snackOpen: true, snackMessage: "Answer submitted successfully", snackType: "success" });
-    }).catch(error => thisObj.parseError(error));
+        window.scrollTo(0, 0);
+    }).catch(error => {
+      thisObj.parseError(error);
+      thisObj.updateState({submitDisabled: false});
+    });
   }
 
   parseError(error) {
@@ -164,7 +173,7 @@ class Game extends Component {
                               type="input"
                               name="answer"
                               placeholder="answer"
-                              autoComplete="answer"
+                              autoComplete="off"
                               value={this.state.answer}
                               onChange={this.handleChange}
                               autoFocus

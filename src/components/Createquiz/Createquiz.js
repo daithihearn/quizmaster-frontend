@@ -236,7 +236,7 @@ class Createquiz extends Component {
                                 type="input"
                                 name="newRoundName"
                                 placeholder="Round Name"
-                                autoComplete="Round Name"
+                                autoComplete="off"
                                 value={this.state.newRoundName}
                                 onChange={this.handleChange}
                                 required
@@ -249,7 +249,7 @@ class Createquiz extends Component {
                               type="input"
                               name="newQuestion"
                               placeholder="Question"
-                              autoComplete="Question"
+                              autoComplete="off"
                               value={this.state.newQuestion}
                               onChange={this.handleChange}
                               required
@@ -265,7 +265,7 @@ class Createquiz extends Component {
                              type="input"
                              name="newImage"
                              placeholder="Image URL"
-                             autoComplete="Image"
+                             autoComplete="off"
                              value={this.state.newImage.imagePreviewUrl}
                              onChange={this.handleChangeImageUrl}
                            />
@@ -296,7 +296,7 @@ class Createquiz extends Component {
                               type="input"
                               name="newMedia"
                               placeholder="Media link"
-                              autoComplete="Media link"
+                              autoComplete="off"
                               value={this.state.newMedia}
                               onChange={this.handleChange}
                             />
@@ -308,7 +308,7 @@ class Createquiz extends Component {
                               type="input"
                               name="newAnswer"
                               placeholder="Answer"
-                              autoComplete="Answer"
+                              autoComplete="off"
                               value={this.state.newAnswer}
                               onChange={this.handleChange}
                               required
@@ -322,7 +322,7 @@ class Createquiz extends Component {
                               pattern="[0-9]*"
                               name="newPoints"
                               placeholder="Points"
-                              autoComplete="Points"
+                              autoComplete="off"
                               value={this.state.newPoints}
                               onChange={this.handleChange}
                               required
@@ -441,7 +441,7 @@ class Createquiz extends Component {
                         type="input"
                         name="quizName"
                         placeholder="Quiz Name"
-                        autoComplete="Quiz Name"
+                        autoComplete="off"
                         value={this.state.quizName}
                         onChange={this.handleChange}
                         required
