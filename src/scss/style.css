@@ -12393,6 +12393,11 @@ html body .app.flex-row.align-items-center {
   .navigation_Tab {
     display: none; } }
 
+@media (min-width: 576px) {
+  .modal-dialog2 {
+    max-width: 1000px;
+    margin: 1.75rem auto; } }
+
 .footer {
   background-color: black;
   width: auto;
@@ -12472,3 +12477,13 @@ html body .app.flex-row.align-items-center {
   .content_employer {
     position: absolute;
     overflow: unset; } }
+
+.highlightRow {
+  background: LightSteelBlue;
+  color: white; }
+
+.completedRow {
+  background: dimgray; }
+
+.completedRow:hover {
+  background: dimgray; }

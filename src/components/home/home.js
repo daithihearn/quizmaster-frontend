@@ -5,7 +5,7 @@ import gameService from '../../services/GameService';
 import RemoveImage from '../../assets/icons/remove.png';
 import AddIcon from '../../assets/icons/add.svg';
 
-import { Modal, ModalBody, ModalHeader, ModalFooter, Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
+import { Modal, ModalBody, ModalHeader, ModalFooter, Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 
@@ -27,7 +27,8 @@ class Home extends Component {
       modalStartGame:false,
       modalDeleteGame:false,
       modalDeleteGameIdx: 0,
-      modalDelteGameObject: {}
+      modalDelteGameObject: {},
+      emailMessage: ""
     };
     
     sessionUtils.checkLoggedIn();
@@ -100,7 +101,8 @@ class Home extends Component {
     let gameEmails = {
       playerEmails: this.state.emails,
       quizId: this.state.quizSelected.id,
-      name: this.state.quizSelected.name
+      name: this.state.quizSelected.name,
+      emailMessage: this.state.emailMessage
     }
     
     gameService.put(gameEmails).then(response => {
@@ -403,6 +405,19 @@ class Home extends Component {
                       </tbody>
                     </Table>
                     {!!this.state.emails && this.state.emails.length >0?
+                          <div>
+                            <FormGroup>
+                              <Label for="exampleText">Message</Label>
+                              <Input type="textarea" 
+                                className="emailMessage"
+                                id="emailMessage"
+                                name="emailMessage"
+                                placeholder="Enter a message to appear in the email invite. Include web conference details here if you have them."
+                                autoComplete="off"
+                                onChange={this.handleChange}
+                                value={this.state.emailMessage}
+                                required />
+                            </FormGroup>
                             <ButtonGroup>
                               <Button color="primary" type="button" onClick={this.showStartGameModal.bind(this)}>
                                 Start Game 
@@ -422,6 +437,7 @@ class Home extends Component {
                                 </ModalFooter>
                               </Modal>
                             </ButtonGroup>
+                          </div>
                             : null
                           }
                   </CardBody>

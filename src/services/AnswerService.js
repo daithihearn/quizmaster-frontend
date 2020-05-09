@@ -15,6 +15,22 @@ exports.submitAnswer = (answer) => {
   }
 };
 
+exports.getAllAnswers = () => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader
+      }
+    };
+    const result = axios
+      .get(`${process.env.REACT_APP_API_URL}/api/v1/answer/all`, config)
+    return result;
+  }
+};
+
+
 exports.submitCorrection = (answer) => {
   let authHeader = sessionStorage.getItem('JWT-TOKEN');
 

@@ -153,24 +153,6 @@ class Scoring extends Component {
     this.parseScreenContent(publishContent);
 
   }
-
-  markColorRound(roundIdRow, isFont){
-    
-    //console.log("round selected: " + this.state.roundId);
-    //console.log("round row: " + roundIdRow);
-    if(!!this.state.roundId){
-      if(this.state.roundId == roundIdRow){
-       // console.log("mark round");
-        if (!isFont){
-        return 'LightSteelBlue'; //'rgba(0,0,0,.18)';  
-        // 'AliceBlue'; //'# 43a047'; //'darkseagreen'; //'rgba(0,0,0,.18)';
-        }else{
-          return 'white';
-        }
-      }
-    } 
-    return '';
-  }
   
   parseScreenContent(content) {
     if (!content) {
@@ -264,7 +246,9 @@ class Scoring extends Component {
     this.setState ({roundId: roundId});
 
     gameService.publishQuestion(payload).then(response => {
-      thisObj.updateState({ snackOpen: true, snackMessage: "Question published", snackType: "success", answeredCurrentQuestion: [] });
+      let game = thisObj.state.game;
+      game.publishedQuestions.push(questionId);
+      thisObj.updateState({ snackOpen: true, game: game, snackMessage: "Question published", snackType: "success", answeredCurrentQuestion: [] });
     }).catch(error => thisObj.parseError(error));
   }
 
@@ -349,7 +333,7 @@ class Scoring extends Component {
                         <UncontrolledCollapse toggler={"#toggler_" + idx}>
                           
                           <CardBody>
-                            <Table size="sm"  bordered hover responsive>
+                            <Table size="sm" responsive>
                               <thead>
                                 <tr>
                                   <th>Question</th>
@@ -361,7 +345,7 @@ class Scoring extends Component {
                               <tbody>
                             
                                 {round.questions.map((question) => (
-                                  <tr>
+                                  <tr class={(this.state.game.publishedQuestions.includes(question.id))? 'completedRow': ''}>
                                       <td align="left">{question.question}</td>
                                       <td>
                                       {!!question.imageUri ?
@@ -537,15 +521,14 @@ class Scoring extends Component {
                       </thead>
                       <tbody>
                           {this.state.quiz.rounds.map((round) => 
-                            <tr  style={{background: this.markColorRound(round.id, false), color: this.markColorRound( round.id,true)}}>
-                             
-                              <td   align="left">Round: {round.name}</td>
-                              <td><Button type="button" color="warning" onClick={this.publishLeaderboardForRound.bind(this, round)}>
-                                  Publish Round Leaderboard
+                            <tr class={(this.state.roundId == round.id)? 'highlightRow': ''}>
+                                <td align="left">Round: {round.name}</td>
+                                <td><Button type="button" color="warning" onClick={this.publishLeaderboardForRound.bind(this, round)}>
+                                    Publish Round Leaderboard
+                                </Button></td>
+                                <td><Button type="button" color="danger" onClick={this.publishAnswersForRound.bind(this, round)}>
+                                    Publish Answers
                               </Button></td>
-                              <td><Button type="button" color="danger" onClick={this.publishAnswersForRound.bind(this, round)}>
-                                  Publish Answers
-                            </Button></td>
                             </tr>
                           )}
 

@@ -13,7 +13,7 @@ import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarCont
 class Game extends Component {
   constructor(props) {
     super(props);
-    this.state = { waiting: true, answeredQuestion: {}, question: null, answer: "", leaderboard: null, roundSummary: null, snackOpen: false, snackMessage: "", snackType: "" };
+    this.state = { waiting: true, answers: [], question: null, answer: "", leaderboard: null, roundSummary: null, snackOpen: false, snackMessage: "", snackType: "" };
     sessionUtils.checkLoggedIn();
 
     createTheme('solarized', {
@@ -39,6 +39,7 @@ class Game extends Component {
     });
 
     this.getCurrentContent();
+    this.getAnswers();
 
     this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -62,6 +63,13 @@ class Game extends Component {
     }).catch(error => thisObj.parseError(error));
   }
 
+  getAnswers() {
+    let thisObj = this;
+    answerService.getAllAnswers().then(response => {
+      thisObj.updateState({answers: response.data})
+    }).catch(error => thisObj.parseError(error));
+  }
+
   handleWebsocketMessage(payload) {
 
     let publishContent = JSON.parse(payload.payload);
@@ -76,7 +84,9 @@ class Game extends Component {
 
     switch (content.type) {
       case("QUESTION"):
-        this.updateState({waiting: false, question: content.content, answer: "", leaderboard: null, roundSummary: null});
+        if (!this.state.answers.filter(answer => answer.questionId === content.content.questionId).length > 0) {
+          this.updateState({waiting: false, question: content.content, answer: "", leaderboard: null, roundSummary: null});
+        }
         break;
       case("LEADERBOARD"): 
         this.updateState({waiting: false, question: null, answer: "", leaderboard: content.content, roundSummary: null});
@@ -113,7 +123,8 @@ class Game extends Component {
     }
     
     answerService.submitAnswer(answer).then(response => {
-      thisObj.setState({ submitDisabled: false, waiting: true, answeredQuestion: { answer: thisObj.state.answer, question: thisObj.state.question }, 
+      let answeredQuestions = thisObj.state.answers.push(answer);
+      thisObj.setState({ submitDisabled: false, waiting: true, answeredQuestion: answeredQuestions, 
         question: null, answer: "", leaderboard: null,  snackOpen: true, snackMessage: "Answer submitted successfully", snackType: "success" });
         window.scrollTo(0, 0);
     }).catch(error => {
