@@ -11,6 +11,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 
 class Game extends Component {
+
   constructor(props) {
     super(props);
     this.state = { waiting: true, answers: [], question: null, answer: "", leaderboard: null, roundSummary: null, snackOpen: false, snackMessage: "", snackType: "" };
@@ -46,6 +47,15 @@ class Game extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
   }
+
+
+  componentDidUpdate(nextState){
+    if(this.state.answer==""){
+     console.log("testing componentDidUpdate")
+     this.scropToTop();
+    }
+  }
+
 
   handleClose() {
     this.updateState({ snackOpen: false });
@@ -98,12 +108,17 @@ class Game extends Component {
       default:
         this.parseError({message: "Unsupported content type"})
     }
+   
   }
 
   handleChange(event) {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
     this.updateState(updateObj);
+  }
+
+  scropToTop(){
+    window.scrollTo(0, 0);
   }
 
   handleSubmit = event => {
@@ -122,11 +137,13 @@ class Game extends Component {
       answer: this.state.answer
     }
     
+   
+
     answerService.submitAnswer(answer).then(response => {
       let answeredQuestions = thisObj.state.answers.push(answer);
       thisObj.setState({ submitDisabled: false, waiting: true, answeredQuestion: answeredQuestions, 
         question: null, answer: "", leaderboard: null,  snackOpen: true, snackMessage: "Answer submitted successfully", snackType: "success" });
-        window.scrollTo(0, 0);
+        this.scropToTop();
     }).catch(error => {
       thisObj.parseError(error);
       thisObj.updateState({submitDisabled: false});

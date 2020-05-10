@@ -380,7 +380,11 @@ class Scoring extends Component {
 
             {!!this.state.answeredCurrentQuestion && !!this.state.game ?
                       
-              <Progress striped={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) < 1} color={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) < 1 ?"info":"success"} value={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) * 100}>Current Question Progress</Progress>
+              <Progress striped={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) < 1} 
+              color={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) < 1 ?"info":"success"} 
+              value={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) * 100}>
+                Current Question Progress
+              </Progress>
                       
             : null}
             
