@@ -27,7 +27,7 @@ class Home extends Component {
       modalStartGame:false,
       modalDeleteGame:false,
       modalDeleteGameIdx: 0,
-      modalDelteGameObject: {},
+      modalDeleteGameObject: {},
       emailMessage: ""
     };
     
@@ -56,7 +56,7 @@ class Home extends Component {
     this.setState({ modalDeleteGame: false });
   }
   showDeleteGameModal(game, idx) {
-    this.setState({ modalDeleteGame: true , modalDeleteGameIdx: idx, modalDelteGameObject: game});
+    this.setState({ modalDeleteGame: true , modalDeleteGameIdx: idx, modalDeleteGameObject: game});
    // console.log(JSON.stringify(this.state.modalDeleteGameIdx));
    
   }
@@ -206,7 +206,7 @@ class Home extends Component {
     let activeGames = [...this.state.activeGames];
     activeGames.splice(this.state.modalDeleteGameIdx, 1);
 
-    gameService.delete(this.state.modalDelteGameObject.id)
+    gameService.delete(this.state.modalDeleteGameObject.id)
       .then(response => thisObj.updateState({ deleteGameDisabled: false, activeGames: activeGames, snackOpen: true, snackMessage: "Game Deleted", snackType: "warning"  }))
       .catch(error => {
         thisObj.parseError(error); 
@@ -271,8 +271,8 @@ class Home extends Component {
                         </ModalHeader>
                         
                         <ModalBody>Are you sure you want to delete 
-                        { !! this.state.modalDelteGameObject ?
-                          <b>&nbsp;{this.state.modalDelteGameObject.name}&nbsp;</b>  : null }
+                        { !! this.state.modalDeleteGameObject ?
+                          <b>&nbsp;{this.state.modalDeleteGameObject.name}&nbsp;</b>  : null }
                         
                           game? It is an active game</ModalBody> 
                           
