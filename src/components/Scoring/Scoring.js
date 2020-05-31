@@ -124,7 +124,6 @@ class Scoring extends Component {
     answerService.getLeaderboard(this.state.game.id).then(response => {
       thisObj.updateState( { leaderboard: response.data });
     }).catch(error => thisObj.parseError(error));
-    console.log("leader board object:  " + JSON.stringify (this.state.leaderboard))
 
   }
 
@@ -139,8 +138,6 @@ class Scoring extends Component {
 
   openEditScoreModal(playerId) {
     let thisObj = this;
-
-    console.log("player id: " + playerId);
 
     answerService.getAnswers(this.state.game.id, null, playerId).then(response => {
       thisObj.updateState( { selectedPlayersAnswers: response.data, modal: true });
@@ -170,11 +167,10 @@ class Scoring extends Component {
         }
     
         newState.answers.push(content.content);
-        newState.answeredCurrentQuestion.push(content.content.answer.playerId);
     
         this.replaceState(newState);
         break;
-      case("AUTO_ANSWERED"): 
+      case("ANSWERED"): 
            
         newState.answeredCurrentQuestion.push(content.content);
         this.replaceState(newState);
@@ -349,7 +345,7 @@ class Scoring extends Component {
                                       <td align="left">{question.question}</td>
                                       <td>
                                       {!!question.imageUri ?
-                                        <img src={question.imageUri} class="thumbnail_size"/>
+                                        <img alt="Image" src={question.imageUri} class="thumbnail_size"/>
                                       : null}
                                       </td>
                                       <td>{question.answer}</td>
@@ -442,7 +438,7 @@ class Scoring extends Component {
                                           required
                                         />
                                     </FormGroup>
-                                    { idx == 0 ?
+                                    { idx === 0 ?
                                     <Button color="primary" type="submit">
                                       Submit
                                     </Button> 
@@ -525,7 +521,7 @@ class Scoring extends Component {
                       </thead>
                       <tbody>
                           {this.state.quiz.rounds.map((round) => 
-                            <tr class={(this.state.roundId == round.id)? 'highlightRow': ''}>
+                            <tr class={(this.state.roundId === round.id)? 'highlightRow': ''}>
                                 <td align="left">Round: {round.name}</td>
                                 <td><Button type="button" color="warning" onClick={this.publishLeaderboardForRound.bind(this, round)}>
                                     Publish Round Leaderboard
@@ -583,8 +579,8 @@ class Scoring extends Component {
                               <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.displayName)}> {entry.displayName}</Button>
                             </td>
                             {/* <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, entry.id)}>Remove</Button></td> */}
-                            <td><a class="remove_link" color="link" onClick={this.showDeletePlayerModal.bind(this, entry)} > 
-                            <img src={RemoveImage} width="20px" height="20px"/></a></td>
+                            <td><Button class="remove_link" color="link" onClick={this.showDeletePlayerModal.bind(this, entry)} >
+                            <img src={RemoveImage} width="20px" height="20px"/></Button></td>
                           </tr>
                         ))}
                       </tbody>
@@ -625,7 +621,7 @@ class Scoring extends Component {
                                 required
                               /></td>
                             <td>
-                            <a type="button" color="danger" onClick={this.addPlayer}><img src={AddIcon} width="20px" height="20px"/></a>
+                            <Button type="button" color="danger" onClick={this.addPlayer}><img src={AddIcon} width="20px" height="20px"/></Button>
                             </td>
                             </tr>
                             </tbody>

@@ -57,8 +57,6 @@ class Home extends Component {
   }
   showDeleteGameModal(game, idx) {
     this.setState({ modalDeleteGame: true , modalDeleteGameIdx: idx, modalDeleteGameObject: game});
-   // console.log(JSON.stringify(this.state.modalDeleteGameIdx));
-   
   }
 
   handleClose() {
@@ -138,7 +136,7 @@ class Home extends Component {
     
    // console.log("quiz selected: " + name);
     if(!!this.state.quizSelected){
-      if(this.state.quizSelected.name == name){
+      if(this.state.quizSelected.name === name){
        // console.log("mark quiz");
         if (!isFont){
         return  'LightSteelBlue';  
@@ -289,8 +287,8 @@ class Home extends Component {
                         <tr>
                           <td align="left">{game.name}</td>
                           <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
-                          <td><a type="button" color="danger" onClick={this.showDeleteGameModal.bind(this, game, idx)}>
-                            <img src={RemoveImage} width="20px" height="20px"/></a>                  
+                          <td><Button type="button" color="danger" onClick={this.showDeleteGameModal.bind(this, game, idx)}>
+                            <img src={RemoveImage} width="20px" height="20px"/></Button>                  
                             </td>
                           <td><Button type="button" color="link" onClick={this.redirectToGame.bind(this, game)}>Open</Button></td>
                         </tr>
@@ -352,7 +350,7 @@ class Home extends Component {
                                 required
                               /></td>
                             <td>
-                              <Button type="submit" color="link"><img src={AddIcon} width="20px" height="20px"/></Button>
+                              <Button type="submit" color="link"><img alt="Add" src={AddIcon} width="20px" height="20px"/></Button>
                             {/* <button type="submit" color="danger"><img src={AddIcon} width="20px" height="20px"/></button> */}
                             </td>
                             </tr>
@@ -398,8 +396,8 @@ class Home extends Component {
                       {this.state.emails.map((email, idx) =>
                         <tr>
                           <td align="left">{email}</td>
-                          <td><a class="remove_link" color="link" onClick={this.removePlayer.bind(this, idx)} > 
-                          <img src={RemoveImage} width="20px" height="20px"/></a></td>
+                          <td><Button class="remove_link" color="link" onClick={this.removePlayer.bind(this, idx)} > 
+                          <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button></td>
                         </tr>
                       )}
                       </tbody>

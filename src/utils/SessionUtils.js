@@ -21,7 +21,6 @@ exports.checkLoggedIn = () => {
       //console.log(`Is user logged in?  ${response.data}`);
     })
     .catch(function(error) {
-      console.log(error);
       window.location.href = '/#/login';
     });
 };

@@ -40,7 +40,6 @@ class Login extends Component {
         sessionStorage.setItem('JWT-TOKEN', response.headers.authorization);
         thisObj.redirectToHomePage();
       }).catch(function (error) {
-        console.log(error);
         thisObj.setState(Object.assign(thisObj.state, { _error: thisObj.parseError(error) }));
       });
   };
@@ -60,7 +59,6 @@ class Login extends Component {
       }
     })
     .catch(function(error) {
-      console.log(error);
       window.location.href = '/#/login';
     });
   }

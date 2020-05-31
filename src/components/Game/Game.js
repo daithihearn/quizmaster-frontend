@@ -5,7 +5,7 @@ import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
 import PlayImage from '../../assets/icons/play.png';
-import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
+import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table, Progress } from 'reactstrap';
 import ReactPlayer from 'react-player'
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
@@ -14,7 +14,12 @@ class Game extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { waiting: true, answers: [], question: null, answer: "", leaderboard: null, roundSummary: null, snackOpen: false, snackMessage: "", snackType: "" };
+    this.state = { waiting: true, answers: [], 
+      question: null, answer: "", leaderboard: null, 
+      roundSummary: null, snackOpen: false,
+      snackMessage: "", snackType: "",
+      answeredCurrentQuestion: []};
+    
     sessionUtils.checkLoggedIn();
 
     createTheme('solarized', {
@@ -41,6 +46,7 @@ class Game extends Component {
 
     this.getCurrentContent();
     this.getAnswers();
+    this.getPlayers();
 
     this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -51,7 +57,6 @@ class Game extends Component {
 
   componentDidUpdate(nextState){
     if(this.state.answer==""){
-     console.log("testing componentDidUpdate")
      this.scropToTop();
     }
   }
@@ -80,6 +85,13 @@ class Game extends Component {
     }).catch(error => thisObj.parseError(error));
   }
 
+  getPlayers() {
+    let thisObj = this;
+    gameService.getPlayers().then(response => {
+      thisObj.updateState({players: response.data})
+    }).catch(error => thisObj.parseError(error));
+  }
+
   handleWebsocketMessage(payload) {
 
     let publishContent = JSON.parse(payload.payload);
@@ -95,14 +107,19 @@ class Game extends Component {
     switch (content.type) {
       case("QUESTION"):
         if (!this.state.answers.filter(answer => answer.questionId === content.content.questionId).length > 0) {
-          this.updateState({waiting: false, question: content.content, answer: "", leaderboard: null, roundSummary: null});
+          this.updateState({waiting: false, question: content.content, answer: "", leaderboard: null, roundSummary: null, answeredCurrentQuestion: []});
         }
         break;
       case("LEADERBOARD"): 
-        this.updateState({waiting: false, question: null, answer: "", leaderboard: content.content, roundSummary: null});
+        this.updateState({waiting: false, question: null, answer: "", leaderboard: content.content, roundSummary: null, answeredCurrentQuestion: []});
         break;
       case("ROUND_SUMMARY"):
-        this.updateState({waiting: false, question: null, answer: "", leaderboard: null , roundSummary: content.content});
+        this.updateState({waiting: false, question: null, answer: "", leaderboard: null , roundSummary: content.content, answeredCurrentQuestion: []});
+        break;
+      case("ANSWERED"):
+        let newState = this.state;
+        newState.answeredCurrentQuestion.push(content.content);
+        this.setState(newState);
         break;
       case("GAME_SUMMARY"):
       default:
@@ -177,6 +194,16 @@ class Game extends Component {
       <div className="app">
          <div className="game_wrap">
           <div className="game_container">
+
+          {!!this.state.question && !!this.state.players && !!this.state.answeredCurrentQuestion ?
+                      
+            <Progress striped={(this.state.answeredCurrentQuestion.length / this.state.players.length) < 1} 
+            color={(this.state.answeredCurrentQuestion.length / this.state.players.length) < 1 ?"info":"success"} 
+            value={(this.state.answeredCurrentQuestion.length / this.state.players.length) * 100}>
+              Current Question Progress
+            </Progress>
+                              
+          : null}
 
             {!!this.state.waiting ? 
 
