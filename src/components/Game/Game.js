@@ -251,10 +251,17 @@ class Game extends Component {
                           </FormGroup>
                           : null}
 
-                          {!!this.state.question.mediaUri ?
+                          {!!this.state.question.audioUri ?
                           <FormGroup>
                             <br></br>
-                            <ReactPlayer url={this.state.question.mediaUri} playing light controls playIcon={<img alt="Play" src={PlayImage} class="diplay_image_size" />} />
+                            <ReactPlayer url={this.state.question.audioUri} playing light controls playIcon={<img alt="Play" src={PlayImage} class="diplay_image_size" />} />
+                          </FormGroup>
+                          : null}
+
+                          {!!this.state.question.videoUri ?
+                          <FormGroup>
+                            <br></br>
+                            <ReactPlayer url={this.state.question.videoUri} playing light controls playIcon={<img alt="Play" src={PlayImage} class="diplay_image_size" />} />
                           </FormGroup>
                           : null}
 

@@ -621,7 +621,7 @@ class Scoring extends Component {
                                 required
                               /></td>
                             <td>
-                            <Button type="button" color="danger" onClick={this.addPlayer}><img alt="Add" src={AddIcon} width="20px" height="20px"/></Button>
+                            <Button type="button" color="link" onClick={this.addPlayer}><img alt="Add" src={AddIcon} width="20px" height="20px"/></Button>
                             </td>
                             </tr>
                             </tbody>

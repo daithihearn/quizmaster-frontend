@@ -75,3 +75,33 @@ exports.uploadImage = (media) => {
     return result;
   }
 };
+
+exports.uploadAudio = (media) => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader
+      }
+    };
+    const result = axios
+      .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/uploadAudio`, { data: media }, config)
+    return result;
+  }
+};
+
+exports.uploadVideo = (media) => {
+  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+
+  if (authHeader) {
+    let config = {
+      headers: {
+        Authorization: authHeader
+      }
+    };
+    const result = axios
+      .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/uploadVideo`, { data: media }, config)
+    return result;
+  }
+};

@@ -7,6 +7,29 @@ import uuid from 'uuid-random';
 import RemoveImage from '../../assets/icons/remove.png';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
+import BlockUi from 'react-block-ui';
+import 'react-block-ui/style.css';
+
+function parseError(error) {
+  let errorMessage = 'Undefined error';
+  if (
+    error.response !== undefined &&
+    error.response.data !== undefined &&
+    error.response.data.message !== undefined &&
+    error.response.data.message !== ''
+  ) {
+    errorMessage = error.response.data.message;
+  } else if (
+    error.response !== undefined &&
+    error.response.statusText !== undefined &&
+    error.response.statusText !== ''
+  ) {
+    errorMessage = error.response.statusText;
+  } else if (error.message !== undefined) {
+    errorMessage = error.message;
+  }
+  return { snackOpen: true, snackMessage: errorMessage, snackType: "error" };
+}
 
 class Createquiz extends Component {
 
@@ -25,8 +48,9 @@ class Createquiz extends Component {
         quizName:'',
         newRoundName:'',
         isQuizCreated: false,
-        isImageUrl: true,
-        newImage: {file:null, imagePreviewUrl:''},
+        newImage: {file: null, imagePreviewUrl:''},
+        newAudio: {file: null},
+        newVideo: {file: null},
         snackOpen: false, snackMessage: "", snackType: ""
       }
       localStorage.setItem("createQuizState", JSON.stringify(this.state));
@@ -37,7 +61,8 @@ class Createquiz extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleChangeCheckbox = this.handleChangeCheckbox.bind(this);
     this.handleChangeImage = this.handleChangeImage.bind(this);
-    this.handleChangeImageUrl = this.handleChangeImageUrl.bind(this);
+    this.handleChangeAudio = this.handleChangeAudio.bind(this);
+    this.handleChangeVideo = this.handleChangeVideo.bind(this);
     this.addQuestion = this.addQuestion.bind(this);
     this.addRound = this.addRound.bind(this);
     this.clearQuiz = this.clearQuiz.bind(this);
@@ -65,33 +90,10 @@ class Createquiz extends Component {
     this.updateState({ isQuizCreated: newValue}); 
   }
 
-  changeToLoadImage = event => {
-    event.preventDefault();
-    this.setState(prevState => ({ isImageUrl: !prevState.isImageUrl, newImage: {
-      file: null,
-      imagePreviewUrl: ''
-    }}));
-  }
-
   handleChange(event) {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
     this.updateState(updateObj);
-  }
-
-  handleChangeImageUrl(event) {
-    let thisObj = this;
-    let file = null;
-    let urli = event.target.value;
-
-    quizService.uploadImage(urli).then(response => {
-      thisObj.updateState({ newImage: {
-        file: file,
-        imagePreviewUrl: response.data
-      }});
-    }
-    ).catch(error => thisObj.parseError(error));
-
   }
 
   handleChangeCheckbox(event) {
@@ -110,17 +112,77 @@ class Createquiz extends Component {
     reader.onloadend = () => {
 
       quizService.uploadImage(reader.result).then(response => {
-        thisObj.updateState({ newImage: {
-          file: file,
-          imagePreviewUrl: response.data
-        }});
+        thisObj.updateState({ 
+          newImage: {
+            file: file,
+            imagePreviewUrl: response.data
+          }, 
+          blockingImage: false});
       }
-      ).catch(error => thisObj.parseError(error));
+      ).catch(error => { 
+        let state = thisObj.state;
+        Object.assign(state, parseError(error));
+        Object.assign(state, {blockingImage: false});
+        thisObj.setState(state);
+      });
 
-      this.updateState({ newImage: {
-        file: file,
-        imagePreviewUrl: reader.result
-      }});
+      thisObj.updateState({ blockingImage: true });
+    }
+
+    reader.readAsDataURL(file);
+  }
+
+  handleChangeAudio(event) {
+    let thisObj = this;
+    let file = event.target.files[0]
+    
+    let reader = new FileReader();
+
+    reader.onloadend = () => {
+
+      quizService.uploadAudio(reader.result).then(response => {
+        thisObj.updateState({ newAudio: {
+          file: file,
+          uri: response.data
+        },
+        blockingAudio: false});
+      }
+      ).catch(error => { 
+        let state = thisObj.state;
+        Object.assign(state, parseError(error));
+        Object.assign(state, {blockingAudio: false});
+        thisObj.setState(state);
+      });
+
+      thisObj.updateState({ blockingAudio: true});
+    }
+
+    reader.readAsDataURL(file);
+  }
+
+  handleChangeVideo(event) {
+    let thisObj = this;
+    let file = event.target.files[0]
+    
+    let reader = new FileReader();
+
+    reader.onloadend = () => {
+
+      quizService.uploadVideo(reader.result).then(response => {
+        thisObj.updateState({ newVideo: {
+          file: file,
+          uri: response.data
+        },
+        blockingVideo: false});
+      }
+      ).catch(error => { 
+        let state = thisObj.state;
+        Object.assign(state, parseError(error));
+        Object.assign(state, {blockingVideo: false});
+        thisObj.setState(state);
+      });
+
+      thisObj.updateState({ blockingVideo: true});
     }
 
     reader.readAsDataURL(file);
@@ -137,12 +199,13 @@ class Createquiz extends Component {
     updatedQuestions.push({ question: this.state.newQuestion, 
       answer: this.state.newAnswer, 
       imageUri: this.state.newImage.imagePreviewUrl,
-      mediaUri: this.state.newMedia,
+      audioUri: this.state.newAudio.uri,
+      videoUri: this.state.newVideo.uri,
       forceManualCorrection: this.state.newForceManualCorrection,
       points: this.state.newPoints,
       id: uuid() });
 
-    this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false, 
+    this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newAudio: {}, newVideo: {}, newPoints: 1, newForceManualCorrection: false, 
         snackOpen: true, snackMessage: "Question Added", snackType: "success" });
     event.currentTarget.reset();
   }
@@ -157,7 +220,7 @@ class Createquiz extends Component {
     let updatedRounds = this.state.rounds;
     updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: uuid() });
 
-    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newMedia: '', newPoints: 1, newForceManualCorrection: false, newRoundName: '', 
+    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newAudio: {}, newVideo: {}, newPoints: 1, newForceManualCorrection: false, newRoundName: '', 
         snackOpen: true, snackMessage: "Round Added", snackType: "success"});
   }
 
@@ -179,29 +242,8 @@ class Createquiz extends Component {
         pathname: '/home'
       });
     }
-    ).catch(error => thisObj.parseError(error));
+    ).catch(error => thisObj.updateState(parseError(error)));
   };
-
-  parseError(error) {
-    let errorMessage = 'Undefined error';
-    if (
-      error.response !== undefined &&
-      error.response.data !== undefined &&
-      error.response.data.message !== undefined &&
-      error.response.data.message !== ''
-    ) {
-      errorMessage = error.response.data.message;
-    } else if (
-      error.response !== undefined &&
-      error.response.statusText !== undefined &&
-      error.response.statusText !== ''
-    ) {
-      errorMessage = error.response.statusText;
-    } else if (error.message !== undefined) {
-      errorMessage = error.message;
-    }
-    this.updateState({ snackOpen: true, snackMessage: errorMessage, snackType: "error" });
-  }
   
   render() {
 
@@ -257,50 +299,38 @@ class Createquiz extends Component {
                           </FormGroup>
 
                           {/* Load Image  */}
-                          { this.state.isImageUrl  ?
 
-                           <FormGroup>
-                           <Input
-                             className="imagePreviewUrl"
-                             type="input"
-                             name="newImage"
-                             placeholder="Image URL"
-                             autoComplete="off"
-                             value={this.state.newImage.imagePreviewUrl}
-                             onChange={this.handleChangeImageUrl}
-                           />
-                           <br></br>
-                            {!!this.state.newImage.imagePreviewUrl ? <img alt="Image Preview" src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
-                          <br></br>
-                          <Button type="button" onClick={this.changeToLoadImage}><span className="form_container_text_link">Change to load image by File</span></Button>
-                          </FormGroup>
-              
-                          :
-              
-                              <FormGroup>
-                                  <Input type="file" name="newImage" onChange={this.handleChangeImage} />
-                                  <br></br>
-                                  {!!this.state.newImage && !!this.state.newImage.imagePreviewUrl ? <img alt="Image Preview" src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
-
-                                  <br></br>
-                                  <Button type="button" onClick={this.changeToLoadImage}><span className="form_container_text_link"> Change to load image by URL</span></Button>
-                              </FormGroup>
-                          
-                          } 
+                          <BlockUi tag="div" blocking={this.state.blockingImage}>
+                            <FormGroup>
+                                <Label for="newImage">Image</Label>
+                                <Input type="file" name="newImage" onChange={this.handleChangeImage} multiple="false" accept=".jpg,.jpeg,.png,.gif"/>
+                                <br></br>
+                                {!!this.state.newImage && !!this.state.newImage.imagePreviewUrl ? <img alt="Image Preview" src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
+                            </FormGroup>
+                          </BlockUi>
 
                           {/* Finish load image */}
 
-                          <FormGroup>
-                            <Input
-                              className="newMedia"
-                              type="input"
-                              name="newMedia"
-                              placeholder="Media link"
-                              autoComplete="off"
-                              value={this.state.newMedia}
-                              onChange={this.handleChange}
-                            />
-                          </FormGroup>
+                          {/* Load Audio */}
+
+                          <BlockUi tag="div" blocking={this.state.blockingAudio}>
+                            <FormGroup>
+                              <Label for="newImage">Audio</Label>
+                              <Input type="file" name="newAudio" onChange={this.handleChangeAudio} multiple="false" accept=".mp3,.wav,.ogg" />
+                            </FormGroup>
+                          </BlockUi>
+
+                          {/* Finsish Load Audio */}
+
+                          {/* Load Video */}
+                          <BlockUi tag="div" blocking={this.state.blockingVideo}>
+                            <FormGroup>
+                              <Label for="newVideo">Video</Label>
+                              <Input type="file" name="newVideo" onChange={this.handleChangeVideo} multiple="false" accept=".mov,.mkv,.mp4,.avi" />
+                            </FormGroup>
+                          </BlockUi>
+
+                          {/* Finsish Load Audio */}
                           
                           <FormGroup>
                             <Input
@@ -366,7 +396,7 @@ class Createquiz extends Component {
                             {this.state.questions.map((question, idx) => 
                               <tr>
                                 <td align="left">{question.question}</td>
-                                <td><Button type="button" onClick={this.removeQuestion.bind(this, idx)}>
+                                <td><Button type="button" color="link" onClick={this.removeQuestion.bind(this, idx)}>
                                   <img alt="Remove" src={RemoveImage} width="20px" height="20px"/>
                                   </Button></td>
                                 
@@ -415,7 +445,8 @@ class Createquiz extends Component {
                             {this.state.rounds.map((round, idx) =>
                               <tr>
                                 <td align="left">{round.name}</td>
-                                <td><Button type="button" onClick={this.removeRound.bind(this, idx)}> <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button></td>
+                                <td><Button type="button" color="link" onClick={this.removeRound.bind(this, idx)}> 
+                                    <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button></td>
                                 
                               </tr>
                           )}
