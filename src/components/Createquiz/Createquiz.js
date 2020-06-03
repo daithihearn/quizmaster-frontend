@@ -270,9 +270,9 @@ class Createquiz extends Component {
                              onChange={this.handleChangeImageUrl}
                            />
                            <br></br>
-                            {!!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
+                            {!!this.state.newImage.imagePreviewUrl ? <img alt="Image Preview" src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
                           <br></br>
-                          <a onClick={this.changeToLoadImage}><span className="form_container_text_link">Change to load image by File</span></a>
+                          <Button type="button" onClick={this.changeToLoadImage}><span className="form_container_text_link">Change to load image by File</span></Button>
                           </FormGroup>
               
                           :
@@ -280,10 +280,10 @@ class Createquiz extends Component {
                               <FormGroup>
                                   <Input type="file" name="newImage" onChange={this.handleChangeImage} />
                                   <br></br>
-                                  {!!this.state.newImage && !!this.state.newImage.imagePreviewUrl ? <img src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
+                                  {!!this.state.newImage && !!this.state.newImage.imagePreviewUrl ? <img alt="Image Preview" src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
 
                                   <br></br>
-                                  <a onClick={this.changeToLoadImage}><span className="form_container_text_link"> Change to load image by URL</span></a>
+                                  <Button type="button" onClick={this.changeToLoadImage}><span className="form_container_text_link"> Change to load image by URL</span></Button>
                               </FormGroup>
                           
                           } 
@@ -366,9 +366,9 @@ class Createquiz extends Component {
                             {this.state.questions.map((question, idx) => 
                               <tr>
                                 <td align="left">{question.question}</td>
-                                <td><a type="button" color="danger" onClick={this.removeQuestion.bind(this, idx)}>
-                                  <img src={RemoveImage} width="20px" height="20px"/>
-                                  </a></td>
+                                <td><Button type="button" onClick={this.removeQuestion.bind(this, idx)}>
+                                  <img alt="Remove" src={RemoveImage} width="20px" height="20px"/>
+                                  </Button></td>
                                 
                               </tr>
                             )}
@@ -398,7 +398,7 @@ class Createquiz extends Component {
                      </CardBody>
                   
 
-                    {!!this.state.rounds || this.state.rounds.length == 0 ?
+                    {!!this.state.rounds || this.state.rounds.length === 0 ?
                       <div>
                       <CardBody>
                         <h2>Rounds</h2>
@@ -415,7 +415,7 @@ class Createquiz extends Component {
                             {this.state.rounds.map((round, idx) =>
                               <tr>
                                 <td align="left">{round.name}</td>
-                                <td><a type="button" color="danger" onClick={this.removeRound.bind(this, idx)}> <img src={RemoveImage} width="20px" height="20px"/></a></td>
+                                <td><Button type="button" onClick={this.removeRound.bind(this, idx)}> <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button></td>
                                 
                               </tr>
                           )}

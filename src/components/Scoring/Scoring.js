@@ -345,7 +345,7 @@ class Scoring extends Component {
                                       <td align="left">{question.question}</td>
                                       <td>
                                       {!!question.imageUri ?
-                                        <img alt="Image" src={question.imageUri} class="thumbnail_size"/>
+                                        <img alt="Image preview" src={question.imageUri} class="thumbnail_size"/>
                                       : null}
                                       </td>
                                       <td>{question.answer}</td>
@@ -580,7 +580,7 @@ class Scoring extends Component {
                             </td>
                             {/* <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, entry.id)}>Remove</Button></td> */}
                             <td><Button class="remove_link" color="link" onClick={this.showDeletePlayerModal.bind(this, entry)} >
-                            <img src={RemoveImage} width="20px" height="20px"/></Button></td>
+                            <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button></td>
                           </tr>
                         ))}
                       </tbody>
@@ -621,7 +621,7 @@ class Scoring extends Component {
                                 required
                               /></td>
                             <td>
-                            <Button type="button" color="danger" onClick={this.addPlayer}><img src={AddIcon} width="20px" height="20px"/></Button>
+                            <Button type="button" color="danger" onClick={this.addPlayer}><img alt="Add" src={AddIcon} width="20px" height="20px"/></Button>
                             </td>
                             </tr>
                             </tbody>

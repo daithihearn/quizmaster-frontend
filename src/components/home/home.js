@@ -288,7 +288,7 @@ class Home extends Component {
                           <td align="left">{game.name}</td>
                           <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
                           <td><Button type="button" color="danger" onClick={this.showDeleteGameModal.bind(this, game, idx)}>
-                            <img src={RemoveImage} width="20px" height="20px"/></Button>                  
+                            <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button>                  
                             </td>
                           <td><Button type="button" color="link" onClick={this.redirectToGame.bind(this, game)}>Open</Button></td>
                         </tr>

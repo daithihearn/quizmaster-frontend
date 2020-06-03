@@ -56,7 +56,7 @@ class Game extends Component {
 
 
   componentDidUpdate(nextState){
-    if(this.state.answer==""){
+    if(this.state.answer === ""){
      this.scropToTop();
     }
   }
@@ -247,14 +247,14 @@ class Game extends Component {
                           {!!this.state.question.imageUri ?
                           <FormGroup>
                               <br></br>
-                              <img src={this.state.question.imageUri} class="diplay_image_size" />
+                              <img alt="Question Image" src={this.state.question.imageUri} class="diplay_image_size" />
                           </FormGroup>
                           : null}
 
                           {!!this.state.question.mediaUri ?
                           <FormGroup>
                             <br></br>
-                            <ReactPlayer url={this.state.question.mediaUri} playing light controls playIcon={<img src={PlayImage} class="diplay_image_size" />} />
+                            <ReactPlayer url={this.state.question.mediaUri} playing light controls playIcon={<img alt="Play" src={PlayImage} class="diplay_image_size" />} />
                           </FormGroup>
                           : null}
 
@@ -325,7 +325,7 @@ class Game extends Component {
                                 {question.question}
                               </td>
                               <td>
-                                {question.imageUri ?<img src={question.imageUri} class="thumbnail_size" />:null}
+                                {question.imageUri ?<img alt="Image Preview" src={question.imageUri} class="thumbnail_size" />:null}
                               </td>
                               <td> 
                                 {question.answer}
