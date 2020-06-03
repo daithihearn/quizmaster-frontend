@@ -2,13 +2,17 @@ import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
-import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
+import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, InputGroup, InputGroupAddon, InputGroupText, Table } from 'reactstrap';
 import uuid from 'uuid-random';
 import RemoveImage from '../../assets/icons/remove.png';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 import BlockUi from 'react-block-ui';
 import 'react-block-ui/style.css';
+
+const validImageTypes = ["image/bmp", "image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/tiff", "image/webp"];
+const validAudioTypes = ["audio/aac", "audio/midi", "audio/x-midi", "audio/mpeg", "audio/ogg", "audio/opus", "audio/wav", "audio/webm", "audio/3gpp", "audio/3gpp2"];
+const validVideoTypes = ["video/x-msvideo", "video/mpeg", "video/ogg", "video/mp2t", "video/webm", "video/x-matroska", "video/quicktime", "video/3gpp", "video/3gpp2"];
 
 function parseError(error) {
   let errorMessage = 'Undefined error';
@@ -60,9 +64,7 @@ class Createquiz extends Component {
     this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleChangeCheckbox = this.handleChangeCheckbox.bind(this);
-    this.handleChangeImage = this.handleChangeImage.bind(this);
-    this.handleChangeAudio = this.handleChangeAudio.bind(this);
-    this.handleChangeVideo = this.handleChangeVideo.bind(this);
+    this.handleChangeFile = this.handleChangeFile.bind(this);
     this.addQuestion = this.addQuestion.bind(this);
     this.addRound = this.addRound.bind(this);
     this.clearQuiz = this.clearQuiz.bind(this);
@@ -103,10 +105,31 @@ class Createquiz extends Component {
     this.updateState(updateObj);
   }
 
-  handleChangeImage(event) {
-    let thisObj = this;
-    let file = event.target.files[0]
-    
+  handleChangeFile(event) {
+    if (event.target.files.length > 1) {
+      return this.updateState(parseError({message: "Can only select one file"}));
+    }
+    let file = event.target.files[0];
+
+    // Wiping current media
+    this.updateState({
+      newImage: {file: null, imagePreviewUrl:''},
+      newAudio: {file: null},
+      newVideo: {file: null}
+    });
+
+    if (validImageTypes.includes(file.type)) {
+      this.uploadImage(this, file);
+    } else if (validAudioTypes.includes(file.type)) {
+      this.uploadAudio(this, file);
+    } else if (validVideoTypes.includes(file.type)) {
+      this.uploadVideo(this, file);
+    } else {
+      return this.updateState(parseError({message: "Invalid file type"}));
+    }
+  }
+
+  uploadImage(thisObj, file) {
     let reader = new FileReader();
 
     reader.onloadend = () => {
@@ -117,24 +140,22 @@ class Createquiz extends Component {
             file: file,
             imagePreviewUrl: response.data
           }, 
-          blockingImage: false});
+          blocking: false});
       }
       ).catch(error => { 
         let state = thisObj.state;
         Object.assign(state, parseError(error));
-        Object.assign(state, {blockingImage: false});
+        Object.assign(state, {blocking: false});
         thisObj.setState(state);
       });
 
-      thisObj.updateState({ blockingImage: true });
+      thisObj.updateState({ blocking: true });
     }
 
     reader.readAsDataURL(file);
   }
 
-  handleChangeAudio(event) {
-    let thisObj = this;
-    let file = event.target.files[0]
+  uploadAudio(thisObj, file) {
     
     let reader = new FileReader();
 
@@ -145,25 +166,22 @@ class Createquiz extends Component {
           file: file,
           uri: response.data
         },
-        blockingAudio: false});
+        blocking: false});
       }
       ).catch(error => { 
         let state = thisObj.state;
         Object.assign(state, parseError(error));
-        Object.assign(state, {blockingAudio: false});
+        Object.assign(state, {blocking: false});
         thisObj.setState(state);
       });
 
-      thisObj.updateState({ blockingAudio: true});
+      thisObj.updateState({ blocking: true});
     }
 
     reader.readAsDataURL(file);
   }
 
-  handleChangeVideo(event) {
-    let thisObj = this;
-    let file = event.target.files[0]
-    
+  uploadVideo(thisObj, file) {
     let reader = new FileReader();
 
     reader.onloadend = () => {
@@ -173,16 +191,16 @@ class Createquiz extends Component {
           file: file,
           uri: response.data
         },
-        blockingVideo: false});
+        blocking: false});
       }
       ).catch(error => { 
         let state = thisObj.state;
         Object.assign(state, parseError(error));
-        Object.assign(state, {blockingVideo: false});
+        Object.assign(state, {blocking: false});
         thisObj.setState(state);
       });
 
-      thisObj.updateState({ blockingVideo: true});
+      thisObj.updateState({ blocking: true});
     }
 
     reader.readAsDataURL(file);
@@ -255,11 +273,11 @@ class Createquiz extends Component {
 
 
           <CardGroup>
-                <Card>
-                <CardBody>
-                Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
-                </CardBody>
-                </Card>
+            <Card>
+              <CardBody>
+              Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
+              </CardBody>
+            </Card>
           </CardGroup>
 
           <CardGroup>
@@ -271,104 +289,122 @@ class Createquiz extends Component {
               <div>
                 <CardHeader tag="h1">Quiz: {this.state.quizName}</CardHeader>
                   <CardBody>
+                    <BlockUi tag="div" blocking={this.state.blocking}>
                       <Form onSubmit={this.addQuestion}>
                           <FormGroup>
-                            <Input
-                                className="newRoundName"
-                                type="input"
-                                name="newRoundName"
-                                placeholder="Round Name"
-                                autoComplete="off"
-                                value={this.state.newRoundName}
-                                onChange={this.handleChange}
-                                required
-                              />
+                            <InputGroup>
+                              <InputGroupAddon addonType="prepend">
+                                <InputGroupText>Round</InputGroupText>
+                              </InputGroupAddon>
+                                <Input
+                                    className="newRoundName"
+                                    type="input"
+                                    name="newRoundName"
+                                    placeholder="Round Name"
+                                    autoComplete="off"
+                                    value={this.state.newRoundName}
+                                    onChange={this.handleChange}
+                                    required
+                                  />
+                            </InputGroup>
                           </FormGroup>
+
                           <FormGroup>
-                        
-                            <Input
-                              className="newQuestion"
-                              type="input"
-                              name="newQuestion"
-                              placeholder="Question"
-                              autoComplete="off"
-                              value={this.state.newQuestion}
-                              onChange={this.handleChange}
-                              required
-                            />
+                            <InputGroup>
+                              <InputGroupAddon addonType="prepend">
+                                <InputGroupText>Question</InputGroupText>
+                              </InputGroupAddon>
+                              
+                                <Input
+                                  className="newQuestion"
+                                  type="input"
+                                  name="newQuestion"
+                                  placeholder="Question"
+                                  autoComplete="off"
+                                  value={this.state.newQuestion}
+                                  onChange={this.handleChange}
+                                  required
+                                />
+                              
+                            </InputGroup>
                           </FormGroup>
 
-                          {/* Load Image  */}
+                          {/* Load Media  */}
+                          <FormGroup>
+                            <InputGroup>
 
-                          <BlockUi tag="div" blocking={this.state.blockingImage}>
-                            <FormGroup>
-                                <Label for="newImage">Image</Label>
-                                <Input type="file" name="newImage" onChange={this.handleChangeImage} multiple="false" accept=".jpg,.jpeg,.png,.gif"/>
+                              <InputGroupAddon addonType="prepend">
+                                <InputGroupText>Media file</InputGroupText>
+                              </InputGroupAddon>
+                              <InputGroupAddon addonType="append">
+                                <Input 
+                                  type="file" 
+                                  name="newImage" 
+                                  onChange={this.handleChangeFile} 
+                                  multiple={false} 
+                                  accept=".jpg,.jpeg,.png,.gif,.mp3,.wav,.ogg,.mov,.mkv,.mp4,.avi"/>
+                              </InputGroupAddon>
                                 <br></br>
                                 {!!this.state.newImage && !!this.state.newImage.imagePreviewUrl ? <img alt="Image Preview" src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }
-                            </FormGroup>
-                          </BlockUi>
-
-                          {/* Finish load image */}
-
-                          {/* Load Audio */}
-
-                          <BlockUi tag="div" blocking={this.state.blockingAudio}>
-                            <FormGroup>
-                              <Label for="newImage">Audio</Label>
-                              <Input type="file" name="newAudio" onChange={this.handleChangeAudio} multiple="false" accept=".mp3,.wav,.ogg" />
-                            </FormGroup>
-                          </BlockUi>
-
-                          {/* Finsish Load Audio */}
-
-                          {/* Load Video */}
-                          <BlockUi tag="div" blocking={this.state.blockingVideo}>
-                            <FormGroup>
-                              <Label for="newVideo">Video</Label>
-                              <Input type="file" name="newVideo" onChange={this.handleChangeVideo} multiple="false" accept=".mov,.mkv,.mp4,.avi" />
-                            </FormGroup>
-                          </BlockUi>
-
-                          {/* Finsish Load Audio */}
+                            </InputGroup>
+                          </FormGroup>
+                          {/* Finish load media */}
                           
                           <FormGroup>
-                            <Input
-                              className="newAnswer"
-                              type="input"
-                              name="newAnswer"
-                              placeholder="Answer"
-                              autoComplete="off"
-                              value={this.state.newAnswer}
-                              onChange={this.handleChange}
-                              required
-                            />
+                            <InputGroup>
+                              <InputGroupAddon addonType="prepend">
+                                <InputGroupText>Answer</InputGroupText>
+                              </InputGroupAddon>
+                              
+                                <Input
+                                  className="newAnswer"
+                                  type="input"
+                                  name="newAnswer"
+                                  placeholder="Answer"
+                                  autoComplete="off"
+                                  value={this.state.newAnswer}
+                                  onChange={this.handleChange}
+                                  required
+                                />
+                            </InputGroup>
                           </FormGroup>
                           <FormGroup>
-                          
-                            <Input
-                              className="newPoints"
-                              type="input"
-                              pattern="[0-9]*"
-                              name="newPoints"
-                              placeholder="Points"
-                              autoComplete="off"
-                              value={this.state.newPoints}
-                              onChange={this.handleChange}
-                              required
-                            />
+                          <InputGroup>
+                              <InputGroupAddon addonType="prepend">
+                                <InputGroupText>Points</InputGroupText>
+                              </InputGroupAddon>
+                                <Input
+                                  className="newPoints"
+                                  type="input"
+                                  pattern="[0-9]*"
+                                  name="newPoints"
+                                  placeholder="Points"
+                                  autoComplete="off"
+                                  value={this.state.newPoints}
+                                  onChange={this.handleChange}
+                                  required
+                                />
+                            </InputGroup>
                           </FormGroup>
-                          <FormGroup check>
-                            <Label check>
-                              <Input
-                                className="newForceManualCorrection"
-                                type="checkbox"
-                                name="newForceManualCorrection"
-                                value={this.state.newForceManualCorrection}
-                                onChange={this.handleChangeCheckbox}
-                              />
-                              Force a manual correction?
-                            </Label>
+                          <FormGroup>
+                            <InputGroup>
+                            
+                              <InputGroupAddon addonType="prepend">
+                                <InputGroupText>Force a manual correction</InputGroupText>
+                              </InputGroupAddon>
+                              <InputGroupAddon addonType="append">
+                                <InputGroupText>
+                                  <Input addon
+                                      className="newForceManualCorrection"
+                                      type="checkbox"
+                                      name="newForceManualCorrection"
+                                      value={this.state.newForceManualCorrection}
+                                      onChange={this.handleChangeCheckbox}
+                                    />
+                              </InputGroupText>
+                            </InputGroupAddon>
+                              
+                            </InputGroup>
                           </FormGroup>
                           <FormGroup>
                             <ButtonGroup>
@@ -379,6 +415,7 @@ class Createquiz extends Component {
                           </FormGroup>
 
                         </Form>
+                        </BlockUi>
                       </CardBody>
                       <CardBody>
                         <h2>Questions</h2>
