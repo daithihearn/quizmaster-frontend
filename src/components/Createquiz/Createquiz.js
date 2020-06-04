@@ -10,10 +10,6 @@ import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarCont
 import BlockUi from 'react-block-ui';
 import 'react-block-ui/style.css';
 
-const validImageTypes = ["image/bmp", "image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/tiff", "image/webp"];
-const validAudioTypes = ["audio/aac", "audio/midi", "audio/x-midi", "audio/mpeg", "audio/ogg", "audio/opus", "audio/wav", "audio/webm", "audio/3gpp", "audio/3gpp2"];
-const validVideoTypes = ["video/x-msvideo", "video/mpeg", "video/ogg", "video/mp2t", "video/webm", "video/x-matroska", "video/quicktime", "video/3gpp", "video/3gpp2"];
-
 function parseError(error) {
   let errorMessage = 'Undefined error';
   if (
@@ -118,11 +114,11 @@ class Createquiz extends Component {
       newVideo: {file: null}
     });
 
-    if (validImageTypes.includes(file.type)) {
+    if (file.type.includes("image/")) {
       this.uploadImage(this, file);
-    } else if (validAudioTypes.includes(file.type)) {
+    } else if (file.type.includes("audio/")) {
       this.uploadAudio(this, file);
-    } else if (validVideoTypes.includes(file.type)) {
+    } else if (file.type.includes("video/")) {
       this.uploadVideo(this, file);
     } else {
       return this.updateState(parseError({message: "Invalid file type"}));
@@ -341,8 +337,7 @@ class Createquiz extends Component {
                                   type="file" 
                                   name="newImage" 
                                   onChange={this.handleChangeFile} 
-                                  multiple={false} 
-                                  accept=".jpg,.jpeg,.png,.gif,.mp3,.wav,.ogg,.mov,.mkv,.mp4,.avi"/>
+                                  multiple={false} />
                               </InputGroupAddon>
                                 <br></br>
                                 {!!this.state.newImage && !!this.state.newImage.imagePreviewUrl ? <img alt="Image Preview" src={this.state.newImage.imagePreviewUrl} class="thumbnail_size"/> : null }

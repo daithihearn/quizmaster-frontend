@@ -195,7 +195,7 @@ class Game extends Component {
          <div className="game_wrap">
           <div className="game_container">
 
-          {!!this.state.question && !!this.state.players && !!this.state.answeredCurrentQuestion ?
+          {!!this.state.players && !!this.state.answeredCurrentQuestion ?
                       
             <Progress striped={(this.state.answeredCurrentQuestion.length / this.state.players.length) < 1} 
             color={(this.state.answeredCurrentQuestion.length / this.state.players.length) < 1 ?"info":"success"} 
