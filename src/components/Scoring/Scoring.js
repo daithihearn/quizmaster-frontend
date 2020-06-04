@@ -429,9 +429,11 @@ class Scoring extends Component {
                                         />
                                       <Input
                                           className="score"
-                                          type="input"
+                                          type="number"
+                                          step="1"
+                                          min={0}
+                                          max={100}
                                           name="score"
-                                          pattern="[0-9]*"
                                           placeholder="Score"
                                           autoComplete="off"
                                           disabled={idx > 0}
