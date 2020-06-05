@@ -1,8 +1,5 @@
-import { AppSidebar } from '@coreui/react';
 import React, { Component } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
-import DefaultFooter from '../../components/Footer/Footer';
-import Nav from '../../components/Nav/Nav.js';
 import DefaultHeader from '../../containers/Header';
 import routes from '../../routes';
 import sessionUtils from '../../utils/SessionUtils';
@@ -17,11 +14,6 @@ class DefaultLayout extends Component {
     return (
       <div>
         <div className="content_employee">
-          <span>
-            <AppSidebar className=".sidebar-show" fixed display="md">
-              <Nav />
-            </AppSidebar>
-          </span>
           <span className="app" style={{ overflowX: 'hidden' }}>
             <div className="app_body">
               <main className="main">
@@ -46,7 +38,6 @@ class DefaultLayout extends Component {
                 )}
               </main>
             </div>
-            <DefaultFooter />
           </span>
         </div>
       </div>

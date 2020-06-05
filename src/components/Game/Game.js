@@ -5,7 +5,7 @@ import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import DataTable, { createTheme } from 'react-data-table-component';
 import PlayImage from '../../assets/icons/play.png';
-import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Table, Progress } from 'reactstrap';
+import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Container, Table, Progress } from 'reactstrap';
 import ReactPlayer from 'react-player'
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
@@ -241,31 +241,27 @@ class Game extends Component {
                               Submit
                             </Button>
                           </ButtonGroup>
-                          
-                         
 
-                          {!!this.state.question.imageUri ?
-                          <FormGroup>
-                              <br></br>
+                      </Form>
+                    </CardBody>
+                    <CardBody>
+                        {!!this.state.question.imageUri ?
+                          <Container>
                               <img alt="Question Image" src={this.state.question.imageUri} class="diplay_image_size" />
-                          </FormGroup>
+                          </Container>
                           : null}
 
                           {!!this.state.question.audioUri ?
-                          <FormGroup>
-                            <br></br>
-                            <ReactPlayer url={this.state.question.audioUri} playing light controls playIcon={<img alt="Play" src={PlayImage} class="diplay_image_size" />} />
-                          </FormGroup>
+                          <Container>
+                            <ReactPlayer className="diplay_image_size" width="100%" url={this.state.question.audioUri} playing light controls playIcon={<img alt="Play" src={PlayImage} class="diplay_image_size" />} />
+                          </Container>
                           : null}
 
                           {!!this.state.question.videoUri ?
-                          <FormGroup>
-                            <br></br>
-                            <ReactPlayer url={this.state.question.videoUri} playing light controls playIcon={<img alt="Play" src={PlayImage} class="diplay_image_size" />} />
-                          </FormGroup>
+                          <Container>
+                            <ReactPlayer className="diplay_image_size" width="100%" url={this.state.question.videoUri} playing light controls playIcon={<img alt="Play" src={PlayImage} class="diplay_image_size" />} />
+                          </Container>
                           : null}
-
-                      </Form>
                     </CardBody>
                 </Card>
               </CardGroup>

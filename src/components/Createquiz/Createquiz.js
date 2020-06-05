@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
-import { Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, InputGroup, InputGroupAddon, InputGroupText, Table } from 'reactstrap';
+import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, InputGroup, InputGroupAddon, InputGroupText, Table } from 'reactstrap';
 import uuid from 'uuid-random';
 import RemoveImage from '../../assets/icons/remove.png';
 import Snackbar from "@material-ui/core/Snackbar";
@@ -379,12 +379,7 @@ class Createquiz extends Component {
                                   onChange={this.handleChange}
                                   required
                                 />
-                            </InputGroup>
-                          </FormGroup>
-                          <FormGroup>
-                            <InputGroup>
-                            
-                              <InputGroupAddon addonType="prepend">
+                              <InputGroupAddon addonType="append">
                                 <InputGroupText>Force a manual correction</InputGroupText>
                               </InputGroupAddon>
                               <InputGroupAddon addonType="append">
@@ -398,7 +393,6 @@ class Createquiz extends Component {
                                     />
                               </InputGroupText>
                             </InputGroupAddon>
-                              
                             </InputGroup>
                           </FormGroup>
                           <FormGroup>
