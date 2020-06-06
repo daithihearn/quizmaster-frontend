@@ -9,8 +9,11 @@ import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup,
 import ReactPlayer from 'react-player'
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
+import NoSleep from 'nosleep.js';
 
-class Game extends Component {
+const noSleep = new NoSleep();
+
+class Game extends Component {  
 
   constructor(props) {
     super(props);
@@ -142,6 +145,7 @@ class Game extends Component {
     if (this.state.submitDisabled) {
       return;
     }
+    noSleep.enable();
     this.updateState({submitDisabled: true});
 
     let thisObj = this;
