@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 // import ImageSelectPreview from 'react-image-select-pv';
 import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, InputGroup, InputGroupAddon, InputGroupText, Table } from 'reactstrap';
 import uuid from 'uuid-random';
 import RemoveImage from '../../assets/icons/remove.png';
 import Snackbar from "@material-ui/core/Snackbar";
+import DefaultHeader from '../Header';
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 import BlockUi from 'react-block-ui';
 import 'react-block-ui/style.css';
@@ -64,8 +64,7 @@ class Createquiz extends Component {
     this.addQuestion = this.addQuestion.bind(this);
     this.addRound = this.addRound.bind(this);
     this.clearQuiz = this.clearQuiz.bind(this);
-    sessionUtils.checkLoggedIn();
-    sessionUtils.checkUserType();
+    this.goHome = this.goHome.bind(this);
   }
 
   handleClose() {
@@ -204,7 +203,15 @@ class Createquiz extends Component {
 
   clearQuiz() {
     this.clearState();
-    window.location.reload();
+    this.props.history.push({
+      pathname: '/createQuiz'
+    });
+  }
+
+  goHome() {
+    this.props.history.push({
+      pathname: '/home'
+    });
   }
 
   addQuestion = event => {
@@ -252,9 +259,7 @@ class Createquiz extends Component {
 
     quizService.putQuiz(quiz).then(response => {
       thisObj.clearState();
-      thisObj.props.history.push({
-        pathname: '/home'
-      });
+      thisObj.goHome();
     }
     ).catch(error => thisObj.updateState(parseError(error)));
   };
@@ -262,6 +267,14 @@ class Createquiz extends Component {
   render() {
 
     return (
+      <div>
+        <div className="content_employee">
+          <span className="app" style={{ overflowX: 'hidden' }}>
+            <div className="app_body">
+              <main className="main">
+                <DefaultHeader />
+
+
       
         <div className="app">
          <div className="game_wrap">
@@ -271,7 +284,7 @@ class Createquiz extends Component {
           <CardGroup>
             <Card>
               <CardBody>
-              Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
+              Back to  <Button type="button" color="link" onClick={this.goHome}><span className="form_container_text_link">Home</span></Button>
               </CardBody>
             </Card>
           </CardGroup>
@@ -420,7 +433,7 @@ class Createquiz extends Component {
                           </thead>
                           <tbody>
                             {this.state.questions.map((question, idx) => 
-                              <tr>
+                              <tr key={`question_${idx}`}>
                                 <td align="left">{question.question}</td>
                                 <td><Button type="button" color="link" onClick={this.removeQuestion.bind(this, idx)}>
                                   <img alt="Remove" src={RemoveImage} width="20px" height="20px"/>
@@ -469,7 +482,7 @@ class Createquiz extends Component {
                           </thead>
                           <tbody>
                             {this.state.rounds.map((round, idx) =>
-                              <tr>
+                              <tr key={`round_${idx}`}>
                                 <td align="left">{round.name}</td>
                                 <td><Button type="button" color="link" onClick={this.removeRound.bind(this, idx)}> 
                                     <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button></td>
@@ -536,7 +549,14 @@ class Createquiz extends Component {
         </Snackbar>
         </div>
       </div>
-      </div>
+    </div>
+
+
+    </main>
+    </div>
+    </span>
+    </div>
+    </div>
    
     );
   }

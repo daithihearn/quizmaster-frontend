@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import sessionUtils from '../../utils/SessionUtils';
 import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
@@ -9,13 +8,14 @@ import AddIcon from '../../assets/icons/add.svg';
 import SockJsClient from 'react-stomp';
 import { Modal, ModalBody, ModalHeader, ModalFooter, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
+import DefaultHeader from '../Header';
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
+
+import auth0Client from '../../Auth';
 
 class Scoring extends Component {
   constructor(props) {
     super(props);
-
-    sessionUtils.checkLoggedIn();
 
     this.handleChange = this.handleChange.bind(this);
     this.addPlayer = this.addPlayer.bind(this);
@@ -26,6 +26,7 @@ class Scoring extends Component {
     this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
     this.handleUpdateAnswer = this.handleUpdateAnswer.bind(this);
     this.updateLeaderboard = this.updateLeaderboard.bind(this);
+    this.goHome = this.goHome.bind(this);
     
     let rawState = sessionStorage.getItem("scoringState");
 
@@ -99,8 +100,7 @@ class Scoring extends Component {
     }).catch(error => thisObj.parseError(error));
   }
 
-
-  redirectToHome() {
+  goHome() {
     this.props.history.push({
       pathname: '/home'
     });
@@ -299,6 +299,17 @@ class Scoring extends Component {
   render() {
    
     return (
+      <div>
+        <div className="content_employee">
+          <span className="app" style={{ overflowX: 'hidden' }}>
+            <div className="app_body">
+              <main className="main">
+                <DefaultHeader />
+
+
+
+
+
         <div className="app">
          <div className="game_wrap">
           <div className="game_container">
@@ -306,7 +317,7 @@ class Scoring extends Component {
               <CardGroup>
                 <Card>
                 <CardBody>
-                Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
+                Back to  <Button type="button" color="link" onClick={this.goHome}><span className="form_container_text_link">Home</span></Button>
                 </CardBody>
                 </Card>
               </CardGroup>
@@ -321,7 +332,7 @@ class Scoring extends Component {
                     <CardHeader tag="h2">{this.state.quiz.name}</CardHeader>
                     
                     {this.state.quiz.rounds.map((round, idx) => (
-                      <div>
+                      <div key={`rounds_${idx}`}>
                         <CardBody>
                         <Button color="link" id={"toggler_" + idx}><h4>Round: {round.name} </h4></Button>
                            </CardBody>
@@ -341,11 +352,11 @@ class Scoring extends Component {
                               <tbody>
                             
                                 {round.questions.map((question) => (
-                                  <tr class={(this.state.game.publishedQuestions.includes(question.id))? 'completedRow': ''}>
+                                  <tr className={(this.state.game.publishedQuestions.includes(question.id))? 'completedRow': ''} key={question.id}>
                                       <td align="left">{question.question}</td>
                                       <td>
                                       {!!question.imageUri ?
-                                        <img alt="Image preview" src={question.imageUri} class="thumbnail_size"/>
+                                        <img alt="Image preview" src={question.imageUri} className="thumbnail_size"/>
                                       : null}
                                       </td>
                                       <td>{question.answer}</td>
@@ -500,7 +511,7 @@ class Scoring extends Component {
                 <Card className="p-6">
                   <CardHeader tag="h2">Actions</CardHeader>
                   <CardBody>
-                    <ButtonGroup horizontal>
+                    <ButtonGroup horizontal="true">
                     <Button type="button" color="primary" onClick={this.updateLeaderboard}>
                         Update Leaderboard
                       </Button>
@@ -522,8 +533,8 @@ class Scoring extends Component {
                         </tr>
                       </thead>
                       <tbody>
-                          {this.state.quiz.rounds.map((round) => 
-                            <tr class={(this.state.roundId === round.id)? 'highlightRow': ''}>
+                          {this.state.quiz.rounds.map((round, idx) => 
+                            <tr key={`rounds_${idx}`} className={(this.state.roundId === round.id)? 'highlightRow': ''}>
                                 <td align="left">Round: {round.name}</td>
                                 <td><Button type="button" color="warning" onClick={this.publishLeaderboardForRound.bind(this, round)}>
                                     Publish Round Leaderboard
@@ -575,13 +586,13 @@ class Scoring extends Component {
                       </thead>
                       <tbody>
 
-                        {[].concat(this.state.game.players).map((entry) => (
-                          <tr>
+                        {[].concat(this.state.game.players).map((entry, idx) => (
+                          <tr key={`players_${idx}`}>
                             <td align="left">
                               <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.displayName)}> {entry.displayName}</Button>
                             </td>
                             {/* <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, entry.id)}>Remove</Button></td> */}
-                            <td><Button class="remove_link" color="link" onClick={this.showDeletePlayerModal.bind(this, entry)} >
+                            <td><Button className="remove_link" color="link" onClick={this.showDeletePlayerModal.bind(this, entry)} >
                             <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button></td>
                           </tr>
                         ))}
@@ -640,7 +651,7 @@ class Scoring extends Component {
             <CardGroup>
                 <Card>
                 <CardBody>
-                Back to  <a href="/#/home"><span className="form_container_text_link">Home</span></a>
+                Back to  <a href="/home"><span className="form_container_text_link">Home</span></a>
                 </CardBody>
                 </Card>
               </CardGroup>  
@@ -709,8 +720,8 @@ class Scoring extends Component {
                 </ModalBody>
               </Modal>
               : null }
-                    
-              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/scoring', '/user/scoring']}
+              
+              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getIdToken()} topics={['/scoring', '/user/scoring']}
                 onMessage={ this.handleWebsocketMessage.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
 
@@ -743,6 +754,14 @@ class Scoring extends Component {
           </div>
         </div>
        </div>
+
+
+
+</main>
+</div>
+</span>
+</div>
+</div>
     );
   }
 }

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import sessionUtils from '../../utils/SessionUtils';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
+import DefaultHeader from '../Header';
 import RemoveImage from '../../assets/icons/remove.png';
 import AddIcon from '../../assets/icons/add.svg';
 
@@ -30,8 +30,6 @@ class Home extends Component {
       modalDeleteGameObject: {},
       emailMessage: ""
     };
-    
-    sessionUtils.checkLoggedIn();
 
     this.getAllQuizzes();
     this.getActiveGames();
@@ -111,15 +109,6 @@ class Home extends Component {
       thisObj.updateState({startGameDisabled: false}); 
     });
   };
-
- 
-  checkLoginStatus() {
-    let authHeader = sessionStorage.getItem('JWT-TOKEN');
-    if (authHeader) {
-      window.location.href = '/#/home';
-      return;
-    }
-  }
 
   onQuizSelect(name, id) {
 
@@ -243,6 +232,14 @@ class Home extends Component {
   render() {
 
     return (
+      <div>
+        <div className="content_employee">
+          <span className="app" style={{ overflowX: 'hidden' }}>
+            <div className="app_body">
+              <main className="main">
+                <DefaultHeader />
+
+
       <div className="app">
          <div className="game_wrap">
           <div className="game_container">
@@ -284,7 +281,7 @@ class Home extends Component {
                         </ModalFooter>
                       </Modal>
                       {this.state.activeGames.map((game, idx) => 
-                        <tr>
+                        <tr key={`activegames_${idx}`}>
                           <td align="left">{game.name}</td>
                           <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
                           <td><Button type="button" color="link" onClick={this.showDeleteGameModal.bind(this, game, idx)}>
@@ -315,7 +312,7 @@ class Home extends Component {
                     </thead>
                     <tbody>
                       {this.state.quizzes.map((quiz, idx) => 
-                        <tr>
+                        <tr key={`quizlist_${idx}`}>
                           <td  style={{background: this.myColor(quiz.name, false), color: this.myColor(quiz.name, true)}} align="left" onClick={this.onQuizSelect.bind(this, quiz.name, quiz.id)}>{quiz.name}</td>
                         </tr>
                       )}
@@ -342,7 +339,7 @@ class Home extends Component {
                                   className="currentEmail"
                                   id="currentEmail"
                                   type="input"
-                                  pattern={"(?:[a-z0-9!#\$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#\$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"}
+                                  pattern={"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"}
                                   name="currentEmail"
                                   placeholder="Email"
                                   autoComplete="off"
@@ -464,6 +461,13 @@ class Home extends Component {
          
         </div>
        </div> 
+    </div>
+
+
+    </main>
+    </div>
+    </span>
+    </div>
     </div>
    
     );

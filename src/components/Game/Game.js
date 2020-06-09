@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import sessionUtils from '../../utils/SessionUtils';
 import answerService from '../../services/AnswerService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
@@ -8,8 +7,11 @@ import PlayImage from '../../assets/icons/play.png';
 import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Container, Table, Progress } from 'reactstrap';
 import ReactPlayer from 'react-player'
 import Snackbar from "@material-ui/core/Snackbar";
+import DefaultHeader from '../Header';
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 import NoSleep from 'nosleep.js';
+
+import auth0Client from '../../Auth';
 
 const noSleep = new NoSleep();
 
@@ -17,13 +19,13 @@ class Game extends Component {
 
   constructor(props) {
     super(props);
+
     this.state = { waiting: true, answers: [], 
       question: null, answer: "", leaderboard: null, 
       roundSummary: null, snackOpen: false,
       snackMessage: "", snackType: "",
-      answeredCurrentQuestion: []};
-    
-    sessionUtils.checkLoggedIn();
+      answeredCurrentQuestion: []
+    };
 
     createTheme('solarized', {
       text: {
@@ -195,6 +197,15 @@ class Game extends Component {
   render() {
    
     return (
+      <div>
+        <div className="content_employee">
+          <span className="app" style={{ overflowX: 'hidden' }}>
+            <div className="app_body">
+              <main className="main">
+                <DefaultHeader />
+
+
+
       <div className="app">
          <div className="game_wrap">
           <div className="game_container">
@@ -349,7 +360,7 @@ class Game extends Component {
           : null
           }
 
-      <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + sessionStorage.getItem("JWT-TOKEN")} topics={['/game', '/user/game']}
+      <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getIdToken()} topics={['/game', '/user/game']}
                 onMessage={ this.handleWebsocketMessage.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
 
@@ -373,6 +384,13 @@ class Game extends Component {
       </div>
     </div>
   </div>
+
+
+</main>
+</div>
+</span>
+</div>
+</div>
     );
   }
 }

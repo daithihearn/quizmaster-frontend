@@ -1,107 +1,116 @@
+import auth0Client from '../Auth';
+
 const axios = require('axios');
 
-exports.getQuiz = (id) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+class QuizService {
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz?id=${id}`, config)
-    return result;
-  }
-};
+  getQuiz = (id) => {
+    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
 
-exports.getAllQuizzes = () => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz?id=${id}`, config)
+      return result;
+    }
+  };
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json"
-      }
-    };
-    const result = axios
-      .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/all`, config)
-    return result;
-  }
-};
+  getAllQuizzes = () => {
+    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
 
-exports.putQuiz = (quiz) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/all`, config)
+      return result;
+    }
+  };
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz`, quiz, config)
-    return result;
-  }
-};
+  putQuiz = (quiz) => {
+    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
 
-exports.deleteQuiz = (id) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz`, quiz, config)
+      return result;
+    }
+  };
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz?id=${id}`, config)
-    return result;
-  }
-};
+  deleteQuiz = (id) => {
+    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
 
-exports.uploadImage = (media) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz?id=${id}`, config)
+      return result;
+    }
+  };
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/uploadImage`, { data: media }, config)
-    return result;
-  }
-};
+  uploadImage = (media) => {
+    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
 
-exports.uploadAudio = (media) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/uploadImage`, { data: media }, config)
+      return result;
+    }
+  };
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/uploadAudio`, { data: media }, config)
-    return result;
-  }
-};
+  uploadAudio = (media) => {
+    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
 
-exports.uploadVideo = (media) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/uploadAudio`, { data: media }, config)
+      return result;
+    }
+  };
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/uploadVideo`, { data: media }, config)
-    return result;
-  }
-};
+  uploadVideo = (media) => {
+    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .post(`${process.env.REACT_APP_API_URL}/api/v1/admin/quiz/uploadVideo`, { data: media }, config)
+      return result;
+    }
+  };
+}
+
+const quizService = new QuizService();
+
+export default quizService;
