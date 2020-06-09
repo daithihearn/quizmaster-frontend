@@ -5,7 +5,7 @@ const axios = require('axios');
 class QuizService {
 
   getQuiz = (id) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -20,7 +20,7 @@ class QuizService {
   };
 
   getAllQuizzes = () => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -36,7 +36,7 @@ class QuizService {
   };
 
   putQuiz = (quiz) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -51,7 +51,7 @@ class QuizService {
   };
 
   deleteQuiz = (id) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -66,7 +66,7 @@ class QuizService {
   };
 
   uploadImage = (media) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -81,7 +81,7 @@ class QuizService {
   };
 
   uploadAudio = (media) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -96,7 +96,7 @@ class QuizService {
   };
 
   uploadVideo = (media) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {

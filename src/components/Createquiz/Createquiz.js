@@ -210,7 +210,7 @@ class Createquiz extends Component {
 
   goHome() {
     this.props.history.push({
-      pathname: '/home'
+      pathname: '/'
     });
   }
 

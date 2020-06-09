@@ -1,23 +1,28 @@
 import React, { Component } from 'react';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
+import profileService from '../../services/ProfileService';
 import DefaultHeader from '../Header';
 import RemoveImage from '../../assets/icons/remove.png';
 import AddIcon from '../../assets/icons/add.svg';
 
-import { Modal, ModalBody, ModalHeader, ModalFooter, Button, ButtonGroup, Form, FormGroup, Label, Input, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
+import { Modal, ModalBody, ModalHeader, ModalFooter, Button, ButtonGroup, Form, FormGroup, Input, InputGroup, InputGroupAddon, InputGroupText, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
+
+import auth0Client from '../../Auth';
+
 
 class Home extends Component {
   constructor(props) {
     super(props);
    
     this.state = { 
+      myActiveGames: [],
       activeGames: [],
       quizzes: [],
-      emails:[],
-      currentEmail: '',
+      players:[],
+      selectedPlayers: [],
       quizSelected: null,
       game:{},
       dropDownOpen: false,
@@ -28,19 +33,63 @@ class Home extends Component {
       modalDeleteGame:false,
       modalDeleteGameIdx: 0,
       modalDeleteGameObject: {},
-      emailMessage: ""
+      isAdmin: false,
+      isPlayer: false,
+      profileUpdated: false
     };
 
-    this.getAllQuizzes();
-    this.getActiveGames();
-
     this.updateState = this.updateState.bind(this);
-    this.addPlayer = this.addPlayer.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.toggle = this.toggle.bind(this);
     this.getAllQuizzes = this.getAllQuizzes.bind(this);
     this.showDeleteGameModal = this.showDeleteGameModal.bind (this);
     this.myColor= this.myColor.bind(this);
+  }
+
+  async componentDidMount() {
+    let profile = auth0Client.getProfile();
+    let scope = auth0Client.getScope();
+    let isAdmin = scope.indexOf("read:admin") !== -1;
+    let isPlayer = scope.indexOf("read:game") !== -1;
+
+    let stateUpdate = {profile: profile, isAdmin: isAdmin, isPlayer: isPlayer};
+    
+    // ADMIN Stuff
+    if (isAdmin) {
+      this.getAllQuizzes();
+      this.getActiveGames();
+      this.getAllPlayers();
+    }
+
+    // Player Stuff
+    if (isPlayer) {
+      let response = await profileService.hasProfile();
+      stateUpdate.profileUpdated = response.data;
+      if (!stateUpdate.profileUpdated) {
+        stateUpdate.newName = profile.name;
+      }
+      this.getMyActiveGames();
+    }
+
+    this.updateState(stateUpdate);
+  }
+
+  updateProfile(event) {
+    event.preventDefault();
+    let thisObj = this;
+
+    let payload = {
+      name: this.state.newName
+    };
+
+    if (!!this.state.profile.picture) {
+      payload.picture = this.state.profile.picture;
+    }
+
+    profileService.updateProfile(payload).then(response => {
+      thisObj.updateState( { profileUpdated: true, newName: "", snackOpen: true, snackMessage: "Profile updated" , snackType: "success" });
+    })
+      .catch(error => thisObj.parseError(error));
   }
 
   handleCloseStartGameModal() {
@@ -87,23 +136,44 @@ class Home extends Component {
       .catch(error => thisObj.parseError(error));
   };
 
-  startGameWithEmails() {
+  getAllPlayers()  {
+    let thisObj = this;
+
+    gameService.getAllPlayers().then(response => {
+      thisObj.updateState({ players: response.data });
+    })
+      .catch(error => thisObj.parseError(error));
+  };
+
+  getMyActiveGames()  {
+    let thisObj = this;
+
+    gameService.getMyActiveGames().then(response => {
+      thisObj.updateState({ myActiveGames: response.data });
+    })
+      .catch(error => thisObj.parseError(error));
+  };
+
+  startGame() {
+    if(this.state.selectedPlayers.length < 1) {
+      this.updateState( {snackOpen: true, snackMessage: `You must select at least one player` , snackType: "error"} );
+      return;
+    }
     if (this.state.startGameDisabled) {
       return;
     }
     this.updateState({startGameDisabled: true});
 
     let thisObj = this;
-    let gameEmails = {
-      playerEmails: this.state.emails,
+    let payload = {
+      players: this.state.selectedPlayers.map(player => player.id),
       quizId: this.state.quizSelected.id,
-      name: this.state.quizSelected.name,
-      emailMessage: this.state.emailMessage
+      name: this.state.quizSelected.name
     }
     
-    gameService.put(gameEmails).then(response => {
+    gameService.put(payload).then(response => {
       thisObj.updateState({startGameDisabled: false});
-      thisObj.redirectToGame(response.data);
+      thisObj.openGameAdminConsole(response.data);
     }).catch(error => {
       thisObj.parseError(error);
       thisObj.updateState({startGameDisabled: false}); 
@@ -123,14 +193,12 @@ class Home extends Component {
 
   myColor(name, isFont){
     
-   // console.log("quiz selected: " + name);
     if(!!this.state.quizSelected){
       if(this.state.quizSelected.name === name){
-       // console.log("mark quiz");
         if (!isFont){
         return  'LightSteelBlue';  
         // 'AliceBlue'; //'#43a047'; //'darkseagreen'; //'rgba(0,0,0,.18)';
-        }else{
+        } else {
           return 'white';
         }
       }
@@ -138,27 +206,40 @@ class Home extends Component {
     return '';
   }
 
+  addPlayer(player, idx) {
+    let players = this.state.players;
+    let selectedPlayers = this.state.selectedPlayers;
+    
+    players.splice(idx, 1);
+    selectedPlayers.push(player);
 
-  addPlayer(event) {
-    event.preventDefault();
-    let updatedEmails = this.state.emails;
-    updatedEmails.push(this.state.currentEmail);
-
-    this.updateState( {email: updatedEmails, currentEmail: '', snackOpen: true, snackMessage: "Player Added", snackType: "success" });
+    this.updateState( {players: players, selectedPlayers: selectedPlayers, snackOpen: true, snackMessage: `Added player ${player.name}` , snackType: "success"} );
   }
 
-  removePlayer(idx) {
-    let emails = [...this.state.emails];
-    emails.splice(idx, 1);
-    this.setState({ emails, snackOpen: true, snackMessage: "Player Removed", snackType: "warning"  });
+  removePlayer(player, idx) {
+    let players = this.state.players;
+    let selectedPlayers = this.state.selectedPlayers;
+    
+    selectedPlayers.splice(idx, 1);
+    players.push(player);
+
+    this.updateState( {players: players, selectedPlayers: selectedPlayers, snackOpen: true, snackMessage: `Removed player ${player.name}` , snackType: "warning" });
   }
 
-  redirectToGame(game) {
+  openGameAdminConsole(game) {
     this.props.history.push({
       pathname: '/scoring',
       state: { game: game }
     });
   }
+
+  playGame(game) {
+    this.props.history.push({
+      pathname: '/game',
+      state: { game: game }
+    });
+  }
+
 
   redirectToCreateQuiz() {
     this.props.history.push({
@@ -244,204 +325,289 @@ class Home extends Component {
          <div className="game_wrap">
           <div className="game_container">
 
-            {this.state.activeGames.length > 0 ?  
-              <CardGroup>
-                <Card className="p-6">
-                  <CardHeader tag="h2">Active Games</CardHeader>
-                <CardBody>
-                  <Table  size="sm" bordered hover responsive>
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Finish</th>
-                        <th>Delete</th>
-                        <th>Open</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-
-                      <Modal isOpen={this.state.modalDeleteGame}>
-                        <ModalHeader closeButton>
-                          You are about to Delete a game
-                        </ModalHeader>
-                        
-                        <ModalBody>Are you sure you want to delete 
-                        { !! this.state.modalDeleteGameObject ?
-                          <b>&nbsp;{this.state.modalDeleteGameObject.name}&nbsp;</b>  : null }
-                        
-                          game? It is an active game</ModalBody> 
-                          
-                        <ModalFooter>
-                        <Button color="secondary" onClick={this.handleCloseDeleteGameModal.bind(this)}>
-                            No
-                          </Button>
-                            <Button color="primary" onClick={this.deleteGame.bind(this)}>
-                          Yes
-                            </Button>
-                        </ModalFooter>
-                      </Modal>
-                      {this.state.activeGames.map((game, idx) => 
-                        <tr key={`activegames_${idx}`}>
-                          <td align="left">{game.name}</td>
-                          <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
-                          <td><Button type="button" color="link" onClick={this.showDeleteGameModal.bind(this, game, idx)}>
-                            <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button>                  
-                            </td>
-                          <td><Button type="button" color="link" onClick={this.redirectToGame.bind(this, game)}>Open</Button></td>
-                        </tr>
-                        
-                      )}
-                    </tbody>
-                  </Table>
-                 
-                </CardBody>
-              </Card>
-              </CardGroup>
-            : null}
 
 
-            <CardGroup>
-              <Card className="p-6">
-                <CardHeader tag="h2">Available Quizzes</CardHeader>
-                <CardBody>
-                  <Table  bordered hover responsive>
-                    <thead>
-                      <tr>
-                        <th>Quiz Names</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {this.state.quizzes.map((quiz, idx) => 
-                        <tr key={`quizlist_${idx}`}>
-                          <td  style={{background: this.myColor(quiz.name, false), color: this.myColor(quiz.name, true)}} align="left" onClick={this.onQuizSelect.bind(this, quiz.name, quiz.id)}>{quiz.name}</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </Table>
-                </CardBody>
-              
-                
-
-
-                {!!this.state.quizSelected ?  
+            {/* PLAYER - Section - START */}
+            { this.state.isPlayer ?
+              <div>
+                { this.state.profileUpdated ?
                   <div>
+              
+                      { !!this.state.myActiveGames && this.state.myActiveGames.length > 0 ?
+                        <CardGroup>
+                          <Card className="p-6">
+                            <CardHeader tag="h2">My Games</CardHeader>
+                          <CardBody>
+                            <Table  size="sm" bordered hover responsive>
+                              <thead>
+                                <tr>
+                                  <th>Name</th>
+                                  <th>Open</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {this.state.myActiveGames.map((game, idx) => 
+                                  <tr key={`myactivegames_${idx}`}>
+                                    <td align="left">{game.name}</td>
+                                    <td><Button type="button" color="link" onClick={this.playGame.bind(this, game)}>Open</Button></td>
+                                  </tr>
+                                  
+                                )}
+                              </tbody>
+                            </Table>
+                          
+                          </CardBody>
+                        </Card>
+                        </CardGroup>
+                        
+                        
+                        : 
+                        
+                        <CardGroup>
+                          <Card className="p-6">
+                            <CardHeader tag="h2">There are no games available currently. Please with for your quizmaster to start a game.</CardHeader>
+                          </Card>
+                        </CardGroup>
+                      }
+                    </div>
+                
+                
+                : 
+
+                <CardGroup>
+                  <Card className="p-6">
+                    <CardHeader tag="h2">My Profile</CardHeader>
                     <CardBody>
-               
-                   
-                      <Form onSubmit={this.addPlayer}>
-                          <FormGroup>
-                          <h4 colSpan="2">You have selected: <b>{this.state.quizSelected.name}</b><br></br>Enter email addresses and start a game</h4>
-                        
-                          <Table size="sm" >
-                            <tbody>
-                              <tr><td>
-                                <Input
-                                  className="currentEmail"
-                                  id="currentEmail"
-                                  type="input"
-                                  pattern={"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"}
-                                  name="currentEmail"
-                                  placeholder="Email"
-                                  autoComplete="off"
-                                  onChange={this.handleChange}
-                                  value={this.state.currentEmail}
-                                  required
-                                /></td>
-                            <td>
-                              <Button type="submit" color="link"><img alt="Add" src={AddIcon} width="20px" height="20px"/></Button>
-                            {/* <button type="submit" color="danger"><img src={AddIcon} width="20px" height="20px"/></button> */}
-                            </td>
-                            </tr>
-                            </tbody>
-                          </Table>
-                          </FormGroup>
-                        
+                      <Form onSubmit={this.updateProfile.bind(this)}>
+                        <FormGroup>
+                          <InputGroup>
+
+                            <InputGroupAddon addonType="prepend">
+                              <InputGroupText>Name</InputGroupText>
+                            </InputGroupAddon>
+                            <InputGroupAddon addonType="append">
+                              <Input
+                                type="input"
+                                name="newName"
+                                placeholder="Name"
+                                autoComplete="off"
+                                value={this.state.newName}
+                                onChange={this.handleChange}
+                                required
+                                />
+                            </InputGroupAddon>
+                          </InputGroup>
+                          <ButtonGroup>
+                            <Button type="submit" color="primary">
+                              Update Profile
+                            </Button>
+                          </ButtonGroup> 
+                        </FormGroup>
                       </Form>
                     </CardBody>
-                  </div>
-                
-                  :
-                    
-                  <div>
-                    <CardBody>
-                      <h3>OR</h3>
-                    </CardBody>
-                    <CardBody>
-
-                      <Button color="primary" onClick={this.redirectToCreateQuiz.bind(this)}>
-                        Create Quiz 
-                      </Button>
-
-                    </CardBody>
-                  </div>
-
+                  </Card>
+                </CardGroup>
                 }
+              
+              
+              </div>
+            : null }
+            {/* PLAYER - Section - END */}
 
-                {this.state.emails.length > 0 ?
-                  <div>
-                  {/* <CardBody>
-                    <h2>Players added</h2>
-                  </CardBody> */}
+
+            {/* ADMIN - Section - START */}
+            { this.state.isAdmin ?
+              <div>
+
+              {this.state.activeGames.length > 0 ?  
+                <CardGroup>
+                  <Card className="p-6">
+                    <CardHeader tag="h2">Active Games</CardHeader>
                   <CardBody>
-                    <Table size="sm"  bordered hover responsive>
+                    <Table size="sm" bordered hover responsive>
                       <thead>
                         <tr>
-                          <th>Players Added</th>
-                          <th>Remove</th>
+                          <th>Name</th>
+                          <th>Finish</th>
+                          <th>Delete</th>
+                          <th>Open</th>
                         </tr>
                       </thead>
                       <tbody>
-                      {this.state.emails.map((email, idx) =>
-                        <tr>
-                          <td align="left">{email}</td>
-                          <td><Button class="remove_link" color="link" onClick={this.removePlayer.bind(this, idx)} > 
-                          <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button></td>
-                        </tr>
-                      )}
+
+                        <Modal isOpen={this.state.modalDeleteGame}>
+                          <ModalHeader closeButton>
+                            You are about to Delete a game
+                          </ModalHeader>
+                          
+                          <ModalBody>Are you sure you want to delete 
+                          { !! this.state.modalDeleteGameObject ?
+                            <b>&nbsp;{this.state.modalDeleteGameObject.name}&nbsp;</b>  : null }
+                          
+                            game? It is an active game</ModalBody> 
+                            
+                          <ModalFooter>
+                          <Button color="secondary" onClick={this.handleCloseDeleteGameModal.bind(this)}>
+                              No
+                            </Button>
+                              <Button color="primary" onClick={this.deleteGame.bind(this)}>
+                            Yes
+                              </Button>
+                          </ModalFooter>
+                        </Modal>
+                        {this.state.activeGames.map((game, idx) => 
+                          <tr key={`activegames_${idx}`}>
+                            <td align="left">{game.name}</td>
+                            <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
+                            <td><Button type="button" color="link" onClick={this.showDeleteGameModal.bind(this, game, idx)}>
+                              <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button>                  
+                              </td>
+                            <td><Button type="button" color="link" onClick={this.openGameAdminConsole.bind(this, game)}>Open</Button></td>
+                          </tr>
+                          
+                        )}
                       </tbody>
                     </Table>
-                    {!!this.state.emails && this.state.emails.length >0?
-                          <div>
-                            <FormGroup>
-                              <Label for="exampleText">Message</Label>
-                              <Input type="textarea" 
-                                className="emailMessage"
-                                id="emailMessage"
-                                name="emailMessage"
-                                placeholder="Enter a message to appear in the email invite. Include web conference details here if you have them."
-                                autoComplete="off"
-                                onChange={this.handleChange}
-                                value={this.state.emailMessage}
-                                required />
-                            </FormGroup>
-                            <ButtonGroup>
-                              <Button color="primary" type="button" onClick={this.showStartGameModal.bind(this)}>
-                                Start Game 
-                              </Button> 
-                              <Modal isOpen={this.state.modalStartGame}>
-                                <ModalHeader closeButton>
-                                  You are about to start a game
-                                </ModalHeader>
-                                <ModalBody>Are you sure you want to start the game?</ModalBody>
-                                <ModalFooter>
-                                <Button color="secondary" onClick={this.handleCloseStartGameModal.bind(this)}>
-                                    No
-                                  </Button>
-                                   <Button color="primary" onClick={this.startGameWithEmails.bind(this)}>
-                                    Yes
-                                   </Button>
-                                </ModalFooter>
-                              </Modal>
-                            </ButtonGroup>
-                          </div>
-                            : null
-                          }
+                  
                   </CardBody>
-                  </div>
-                : null}
-            
-            </Card>
-          </CardGroup>
+                </Card>
+                </CardGroup>
+              : null}
+
+
+              <CardGroup>
+                <Card className="p-6">
+                  <CardHeader tag="h2">Available Quizzes</CardHeader>
+                  <CardBody>
+                    <Table  bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th>Quiz Names</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {this.state.quizzes.map((quiz, idx) => 
+                          <tr key={`quizlist_${idx}`}>
+                            <td style={{background: this.myColor(quiz.name, false), color: this.myColor(quiz.name, true)}} align="left" onClick={this.onQuizSelect.bind(this, quiz.name, quiz.id)}>{quiz.name}</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </Table>
+                  </CardBody>
+                
+                  
+
+
+                  {!!this.state.quizSelected ?  
+                    <div>
+                      <CardBody>
+                
+                    
+                        
+                            <FormGroup>
+                            <h4 colSpan="2">You have selected: <b>{this.state.quizSelected.name}</b></h4>
+
+
+                            <Table size="sm"  bordered hover responsive>
+                              <thead>
+                                <tr>
+                                  <th>Player</th>
+                                  <th>Add</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+
+                                {[].concat(this.state.players).map((player, idx) => (
+                                  <tr key={`players_${idx}`}>
+                                    <td align="left">
+                                      {player.name}
+                                    </td>
+                                    <td>
+                                        <Button type="button" onClick={this.addPlayer.bind(this, player, idx)} color="link"><img alt="Add" src={AddIcon} width="20px" height="20px"/></Button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </Table>
+                              
+                            </FormGroup>
+                      </CardBody>
+
+                      <CardBody>
+                        <Table size="sm"  bordered hover responsive>
+                              <thead>
+                                <tr>
+                                  <th>Player</th>
+                                  <th>Remove</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+
+                                {[].concat(this.state.selectedPlayers).map((player, idx) => (
+                                  <tr key={`players_${idx}`}>
+                                    <td align="left">
+                                      {player.name}
+                                    </td>
+                                    <td>
+                                      <Button type="button" onClick={this.removePlayer.bind(this, player, idx)} color="link"><img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </Table>
+                      </CardBody>
+                    </div>
+                  
+                    :
+                      
+                    <div>
+                      <CardBody>
+                        <h3>OR</h3>
+                      </CardBody>
+                      <CardBody>
+
+                        <Button color="primary" onClick={this.redirectToCreateQuiz.bind(this)}>
+                          Create Quiz 
+                        </Button>
+
+                      </CardBody>
+                    </div>
+
+                  }
+
+                    
+                    
+                      <CardBody>
+                      
+                              <ButtonGroup>
+                                <Button color="primary" type="button" onClick={this.showStartGameModal.bind(this)}>
+                                  Start Game 
+                                </Button> 
+                                <Modal isOpen={this.state.modalStartGame}>
+                                  <ModalHeader closeButton>
+                                    You are about to start a game
+                                  </ModalHeader>
+                                  <ModalBody>Are you sure you want to start the game?</ModalBody>
+                                  <ModalFooter>
+                                  <Button color="secondary" onClick={this.handleCloseStartGameModal.bind(this)}>
+                                      No
+                                    </Button>
+                                    <Button color="primary" onClick={this.startGame.bind(this)}>
+                                      Yes
+                                    </Button>
+                                  </ModalFooter>
+                                </Modal>
+                              </ButtonGroup>
+                            
+                            
+                    </CardBody>
+              
+              </Card>
+            </CardGroup>
+            </div>
+          : null }
+
+          {/* ADMIN - Section - END */}
 
           <Snackbar
             anchorOrigin={{

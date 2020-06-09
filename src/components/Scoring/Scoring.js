@@ -3,7 +3,6 @@ import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import RemoveImage from '../../assets/icons/remove.png';
-import AddIcon from '../../assets/icons/add.svg';
 
 import SockJsClient from 'react-stomp';
 import { Modal, ModalBody, ModalHeader, ModalFooter, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
@@ -12,6 +11,16 @@ import DefaultHeader from '../Header';
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 
 import auth0Client from '../../Auth';
+
+const compare = (a, b) => {
+  let comparison = 0;
+  if (b.score > a.score) {
+    comparison = 1;
+  } else if (b.score < a.score) {
+    comparison = -1;
+  }
+  return comparison;
+}
 
 class Scoring extends Component {
   constructor(props) {
@@ -33,24 +42,34 @@ class Scoring extends Component {
     if (!!props.location.state && !!props.location.state.game) {
       this.state = { 
         modal: false, 
-        game: props.location.state.game, 
-        answers: [], 
-        playerEmail: '', 
-        selectedPlayersAnswers: [], 
-        snackOpen: false, 
-        snackMessage: "", 
-        snackType: "", 
+        game: props.location.state.game,
+        players: [],
+        answers: [],
+        playerEmail: '',
+        selectedPlayersAnswers: [],
+        snackOpen: false,
+        snackMessage: "",
+        snackType: "",
         showModalDeletePlayer: false,
         answeredCurrentQuestion: []};
-      this.loadQuiz();
-      this.loadAllUnscoredAnswers();
-      this.updateLeaderboard();
+      
     } else if (rawState !== undefined && rawState !== null && rawState !== '') {
       this.state = JSON.parse(rawState);
     } else {
       this.state = null;
       sessionStorage.removeItem("scoringState");
     }
+  }
+
+  async componentDidMount() {
+    // Get the players first
+    let response = await gameService.getPlayersForGame(this.state.game.id);
+    this.updateState({players: response.data})
+    
+    // Load the rest
+    this.loadQuiz();
+    this.loadAllUnscoredAnswers();
+    this.updateLeaderboard();
   }
 
   updateState(stateDelta) {
@@ -102,7 +121,7 @@ class Scoring extends Component {
 
   goHome() {
     this.props.history.push({
-      pathname: '/home'
+      pathname: '/'
     });
   }
 
@@ -128,7 +147,6 @@ class Scoring extends Component {
   }
 
   loadAllUnscoredAnswers() {
-
     let thisObj = this;
 
     answerService.getUnscoredAnswers(this.state.game.id).then(response => {
@@ -340,7 +358,7 @@ class Scoring extends Component {
                         <UncontrolledCollapse toggler={"#toggler_" + idx}>
                           
                           <CardBody>
-                            <Table size="sm" responsive>
+                            <Table responsive>
                               <thead>
                                 <tr>
                                   <th>Question</th>
@@ -385,11 +403,11 @@ class Scoring extends Component {
 
 
 
-            {!!this.state.answeredCurrentQuestion && !!this.state.game ?
+            {!!this.state.answeredCurrentQuestion && !!this.state.players ?
                       
-              <Progress striped={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) < 1} 
-              color={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) < 1 ?"info":"success"} 
-              value={(this.state.answeredCurrentQuestion.length / this.state.game.players.length) * 100}>
+              <Progress striped={(this.state.answeredCurrentQuestion.length / this.state.players.length) < 1} 
+              color={(this.state.answeredCurrentQuestion.length / this.state.players.length) < 1 ?"info":"success"} 
+              value={(this.state.answeredCurrentQuestion.length / this.state.players.length) * 100}>
                 Current Question Progress
               </Progress>
                       
@@ -404,26 +422,26 @@ class Scoring extends Component {
 
                       <CardGroup>
                       
-                      <Table  size="sm" bordered hover responsive="xl"
-                      >
+                      <Table bordered hover responsive>
                         <thead>
                           <tr>
-                            <th>Question</th>
+                            <th></th>
                             <th>Player</th>
+                            <th>Question</th>
                             <th>Correct Answer</th>
                             <th>Provided Answer</th>
                             <th>Max Points</th>
                             <th>Score</th>
-                           
                           </tr>
                         </thead>
                         <tbody>
 
                         {this.state.answers.map((answer, idx) => (
                             <tr>
-                              
+                                <td><img alt="Player" src={this.state.players.find(player => player.id === answer.answer.playerId).picture} className="thumbnail_size"/></td>
+                                <td>{this.state.players.find(player => player.id === answer.answer.playerId).name}</td>
                                 <td align="left">{answer.question.question}</td>
-                                <td>{answer.answer.playerId}</td>
+                                
                                 <td>{answer.question.answer}</td>
                                 <td>{answer.answer.answer}</td>
                                 <td>{answer.question.points}</td>
@@ -473,7 +491,7 @@ class Scoring extends Component {
               </CardGroup>
 
 
-              { !!this.state.leaderboard && !!this.state.leaderboard.scores.length >0 ? 
+              { !!this.state.players && !!this.state.leaderboard && !!this.state.leaderboard.scores.length >0 ? 
               <CardGroup>
                 <Card className="p-6">
                   <CardHeader tag="h2">Leaderboard</CardHeader>
@@ -482,19 +500,21 @@ class Scoring extends Component {
                   <Table bordered hover responsive>
                       <thead>
                         <tr>
+                          <th>Avatar</th>
                           <th>Player</th>
                           <th>Score</th>
                         </tr>
                       </thead>
                       <tbody>
 
-                        {[].concat(this.state.leaderboard.scores).sort((a, b) => a.score < b.score).map((entry) => (
-                          <tr>
+                        {[].concat(this.state.leaderboard.scores).sort(compare).map((entry, idx) => (
+                          <tr key={"leaderboard_" + idx}>
+                            <td>
+                              <img alt="Image Preview" src={this.state.players.find(p => p.id === entry.playerId).picture} class="thumbnail_size" />
+                            </td>
                             <td align="left">
-                              {/* <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.playerId)}> */}
-                                {entry.playerId}
-                                {/* </Button> */}
-                              </td>
+                              {this.state.players.find(p => p.id === entry.playerId).name}
+                            </td>
                             <td>{entry.score}</td>
                           </tr>
                         ))}
@@ -524,7 +544,7 @@ class Scoring extends Component {
 
                   {!!this.state.quiz ?
                     <CardBody>
-                      <Table    bordered hover responsive>
+                      <Table bordered hover responsive>
                       <thead>
                         <tr>
                           <th>Round</th>
@@ -577,71 +597,35 @@ class Scoring extends Component {
                                    </Button>
                                 </ModalFooter>
                               </Modal>
-                  <Table size="sm"  bordered hover responsive>
+                    <Table bordered hover responsive>
                       <thead>
                         <tr>
+                          <th>Avatar</th>
                           <th>Player</th>
                           <th>Remove</th>
                         </tr>
                       </thead>
                       <tbody>
 
-                        {[].concat(this.state.game.players).map((entry, idx) => (
+                        {[].concat(this.state.players).map((player, idx) => (
                           <tr key={`players_${idx}`}>
-                            <td align="left">
-                              <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, entry.displayName)}> {entry.displayName}</Button>
+                            <td>
+                              {player.picture ?<img alt="Image Preview" src={player.picture} class="thumbnail_size" />:null}
                             </td>
-                            {/* <td><Button type="button" color="link" onClick={this.removePlayer.bind(this, entry.id)}>Remove</Button></td> */}
-                            <td><Button className="remove_link" color="link" onClick={this.showDeletePlayerModal.bind(this, entry)} >
-                            <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button></td>
+                            <td align="left">
+                              <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, player.id)}> {player.name}</Button>
+                            </td>
+                            <td>
+                              <Button className="remove_link" color="link" onClick={this.showDeletePlayerModal.bind(this, player)} >
+                                <img alt="Remove" src={RemoveImage} width="20px" height="20px"/>
+                              </Button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </Table>
 
 
-                  </CardBody>
-                  <CardBody>
-                    {/* <Form onSubmit={this.addPlayer}>
-                      <FormGroup>
-                        <Input
-                          className="playerEmail"
-                          type="input"
-                          name="playerEmail"
-                          value={this.state.playerEmail}
-                          onChange={this.handleChange}
-                          required
-                          />
-                      </FormGroup>
-                        <ButtonGroup vertical>
-                          <Button type="submit">
-                            Add Player
-                          </Button>
-                        </ButtonGroup>
-                    </Form>  */}
-                     <Form onSubmit={this.addPlayer}>
-                          <FormGroup>
-                        
-                          <Table size="sm" >
-                            <tbody>
-                              <tr><td>
-                                <Input
-                                className="playerEmail"
-                                type="input"
-                                name="playerEmail"
-                                onChange={this.handleChange}
-                                value={this.state.playerEmail}
-                                required
-                              /></td>
-                            <td>
-                            <Button type="button" color="link" onClick={this.addPlayer}><img alt="Add" src={AddIcon} width="20px" height="20px"/></Button>
-                            </td>
-                            </tr>
-                            </tbody>
-                          </Table>
-                          </FormGroup>
-                        
-                      </Form>
                   </CardBody>
               </Card>
             </CardGroup>
@@ -651,7 +635,7 @@ class Scoring extends Component {
             <CardGroup>
                 <Card>
                 <CardBody>
-                Back to  <a href="/home"><span className="form_container_text_link">Home</span></a>
+                Back to  <a href="/"><span className="form_container_text_link">Home</span></a>
                 </CardBody>
                 </Card>
               </CardGroup>  
@@ -721,7 +705,7 @@ class Scoring extends Component {
               </Modal>
               : null }
               
-              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getIdToken()} topics={['/scoring', '/user/scoring']}
+              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getAccessToken()} topics={['/scoring', '/user/scoring']}
                 onMessage={ this.handleWebsocketMessage.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
 

@@ -8,11 +8,13 @@ class Auth {
       audience: process.env.REACT_APP_AUTH0_AUDIENCE,
       clientID: process.env.REACT_APP_AUTH0_CLIENT_ID,
       redirectUri: process.env.REACT_APP_AUTH0_REDIRECT_URL,
-      responseType: 'id_token',
+      responseType: 'id_token code token',
       scope: process.env.REACT_APP_AUTH0_SCOPE
     });
 
     this.getProfile = this.getProfile.bind(this);
+    this.getIdToken = this.getIdToken.bind(this);
+    this.getAccessToken = this.getAccessToken.bind(this);
     this.handleAuthentication = this.handleAuthentication.bind(this);
     this.isAuthenticated = this.isAuthenticated.bind(this);
     this.signIn = this.signIn.bind(this);
@@ -26,6 +28,15 @@ class Auth {
   getIdToken() {
     return this.idToken;
   }
+
+  getAccessToken() {
+    return this.accessToken;
+  }
+
+  getScope() {
+    return this.scope;
+  }
+
 
   isAuthenticated() {
     return new Date().getTime() < this.expiresAt;
@@ -49,11 +60,11 @@ class Auth {
   }
 
   setSession(authResult) {
-    // TODO Remove this
-    console.log(JSON.stringify(authResult));
 
     this.idToken = authResult.idToken;
     this.profile = authResult.idTokenPayload;
+    this.accessToken = authResult.accessToken;
+    this.scope = authResult.scope;
 
     // set the time that the id token will expire at
     this.expiresAt = authResult.idTokenPayload.exp * 1000;

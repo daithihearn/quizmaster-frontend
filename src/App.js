@@ -70,7 +70,7 @@ class App extends Component {
       <div>
           <Route exact path='/callback' component={Callback}/>
 
-          <SecuredRoute path="/home" name="Home" component={HomePage} checkingSession={this.state.checkingSession} match={match} location={location} history={history}/>
+          <SecuredRoute path="/" name="Home" component={HomePage} checkingSession={this.state.checkingSession} match={match} location={location} history={history}/>
           <SecuredRoute path="/createquiz" name="Createquiz" component={CreateQuiz} checkingSession={this.state.checkingSession} match={match} location={location} history={history}/>
           <SecuredRoute path="/game" name="Game" component={GamePage} checkingSession={this.state.checkingSession} match={match} location={location} history={history}/>
           <SecuredRoute path="/scoring" name="Scoring" component={ScoringPage} checkingSession={this.state.checkingSession} match={match} location={location} history={history}/>

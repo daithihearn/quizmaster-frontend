@@ -5,7 +5,7 @@ const axios = require('axios');
 class GameService {
 
   get = (gameId) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -20,7 +20,7 @@ class GameService {
   };
 
   getAll = () => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -35,8 +35,24 @@ class GameService {
     }
   };
 
+  getMyActiveGames = () => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/game/active`, config)
+      return result;
+    }
+  }
+
   getActive = () => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -51,8 +67,8 @@ class GameService {
     }
   };
 
-  getPlayers = () => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+  getAllPlayers = () => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -62,13 +78,29 @@ class GameService {
         }
       };
       const result = axios
-        .get(`${process.env.REACT_APP_API_URL}/api/v1/game/players`, config)
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/players/all`, config)
+      return result;
+    }
+  };
+
+  getPlayersForGame = (gameId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/game/players?gameId=${gameId}`, config)
       return result;
     }
   };
 
   put = (createGame) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -83,7 +115,7 @@ class GameService {
   };
 
   addPlayer = (gameId, playerEmail) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -98,7 +130,7 @@ class GameService {
   };
 
   removePlayer = (gameId, playerId) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -113,7 +145,7 @@ class GameService {
   };
 
   finish = (gameId) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -128,7 +160,7 @@ class GameService {
   };
 
   cancel = (gameId) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -144,7 +176,7 @@ class GameService {
 
 
   delete = (gameId) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -159,7 +191,7 @@ class GameService {
   };
 
   publishQuestion = (pointer) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -173,8 +205,8 @@ class GameService {
     }
   };
 
-  getCurrentContent = () => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+  getCurrentContent = (gameId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -184,7 +216,7 @@ class GameService {
         }
       };
       const result = axios
-        .get(`${process.env.REACT_APP_API_URL}/api/v1/game/currentContent`, config)
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/game/currentContent?gameId=${gameId}`, config)
       return result;
     }
   };

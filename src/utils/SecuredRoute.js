@@ -5,7 +5,7 @@ import auth0Client from '../Auth';
 function SecuredRoute(props) {
   const {component: Component, path, checkingSession, ...rest} = props;
   return (
-    <Route path={path} component={() => {
+    <Route exact path={path} component={() => {
       if (checkingSession) return <h3 className="text-center">Validating session...</h3>;
       if (!auth0Client.isAuthenticated()) {
         auth0Client.signIn();

@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import answerService from '../../services/AnswerService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
-import DataTable, { createTheme } from 'react-data-table-component';
 import PlayImage from '../../assets/icons/play.png';
 import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Container, Table, Progress } from 'reactstrap';
 import ReactPlayer from 'react-player'
@@ -15,57 +14,51 @@ import auth0Client from '../../Auth';
 
 const noSleep = new NoSleep();
 
+const compare = (a, b) => {
+  let comparison = 0;
+  if (b.score > a.score) {
+    comparison = 1;
+  } else if (b.score < a.score) {
+    comparison = -1;
+  }
+  return comparison;
+}
+
 class Game extends Component {  
 
   constructor(props) {
     super(props);
 
-    this.state = { waiting: true, answers: [], 
-      question: null, answer: "", leaderboard: null, 
+    if (!props.location.state || !props.location.state.game) {
+      this.parseError({message: "No Game provided"})
+      return;
+    }
+
+    this.state = { game: props.location.state.game, waiting: true, answers: [],
+      question: null, answer: "", leaderboard: null,
       roundSummary: null, snackOpen: false,
       snackMessage: "", snackType: "",
       answeredCurrentQuestion: []
     };
 
-    createTheme('solarized', {
-      text: {
-        primary: '#000000',
-        secondary: '#333333',
-      },
-      background: {
-        default: '#ffffff',
-      },
-      context: {
-        background: '#ffffff',
-        text: '#ffffff',
-      },
-      divider: {
-        default: '#073642',
-      },
-      action: {
-        button: 'rgba(0,0,0,.54)',
-        hover: 'rgba(0,0,0,.08)',
-        disabled: 'rgba(0,0,0,.12)',
-      },
-    });
-
-    this.getCurrentContent();
-    this.getAnswers();
-    this.getPlayers();
-
+    this.goHome = this.goHome.bind(this);
     this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
   }
 
+  async componentDidMount() {
+    this.getCurrentContent(this.state.game.id);
+    this.getAllAnswers(this.state.game.id);
+    this.getPlayersForGame(this.state.game.id);
+  }
 
   componentDidUpdate(nextState){
     if(this.state.answer === ""){
      this.scropToTop();
     }
   }
-
 
   handleClose() {
     this.updateState({ snackOpen: false });
@@ -75,24 +68,23 @@ class Game extends Component {
     this.setState(prevState => (stateDelta));
   }
 
-  getCurrentContent() {
+  getCurrentContent(gameId) {
     let thisObj = this;
-    gameService.getCurrentContent().then(response => {
-
+    gameService.getCurrentContent(gameId).then(response => {
       thisObj.parseScreenContent(response.data)
     }).catch(error => thisObj.parseError(error));
   }
 
-  getAnswers() {
+  getAllAnswers(gameId) {
     let thisObj = this;
-    answerService.getAllAnswers().then(response => {
+    answerService.getAllAnswers(gameId).then(response => {
       thisObj.updateState({answers: response.data})
     }).catch(error => thisObj.parseError(error));
   }
 
-  getPlayers() {
+  getPlayersForGame(gameId) {
     let thisObj = this;
-    gameService.getPlayers().then(response => {
+    gameService.getPlayersForGame(gameId).then(response => {
       thisObj.updateState({players: response.data})
     }).catch(error => thisObj.parseError(error));
   }
@@ -160,8 +152,6 @@ class Game extends Component {
       answer: this.state.answer
     }
     
-   
-
     answerService.submitAnswer(answer).then(response => {
       let answeredQuestions = thisObj.state.answers.push(answer);
       thisObj.setState({ submitDisabled: false, waiting: true, answeredQuestion: answeredQuestions, 
@@ -194,6 +184,12 @@ class Game extends Component {
     this.updateState({ snackOpen: true, snackMessage: errorMessage, snackType: "error" });
   }
 
+  goHome() {
+    this.props.history.push({
+      pathname: '/'
+    });
+  }
+
   render() {
    
     return (
@@ -210,7 +206,15 @@ class Game extends Component {
          <div className="game_wrap">
           <div className="game_container">
 
-          {!!this.state.players && !!this.state.answeredCurrentQuestion ?
+          <CardGroup>
+            <Card>
+            <CardBody>
+            Back to  <Button type="button" color="link" onClick={this.goHome}><span className="form_container_text_link">Home</span></Button>
+            </CardBody>
+            </Card>
+          </CardGroup>
+
+          {!!this.state && !!this.state.players && !!this.state.answeredCurrentQuestion ?
                       
             <Progress striped={(this.state.answeredCurrentQuestion.length / this.state.players.length) < 1} 
             color={(this.state.answeredCurrentQuestion.length / this.state.players.length) < 1 ?"info":"success"} 
@@ -284,41 +288,42 @@ class Game extends Component {
             : null
             }
 
-          {!!this.state.leaderboard ? 
+          {!!this.state.players && !!this.state.leaderboard ? 
 
-            <CardGroup>
-              <Card className="p-6">
-                {!!this.state.leaderboard.roundId ? 
-                  <CardHeader tag="h1">Round Leaderboard</CardHeader>
-                :
-                  <CardHeader tag="h1">Full Leaderboard</CardHeader>
-                }
-                <CardBody>
-                  <DataTable
-                    defaultSortField="score"
-                    defaultSortAsc={false}
-                    columns={[
-                      {
-                        name: 'Player',
-                        selector: 'playerId',
-                        sortable: true,
-                      },
-                      {
-                        name: 'Score',
-                        selector: 'score',
-                        sortable: true,
-                        right: true,
-                      },
-                    ]}
-                      data={this.state.leaderboard.scores}
-                      theme="solarized"
-                  />
+
+              <CardGroup>
+                <Card className="p-6">
+                  <CardHeader tag="h2">Leaderboard</CardHeader>
+                  <CardBody>
+
+                  <Table bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th>Avatar</th>
+                          <th>Player</th>
+                          <th>Score</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+
+                        {[].concat(this.state.leaderboard.scores).sort(compare).map((entry, idx) => (
+                          <tr key={"leaderboard_" + idx}>
+                            <td>
+                              <img alt="Image Preview" src={this.state.players.find(p => p.id === entry.playerId).picture} class="thumbnail_size" />
+                            </td>
+                            <td align="left">
+                              {this.state.players.find(p => p.id === entry.playerId).name}
+                            </td>
+                            <td>{entry.score}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
                 </CardBody>
+                
               </Card>
             </CardGroup>
-
-          : null
-          }
+          : null }
 
           {!!this.state.roundSummary ? 
               <CardGroup>
@@ -360,7 +365,7 @@ class Game extends Component {
           : null
           }
 
-      <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getIdToken()} topics={['/game', '/user/game']}
+      <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getAccessToken()} topics={['/game', '/user/game']}
                 onMessage={ this.handleWebsocketMessage.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
 

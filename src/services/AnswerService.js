@@ -5,7 +5,7 @@ const axios = require('axios');
 class AnswerService {
 
   submitAnswer = (answer) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -19,8 +19,8 @@ class AnswerService {
     }
   };
 
-  getAllAnswers = () => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+  getAllAnswers = (gameId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -29,14 +29,14 @@ class AnswerService {
         }
       };
       const result = axios
-        .get(`${process.env.REACT_APP_API_URL}/api/v1/answer/all`, config)
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/answer/all?gameId=${gameId}`, config)
       return result;
     }
   };
 
 
   submitCorrection = (answer) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -51,7 +51,7 @@ class AnswerService {
   };
 
   getAnswers = (gameId, roundId, playerId) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -60,12 +60,12 @@ class AnswerService {
           "Content-Type": "application/json"
         }
       };
-      let queryString = `?gameId=${gameId}`;
+      let queryString = `?gameId=${escape(gameId)}`;
       if (roundId !== null && roundId !== undefined) {
-        queryString = queryString + `&roundId=${roundId}`;
+        queryString = queryString + `&roundId=${escape(roundId)}`;
       }
       if (playerId !== null && playerId !== undefined) {
-        queryString = queryString + `&playerId=${playerId}`;
+        queryString = queryString + `&playerId=${escape(playerId)}`;
       }
 
       const result = axios
@@ -75,7 +75,7 @@ class AnswerService {
   };
 
   getUnscoredAnswers = (id) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -91,7 +91,7 @@ class AnswerService {
   };
 
   getLeaderboard = (gameId, roundId) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -111,7 +111,7 @@ class AnswerService {
   };
 
   publishLeaderboard = (gameId, roundId) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
@@ -133,7 +133,7 @@ class AnswerService {
 
 
   publishAnswersForRound = (gameId, roundId) => {
-    let authHeader = `Bearer ${auth0Client.getIdToken()}`;
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
       let config = {
