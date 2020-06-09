@@ -4,8 +4,9 @@ RUN npm install -g serve
 
 WORKDIR /usr/src/app
 COPY package*.json ./
-COPY .env ./
 RUN npm install
+
+COPY .env ./
 
 COPY ./public ./public
 COPY ./src ./src
