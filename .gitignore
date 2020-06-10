@@ -9,3 +9,5 @@ node_modules/
 .project
 .settings/
 .env
+.env.dev
+.env.prod
