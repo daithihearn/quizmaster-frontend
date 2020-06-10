@@ -325,289 +325,308 @@ class Home extends Component {
          <div className="game_wrap">
           <div className="game_container">
 
-
-
-            {/* PLAYER - Section - START */}
-            { this.state.isPlayer ?
-              <div>
-                { this.state.profileUpdated ?
-                  <div>
-              
-                      { !!this.state.myActiveGames && this.state.myActiveGames.length > 0 ?
-                        <CardGroup>
-                          <Card className="p-6">
-                            <CardHeader tag="h2">My Games</CardHeader>
-                          <CardBody>
-                            <Table  size="sm" bordered hover responsive>
-                              <thead>
-                                <tr>
-                                  <th>Name</th>
-                                  <th>Open</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {this.state.myActiveGames.map((game, idx) => 
-                                  <tr key={`myactivegames_${idx}`}>
-                                    <td align="left">{game.name}</td>
-                                    <td><Button type="button" color="link" onClick={this.playGame.bind(this, game)}>Open</Button></td>
-                                  </tr>
-                                  
-                                )}
-                              </tbody>
-                            </Table>
-                          
-                          </CardBody>
-                        </Card>
-                        </CardGroup>
-                        
-                        
-                        : 
-                        
-                        <CardGroup>
-                          <Card className="p-6">
-                            <CardHeader tag="h2">There are no games available currently. Please with for your quizmaster to start a game.</CardHeader>
-                          </Card>
-                        </CardGroup>
-                      }
-                    </div>
-                
-                
-                : 
-
-                <CardGroup>
-                  <Card className="p-6">
-                    <CardHeader tag="h2">My Profile</CardHeader>
-                    <CardBody>
-                      <Form onSubmit={this.updateProfile.bind(this)}>
-                        <FormGroup>
-                          <InputGroup>
-
-                            <InputGroupAddon addonType="prepend">
-                              <InputGroupText>Name</InputGroupText>
-                            </InputGroupAddon>
-                            <InputGroupAddon addonType="append">
-                              <Input
-                                type="input"
-                                name="newName"
-                                placeholder="Name"
-                                autoComplete="off"
-                                value={this.state.newName}
-                                onChange={this.handleChange}
-                                required
-                                />
-                            </InputGroupAddon>
-                          </InputGroup>
-                          <ButtonGroup>
-                            <Button type="submit" color="primary">
-                              Update Profile
-                            </Button>
-                          </ButtonGroup> 
-                        </FormGroup>
-                      </Form>
-                    </CardBody>
-                  </Card>
-                </CardGroup>
-                }
-              
-              
-              </div>
-            : null }
-            {/* PLAYER - Section - END */}
-
-
-            {/* ADMIN - Section - START */}
-            { this.state.isAdmin ?
-              <div>
-
-              {this.state.activeGames.length > 0 ?  
-                <CardGroup>
-                  <Card className="p-6">
-                    <CardHeader tag="h2">Active Games</CardHeader>
-                  <CardBody>
-                    <Table size="sm" bordered hover responsive>
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Finish</th>
-                          <th>Delete</th>
-                          <th>Open</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-
-                        <Modal isOpen={this.state.modalDeleteGame}>
-                          <ModalHeader closeButton>
-                            You are about to Delete a game
-                          </ModalHeader>
-                          
-                          <ModalBody>Are you sure you want to delete 
-                          { !! this.state.modalDeleteGameObject ?
-                            <b>&nbsp;{this.state.modalDeleteGameObject.name}&nbsp;</b>  : null }
-                          
-                            game? It is an active game</ModalBody> 
-                            
-                          <ModalFooter>
-                          <Button color="secondary" onClick={this.handleCloseDeleteGameModal.bind(this)}>
-                              No
-                            </Button>
-                              <Button color="primary" onClick={this.deleteGame.bind(this)}>
-                            Yes
-                              </Button>
-                          </ModalFooter>
-                        </Modal>
-                        {this.state.activeGames.map((game, idx) => 
-                          <tr key={`activegames_${idx}`}>
-                            <td align="left">{game.name}</td>
-                            <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
-                            <td><Button type="button" color="link" onClick={this.showDeleteGameModal.bind(this, game, idx)}>
-                              <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button>                  
-                              </td>
-                            <td><Button type="button" color="link" onClick={this.openGameAdminConsole.bind(this, game)}>Open</Button></td>
-                          </tr>
-                          
-                        )}
-                      </tbody>
-                    </Table>
-                  
-                  </CardBody>
-                </Card>
-                </CardGroup>
-              : null}
-
-
-              <CardGroup>
-                <Card className="p-6">
-                  <CardHeader tag="h2">Available Quizzes</CardHeader>
-                  <CardBody>
-                    <Table  bordered hover responsive>
-                      <thead>
-                        <tr>
-                          <th>Quiz Names</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {this.state.quizzes.map((quiz, idx) => 
-                          <tr key={`quizlist_${idx}`}>
-                            <td style={{background: this.myColor(quiz.name, false), color: this.myColor(quiz.name, true)}} align="left" onClick={this.onQuizSelect.bind(this, quiz.name, quiz.id)}>{quiz.name}</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </Table>
-                  </CardBody>
-                
-                  
-
-
-                  {!!this.state.quizSelected ?  
-                    <div>
-                      <CardBody>
-                
-                    
-                        
-                            <FormGroup>
-                            <h4 colSpan="2">You have selected: <b>{this.state.quizSelected.name}</b></h4>
-
-
-                            <Table size="sm"  bordered hover responsive>
-                              <thead>
-                                <tr>
-                                  <th>Player</th>
-                                  <th>Add</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-
-                                {[].concat(this.state.players).map((player, idx) => (
-                                  <tr key={`players_${idx}`}>
-                                    <td align="left">
-                                      {player.name}
-                                    </td>
-                                    <td>
-                                        <Button type="button" onClick={this.addPlayer.bind(this, player, idx)} color="link"><img alt="Add" src={AddIcon} width="20px" height="20px"/></Button>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </Table>
-                              
-                            </FormGroup>
-                      </CardBody>
-
-                      <CardBody>
-                        <Table size="sm"  bordered hover responsive>
-                              <thead>
-                                <tr>
-                                  <th>Player</th>
-                                  <th>Remove</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-
-                                {[].concat(this.state.selectedPlayers).map((player, idx) => (
-                                  <tr key={`players_${idx}`}>
-                                    <td align="left">
-                                      {player.name}
-                                    </td>
-                                    <td>
-                                      <Button type="button" onClick={this.removePlayer.bind(this, player, idx)} color="link"><img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </Table>
-                      </CardBody>
-                    </div>
-                  
-                    :
-                      
-                    <div>
-                      <CardBody>
-                        <h3>OR</h3>
-                      </CardBody>
-                      <CardBody>
-
-                        <Button color="primary" onClick={this.redirectToCreateQuiz.bind(this)}>
-                          Create Quiz 
-                        </Button>
-
-                      </CardBody>
-                    </div>
-
-                  }
-
-                    
-                    
-                      <CardBody>
-                      
-                              <ButtonGroup>
-                                <Button color="primary" type="button" onClick={this.showStartGameModal.bind(this)}>
-                                  Start Game 
-                                </Button> 
-                                <Modal isOpen={this.state.modalStartGame}>
-                                  <ModalHeader closeButton>
-                                    You are about to start a game
-                                  </ModalHeader>
-                                  <ModalBody>Are you sure you want to start the game?</ModalBody>
-                                  <ModalFooter>
-                                  <Button color="secondary" onClick={this.handleCloseStartGameModal.bind(this)}>
-                                      No
-                                    </Button>
-                                    <Button color="primary" onClick={this.startGame.bind(this)}>
-                                      Yes
-                                    </Button>
-                                  </ModalFooter>
-                                </Modal>
-                              </ButtonGroup>
-                            
-                            
-                    </CardBody>
-              
+          { !this.state.isPlayer && !this.state.isAdmin ? 
+            <CardGroup>
+              <Card className="p-6">
+                <CardHeader tag="h2">You are successfully logged in but don't yet have any access permissions. Please contact your quizmaster to get access.</CardHeader>
               </Card>
             </CardGroup>
-            </div>
-          : null }
+            :
+            <div>
+              {/* PLAYER - Section - START */}
+              { this.state.isPlayer ?
+                <div>
+                  { this.state.profileUpdated ?
+                    <div>
+                
+                        { !!this.state.myActiveGames && this.state.myActiveGames.length > 0 ?
+                          <CardGroup>
+                            <Card className="p-6">
+                              <CardHeader tag="h2">My Games</CardHeader>
+                            <CardBody>
+                              <Table  size="sm" bordered hover responsive>
+                                <thead>
+                                  <tr>
+                                    <th>Name</th>
+                                    <th>Open</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {this.state.myActiveGames.map((game, idx) => 
+                                    <tr key={`myactivegames_${idx}`}>
+                                      <td align="left">{game.name}</td>
+                                      <td><Button type="button" color="link" onClick={this.playGame.bind(this, game)}>Open</Button></td>
+                                    </tr>
+                                    
+                                  )}
+                                </tbody>
+                              </Table>
+                            
+                            </CardBody>
+                          </Card>
+                          </CardGroup>
+                          
+                          
+                          : 
+                          <div>
+                            { !this.state.isAdmin ?
+                          <CardGroup>
+                            <Card className="p-6">
+                              <CardHeader tag="h2">There are no games available currently. Please wait for your quizmaster to start a game.</CardHeader>
+                            </Card>
+                          </CardGroup>
+                            : null }
+                          </div>
+                        }
+                      </div>
+                  
+                  
+                  : 
 
-          {/* ADMIN - Section - END */}
+                  <CardGroup>
+                    <Card className="p-6">
+                      <CardHeader tag="h2">My Profile</CardHeader>
+                      <CardBody>
+                        <Form onSubmit={this.updateProfile.bind(this)}>
+                          <FormGroup>
+                            <InputGroup>
+
+                              <InputGroupAddon addonType="prepend">
+                                <InputGroupText>Name</InputGroupText>
+                              </InputGroupAddon>
+                              <InputGroupAddon addonType="append">
+                                <Input
+                                  type="input"
+                                  name="newName"
+                                  placeholder="Name"
+                                  autoComplete="off"
+                                  value={this.state.newName}
+                                  onChange={this.handleChange}
+                                  required
+                                  />
+                              </InputGroupAddon>
+                            </InputGroup>
+                            <ButtonGroup>
+                              <Button type="submit" color="primary">
+                                Update Profile
+                              </Button>
+                            </ButtonGroup> 
+                          </FormGroup>
+                        </Form>
+                      </CardBody>
+                    </Card>
+                  </CardGroup>
+                  }
+                
+                
+                </div>
+              : null }
+              {/* PLAYER - Section - END */}
+
+
+              {/* ADMIN - Section - START */}
+              { this.state.isAdmin ?
+                <div>
+
+                {this.state.activeGames.length > 0 ?  
+                  <CardGroup>
+                    <Card className="p-6">
+                      <CardHeader tag="h2">Active Games</CardHeader>
+                    <CardBody>
+                      <Table size="sm" bordered hover responsive>
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Finish</th>
+                            <th>Delete</th>
+                            <th>Open</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+
+                          <Modal isOpen={this.state.modalDeleteGame}>
+                            <ModalHeader closeButton>
+                              You are about to Delete a game
+                            </ModalHeader>
+                            
+                            <ModalBody>Are you sure you want to delete 
+                            { !! this.state.modalDeleteGameObject ?
+                              <b>&nbsp;{this.state.modalDeleteGameObject.name}&nbsp;</b>  : null }
+                            
+                              game? It is an active game</ModalBody> 
+                              
+                            <ModalFooter>
+                            <Button color="secondary" onClick={this.handleCloseDeleteGameModal.bind(this)}>
+                                No
+                              </Button>
+                                <Button color="primary" onClick={this.deleteGame.bind(this)}>
+                              Yes
+                                </Button>
+                            </ModalFooter>
+                          </Modal>
+                          {this.state.activeGames.map((game, idx) => 
+                            <tr key={`activegames_${idx}`}>
+                              <td align="left">{game.name}</td>
+                              <td><Button type="button" color="link" onClick={this.finishGame.bind(this, game, idx)}>Finish</Button></td>
+                              <td><Button type="button" color="link" onClick={this.showDeleteGameModal.bind(this, game, idx)}>
+                                <img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button>                  
+                                </td>
+                              <td><Button type="button" color="link" onClick={this.openGameAdminConsole.bind(this, game)}>Open</Button></td>
+                            </tr>
+                            
+                          )}
+                        </tbody>
+                      </Table>
+                    
+                    </CardBody>
+                  </Card>
+                  </CardGroup>
+                : null}
+
+
+                <CardGroup>
+                  <Card className="p-6">
+                    <CardHeader tag="h2">Available Quizzes</CardHeader>
+                    <CardBody>
+                      <Table  bordered hover responsive>
+                        <thead>
+                          <tr>
+                            <th>Quiz Names</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {this.state.quizzes.map((quiz, idx) => 
+                            <tr key={`quizlist_${idx}`}>
+                              <td style={{background: this.myColor(quiz.name, false), color: this.myColor(quiz.name, true)}} align="left" onClick={this.onQuizSelect.bind(this, quiz.name, quiz.id)}>{quiz.name}</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </Table>
+                    </CardBody>
+                  
+                    
+
+
+                    {!!this.state.quizSelected ?  
+                      <div>
+                        <CardBody>
+                  
+                      
+                          
+                              <FormGroup>
+                              <h4 colSpan="2">You have selected: <b>{this.state.quizSelected.name}</b></h4>
+
+
+                              <Table size="sm"  bordered hover responsive>
+                                <thead>
+                                  <tr>
+                                    <th>Avatar</th>
+                                    <th>Player</th>
+                                    <th>Add</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+
+                                  {[].concat(this.state.players).map((player, idx) => (
+                                    <tr key={`players_${idx}`}>
+                                      <td>
+                                        <img alt="Image Preview" src={player.picture} class="thumbnail_size" />
+                                      </td>
+                                      <td>
+                                        {player.name}
+                                      </td>
+                                      <td>
+                                          <Button type="button" onClick={this.addPlayer.bind(this, player, idx)} color="link"><img alt="Add" src={AddIcon} width="20px" height="20px"/></Button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </Table>
+                                
+                              </FormGroup>
+                        </CardBody>
+
+                        <CardBody>
+                          <Table size="sm"  bordered hover responsive>
+                                <thead>
+                                  <tr>
+                                    <th>Avatar</th>
+                                    <th>Player</th>
+                                    <th>Remove</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+
+                                  {[].concat(this.state.selectedPlayers).map((selectedPlayer, idx) => (
+                                    <tr key={`selectedPlayers_${idx}`}>
+                                      <td>
+                                        <img alt="Image Preview" src={selectedPlayer.picture} class="thumbnail_size" />
+                                      </td>
+                                      <td>
+                                        {selectedPlayer.name}
+                                      </td>
+                                      <td>
+                                        <Button type="button" onClick={this.removePlayer.bind(this, selectedPlayer, idx)} color="link"><img alt="Remove" src={RemoveImage} width="20px" height="20px"/></Button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </Table>
+                        </CardBody>
+                      </div>
+                    
+                      :
+                        
+                      <div>
+                        <CardBody>
+                          <h3>OR</h3>
+                        </CardBody>
+                        <CardBody>
+
+                          <Button color="primary" onClick={this.redirectToCreateQuiz.bind(this)}>
+                            Create Quiz 
+                          </Button>
+
+                        </CardBody>
+                      </div>
+
+                    }
+
+                      
+                      
+                        <CardBody>
+                        
+                                <ButtonGroup>
+                                  <Button color="primary" type="button" onClick={this.showStartGameModal.bind(this)}>
+                                    Start Game 
+                                  </Button> 
+                                  <Modal isOpen={this.state.modalStartGame}>
+                                    <ModalHeader closeButton>
+                                      You are about to start a game
+                                    </ModalHeader>
+                                    <ModalBody>Are you sure you want to start the game?</ModalBody>
+                                    <ModalFooter>
+                                    <Button color="secondary" onClick={this.handleCloseStartGameModal.bind(this)}>
+                                        No
+                                      </Button>
+                                      <Button color="primary" onClick={this.startGame.bind(this)}>
+                                        Yes
+                                      </Button>
+                                    </ModalFooter>
+                                  </Modal>
+                                </ButtonGroup>
+                              
+                              
+                      </CardBody>
+                
+                </Card>
+              </CardGroup>
+              </div>
+            : null }
+
+            {/* ADMIN - Section - END */}
+          </div>
+        }
 
           <Snackbar
             anchorOrigin={{
