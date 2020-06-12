@@ -14,7 +14,7 @@ class GameService {
         }
       };
       const result = axios
-        .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?gameId=${gameId}`, config)
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/game?gameId=${gameId}`, config)
       return result;
     }
   };
@@ -65,7 +65,7 @@ class GameService {
         .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/active`, config)
       return result;
     }
-  };
+  }
 
   getAllPlayers = () => {
     let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
@@ -205,7 +205,29 @@ class GameService {
     }
   };
 
-  getCurrentContent = (gameId) => {
+  publishLeaderboard = (gameId, roundId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      let queryString = `?gameId=${gameId}`;
+      if (roundId !== null && roundId !== undefined) {
+        queryString = queryString + `&roundId=${roundId}`;
+      }
+      const result = axios
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/publishLeaderboard${queryString}`, null, config)
+      return result;
+    }
+  };
+
+
+
+  publishAnswersForRound = (gameId, roundId) => {
     let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
     if (authHeader) {
@@ -216,7 +238,7 @@ class GameService {
         }
       };
       const result = axios
-        .get(`${process.env.REACT_APP_API_URL}/api/v1/game/currentContent?gameId=${gameId}`, config)
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/publishAnswersForRound?gameId=${gameId}&roundId=${roundId}`, null, config)
       return result;
     }
   };

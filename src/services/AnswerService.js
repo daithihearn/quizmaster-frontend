@@ -59,7 +59,7 @@ class AnswerService {
           Authorization: authHeader,
           "Content-Type": "application/json"
         }
-      };
+    };
       let queryString = `?gameId=${escape(gameId)}`;
       if (roundId !== null && roundId !== undefined) {
         queryString = queryString + `&roundId=${escape(roundId)}`;
@@ -70,6 +70,23 @@ class AnswerService {
 
       const result = axios
         .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/answer${queryString}`, config)
+      return result;
+    }
+  };
+
+  getWhoHasAnswered = (gameId, roundId, questionId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+    
+      const result = axios
+          .get(`${process.env.REACT_APP_API_URL}/api/v1/answer/answered?gameId=${gameId}&roundId=${roundId}&questionId=${questionId}`, config);
       return result;
     }
   };
@@ -106,44 +123,6 @@ class AnswerService {
       }
       const result = axios
         .get(`${process.env.REACT_APP_API_URL}/api/v1/answer/leaderboard${queryString}`, config)
-      return result;
-    }
-  };
-
-  publishLeaderboard = (gameId, roundId) => {
-    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
-
-    if (authHeader) {
-      let config = {
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json"
-        }
-      };
-      let queryString = `?gameId=${gameId}`;
-      if (roundId !== null && roundId !== undefined) {
-        queryString = queryString + `&roundId=${roundId}`;
-      }
-      const result = axios
-        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/answer/publishLeaderboard${queryString}`, null, config)
-      return result;
-    }
-  };
-
-
-
-  publishAnswersForRound = (gameId, roundId) => {
-    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
-
-    if (authHeader) {
-      let config = {
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json"
-        }
-      };
-      const result = axios
-        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/answer/publishAnswersForRound?gameId=${gameId}&roundId=${roundId}`, null, config)
       return result;
     }
   };

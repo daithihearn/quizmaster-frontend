@@ -71,6 +71,13 @@
   }
 }
 
+.avatar {
+  vertical-align: middle;
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+}
+
 .thumbnail_size {
   max-width: 128px;
   max-height: 128px;
@@ -220,7 +227,7 @@
     .game_wrap {
       min-width: 0;
       max-width: 790px;
-    }  
+    }
 
     .diplay_image_size {
       max-width: 750px;

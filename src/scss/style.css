@@ -11708,6 +11708,12 @@ html body .app.flex-row.align-items-center {
       font-family: "Open Sans";
       cursor: pointer; }
 
+.avatar {
+  vertical-align: middle;
+  width: 75px;
+  height: 75px;
+  border-radius: 50%; }
+
 .thumbnail_size {
   max-width: 128px;
   max-height: 128px; }

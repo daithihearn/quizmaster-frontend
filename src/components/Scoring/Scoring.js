@@ -31,7 +31,6 @@ class Scoring extends Component {
     this.updateState = this.updateState.bind(this);
     this.updateGame = this.updateGame.bind(this);
     this.replaceState = this.replaceState.bind(this);
-    this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
     this.handleCorrectAnswer = this.handleCorrectAnswer.bind(this);
     this.handleUpdateAnswer = this.handleUpdateAnswer.bind(this);
     this.updateLeaderboard = this.updateLeaderboard.bind(this);
@@ -63,8 +62,22 @@ class Scoring extends Component {
 
   async componentDidMount() {
     // Get the players first
-    let response = await gameService.getPlayersForGame(this.state.game.id);
-    this.updateState({players: response.data})
+    let players = await gameService.getPlayersForGame(this.state.game.id);
+    players = players.data;
+
+    // Refresh the game
+    let game = await gameService.get(this.state.game.id);
+    game = game.data;
+ 
+    let answeredCurrentQuestion = [];
+    // Who has answered the current question?
+    if (!!game.currentContent && game.currentContent.type === "QUESTION") {
+      answeredCurrentQuestion = await answerService.getWhoHasAnswered(game.id, game.currentContent.content.roundId, game.currentContent.content.questionId);
+      answeredCurrentQuestion = answeredCurrentQuestion.data;
+    }
+
+    this.updateState({players: players, game: game, answeredCurrentQuestion: answeredCurrentQuestion});
+
     
     // Load the rest
     this.loadQuiz();
@@ -161,41 +174,32 @@ class Scoring extends Component {
       thisObj.updateState( { selectedPlayersAnswers: response.data, modal: true });
     }).catch(error => thisObj.parseError(error));
   }
-
-  handleWebsocketMessage(payload) {
-
-    let publishContent = JSON.parse(payload.payload);
-    this.parseScreenContent(publishContent);
-
-  }
   
-  parseScreenContent(content) {
-    if (!content) {
+  parseUnscoredQuestionsContent(payload) {
+    if (!payload) {
       return
     }
 
+    let content = JSON.parse(payload.payload);
     let newState = this.state; 
 
-    switch (content.type) {
-      
-      case("QUESTION_AND_ANSWER"):
-    
-        if (content.gameId !== this.state.game.id) {
-          return;
-        }
-    
-        newState.answers.push(content.content);
-    
-        this.replaceState(newState);
-        break;
-      case("ANSWERED"): 
-           
-        newState.answeredCurrentQuestion.push(content.content);
-        this.replaceState(newState);
-        break;
-      default:
-        this.parseError({message: "Unsupported content type"})
+    newState.answers = content;
+
+    this.replaceState(newState);
+        
+  }
+
+  parseAnsweredContent(payload) {
+    if (!payload) {
+      return
     }
+
+    let content = JSON.parse(payload.payload);
+
+    let newState = this.state;
+    newState.answeredCurrentQuestion = content;
+    this.setState(newState);
+    this.updateLeaderboard();
   }
 
   handleChange(event) {
@@ -234,6 +238,7 @@ class Scoring extends Component {
     answerService.submitCorrection(answer).then(response => {
       answers.splice(index, 1);
       thisObj.updateState({score: null, answers: answers});
+      thisObj.updateLeaderboard();
     }).catch(error => thisObj.parseError(error));
     event.currentTarget.reset();
   }
@@ -270,7 +275,7 @@ class Scoring extends Component {
     let thisObj = this;
     event.preventDefault();
 
-    answerService.publishLeaderboard(this.state.game.id).then(response => {
+    gameService.publishLeaderboard(this.state.game.id).then(response => {
       thisObj.updateState({ snackOpen: true, snackMessage: "Full leaderboard published", snackType: "success" });
     }).catch(error => thisObj.parseError(error));
   }
@@ -278,7 +283,7 @@ class Scoring extends Component {
   publishLeaderboardForRound(round) {
     let thisObj = this;
 
-    answerService.publishLeaderboard(this.state.game.id, round.id)
+    gameService.publishLeaderboard(this.state.game.id, round.id)
       .then(response => {
         thisObj.updateState({ snackOpen: true, snackMessage: "Round leaderboard published", snackType: "success" });
     }).catch(error => thisObj.parseError(error));
@@ -287,7 +292,7 @@ class Scoring extends Component {
   publishAnswersForRound(round) {
     let thisObj = this;
 
-    answerService.publishAnswersForRound(this.state.game.id, round.id)
+    gameService.publishAnswersForRound(this.state.game.id, round.id)
       .then(response => {
         thisObj.updateState({ snackOpen: true, snackMessage: "Answers published", snackType: "success" });
     }).catch(error => thisObj.parseError(error));
@@ -438,7 +443,7 @@ class Scoring extends Component {
 
                         {this.state.answers.map((answer, idx) => (
                             <tr>
-                                <td><img alt="Player" src={this.state.players.find(player => player.id === answer.answer.playerId).picture} className="thumbnail_size"/></td>
+                                <td><img alt="Player" src={this.state.players.find(player => player.id === answer.answer.playerId).picture} className="avatar"/></td>
                                 <td>{this.state.players.find(player => player.id === answer.answer.playerId).name}</td>
                                 <td align="left">{answer.question.question}</td>
                                 
@@ -510,7 +515,7 @@ class Scoring extends Component {
                         {[].concat(this.state.leaderboard.scores).sort(compare).map((entry, idx) => (
                           <tr key={"leaderboard_" + idx}>
                             <td>
-                              <img alt="Image Preview" src={this.state.players.find(p => p.id === entry.playerId).picture} class="thumbnail_size" />
+                              <img alt="Image Preview" src={this.state.players.find(p => p.id === entry.playerId).picture} className="avatar" />
                             </td>
                             <td align="left">
                               {this.state.players.find(p => p.id === entry.playerId).name}
@@ -610,7 +615,7 @@ class Scoring extends Component {
                         {[].concat(this.state.players).map((player, idx) => (
                           <tr key={`players_${idx}`}>
                             <td>
-                              {player.picture ?<img alt="Image Preview" src={player.picture} class="thumbnail_size" />:null}
+                              {player.picture ?<img alt="Image Preview" src={player.picture} className="avatar" />:null}
                             </td>
                             <td align="left">
                               <Button type="button" color="link" onClick={this.openEditScoreModal.bind(this, player.id)}> {player.name}</Button>
@@ -705,8 +710,12 @@ class Scoring extends Component {
               </Modal>
               : null }
               
-              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getAccessToken()} topics={['/scoring', '/user/scoring']}
-                onMessage={ this.handleWebsocketMessage.bind(this) }
+              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getAccessToken()} topics={['/user/answered']}
+                onMessage={ this.parseAnsweredContent.bind(this) }
+                ref={ (client) => { this.clientRef = client }}/>
+
+              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getAccessToken()} topics={['/user/unscored']}
+                onMessage={ this.parseUnscoredQuestionsContent.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
 
 

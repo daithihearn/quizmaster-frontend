@@ -34,7 +34,9 @@ class Game extends Component {
       return;
     }
 
-    this.state = { game: props.location.state.game, waiting: true, answers: [],
+    let profile = auth0Client.getProfile();
+
+    this.state = { profile: profile, game: props.location.state.game, waiting: true, answers: [],
       question: null, answer: "", leaderboard: null,
       roundSummary: null, snackOpen: false,
       snackMessage: "", snackType: "",
@@ -45,13 +47,45 @@ class Game extends Component {
     this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleWebsocketMessage = this.handleWebsocketMessage.bind(this);
+    this.handleGameContentMessage = this.handleGameContentMessage.bind(this);
+    this.parseGameContent = this.parseGameContent.bind(this);
+    this.parseAnsweredContent = this.parseAnsweredContent.bind(this);
   }
 
   async componentDidMount() {
-    this.getCurrentContent(this.state.game.id);
-    this.getAllAnswers(this.state.game.id);
-    this.getPlayersForGame(this.state.game.id);
+    // Get the players first
+    let players = await gameService.getPlayersForGame(this.state.game.id);
+    players = players.data;
+
+    // Refresh the game
+    let game = await gameService.get(this.state.game.id);
+    game = game.data;
+
+    // Answers 
+    let answers = await answerService.getAllAnswers(this.state.game.id);
+    answers = answers.data;
+
+    this.updateState({players: players, game: game, answers: answers });
+
+    this.parseGameContent(game);
+    this.setAnsweredCurrentQuestion();
+  }
+
+  setAnsweredCurrentQuestion() {
+    let thisObj = this;
+    // Who has answered the current question?
+    if (!!this.state.game.currentContent && this.state.game.currentContent.type === "QUESTION") {
+      answerService.getWhoHasAnswered(this.state.game.id, this.state.game.currentContent.content.roundId, this.state.game.currentContent.content.questionId).then(response => {
+
+        thisObj.updateState({ answeredCurrentQuestion: response.data });
+      
+      }).catch(
+        error => {
+          thisObj.parseError(error);
+          thisObj.updateState({submitDisabled: false});
+        }
+      )
+    }
   }
 
   componentDidUpdate(nextState){
@@ -59,6 +93,7 @@ class Game extends Component {
      this.scropToTop();
     }
   }
+
 
   handleClose() {
     this.updateState({ snackOpen: false });
@@ -68,62 +103,53 @@ class Game extends Component {
     this.setState(prevState => (stateDelta));
   }
 
-  getCurrentContent(gameId) {
-    let thisObj = this;
-    gameService.getCurrentContent(gameId).then(response => {
-      thisObj.parseScreenContent(response.data)
-    }).catch(error => thisObj.parseError(error));
-  }
 
-  getAllAnswers(gameId) {
-    let thisObj = this;
-    answerService.getAllAnswers(gameId).then(response => {
-      thisObj.updateState({answers: response.data})
-    }).catch(error => thisObj.parseError(error));
-  }
-
-  getPlayersForGame(gameId) {
-    let thisObj = this;
-    gameService.getPlayersForGame(gameId).then(response => {
-      thisObj.updateState({players: response.data})
-    }).catch(error => thisObj.parseError(error));
-  }
-
-  handleWebsocketMessage(payload) {
-
-    let publishContent = JSON.parse(payload.payload);
-    this.parseScreenContent(publishContent);
-    
-  }
-
-  parseScreenContent(content) {
-    if (!content) {
+  handleGameContentMessage(payload) {
+    if (!payload) {
       return
     }
 
-    switch (content.type) {
+    this.parseGameContent(JSON.parse(payload.payload));
+  }
+
+  parseGameContent(content) {
+
+    if(!content || !content.currentContent) {
+      return
+    }
+
+    let currentContent = content.currentContent;
+
+    switch (currentContent.type) {
       case("QUESTION"):
-        if (!this.state.answers.filter(answer => answer.questionId === content.content.questionId).length > 0) {
-          this.updateState({waiting: false, question: content.content, answer: "", leaderboard: null, roundSummary: null, answeredCurrentQuestion: []});
+        if (!this.state.answers.filter(answer => answer.questionId === currentContent.content.questionId).length > 0) {
+          this.updateState({ waiting: false, game: content, question: currentContent.content, answer: "", leaderboard: null, roundSummary: null });
         }
         break;
       case("LEADERBOARD"): 
-        this.updateState({waiting: false, question: null, answer: "", leaderboard: content.content, roundSummary: null, answeredCurrentQuestion: []});
+        this.updateState({waiting: false, game: content, question: null, answer: "", leaderboard: currentContent.content, roundSummary: null, answeredCurrentQuestion: []});
         break;
       case("ROUND_SUMMARY"):
-        this.updateState({waiting: false, question: null, answer: "", leaderboard: null , roundSummary: content.content, answeredCurrentQuestion: []});
+        this.updateState({waiting: false, game: content, question: null, answer: "", leaderboard: null , roundSummary: currentContent.content, answeredCurrentQuestion: []});
         break;
-      case("ANSWERED"):
-        let newState = this.state;
-        newState.answeredCurrentQuestion.push(content.content);
-        this.setState(newState);
-        break;
-      case("GAME_SUMMARY"):
       default:
         this.parseError({message: "Unsupported content type"})
     }
    
   }
+
+  parseAnsweredContent(payload) {
+    if (!payload) {
+      return
+    }
+
+    let content = JSON.parse(payload.payload);
+
+    let newState = this.state;
+    newState.answeredCurrentQuestion = content;
+    this.setState(newState);
+  }
+        
 
   handleChange(event) {
     let key = event.target.getAttribute("name");
@@ -309,7 +335,7 @@ class Game extends Component {
                         {[].concat(this.state.leaderboard.scores).sort(compare).map((entry, idx) => (
                           <tr key={"leaderboard_" + idx}>
                             <td>
-                              <img alt="Image Preview" src={this.state.players.find(p => p.id === entry.playerId).picture} class="thumbnail_size" />
+                              <img alt="Image Preview" src={this.state.players.find(p => p.id === entry.playerId).picture} className="avatar" />
                             </td>
                             <td align="left">
                               {this.state.players.find(p => p.id === entry.playerId).name}
@@ -365,8 +391,12 @@ class Game extends Component {
           : null
           }
 
-      <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getAccessToken()} topics={['/game', '/user/game']}
-                onMessage={ this.handleWebsocketMessage.bind(this) }
+      <SockJsClient url={ `${process.env.REACT_APP_API_URL}/websocket?gameId=${this.state.game.id}&tokenId=${auth0Client.getAccessToken()}`} topics={['/game', '/user/game']}
+                onMessage={ this.handleGameContentMessage.bind(this) }
+                ref={ (client) => { this.clientRef = client }}/>
+
+      <SockJsClient url={ `${process.env.REACT_APP_API_URL}/websocket?gameId=${this.state.game.id}&tokenId=${auth0Client.getAccessToken()}`} topics={['/user/answered']}
+                onMessage={ this.parseAnsweredContent.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
 
 

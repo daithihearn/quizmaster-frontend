@@ -6,7 +6,6 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@auth0/auth0-spa-js": "^1.9.0",
     "@coreui/coreui": "^2.1.16",
     "@coreui/icons": "^1.0.1",
     "@coreui/react": "^2.5.8",
