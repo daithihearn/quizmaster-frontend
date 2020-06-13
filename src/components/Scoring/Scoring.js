@@ -9,6 +9,7 @@ import { Modal, ModalBody, ModalHeader, ModalFooter, Button, Form, FormGroup, In
 import Snackbar from "@material-ui/core/Snackbar";
 import DefaultHeader from '../Header';
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
+import errorUtils from '../../utils/ErrorUtils';
 
 import auth0Client from '../../Auth';
 
@@ -112,7 +113,7 @@ class Scoring extends Component {
     let thisObj = this;
     gameService.get(this.state.game.id).then(response => {
       thisObj.updateState({game: response.data});
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
 
   removePlayer() {
@@ -120,7 +121,7 @@ class Scoring extends Component {
     this.setState({ showModalDeletePlayer: false});
     gameService.removePlayer(this.state.game.id, this.state.modalDeletePlayer.id).then(response => {
       thisObj.updateGame();
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
 
   addPlayer(event) {
@@ -129,7 +130,7 @@ class Scoring extends Component {
     gameService.addPlayer(this.state.game.id, this.state.playerEmail).then(response => {
       thisObj.updateState({playerEmail: ''});
       thisObj.updateGame();
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
 
   goHome() {
@@ -147,7 +148,7 @@ class Scoring extends Component {
     
     quizService.getQuiz(this.state.game.quizId).then(response => {
       thisObj.updateState({ quiz: response.data });
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
 
   updateLeaderboard() {
@@ -155,7 +156,7 @@ class Scoring extends Component {
     
     answerService.getLeaderboard(this.state.game.id).then(response => {
       thisObj.updateState( { leaderboard: response.data });
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
 
   }
 
@@ -164,7 +165,7 @@ class Scoring extends Component {
 
     answerService.getUnscoredAnswers(this.state.game.id).then(response => {
       thisObj.updateState( { answers: response.data });
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
 
   openEditScoreModal(playerId) {
@@ -172,7 +173,7 @@ class Scoring extends Component {
 
     answerService.getAnswers(this.state.game.id, null, playerId).then(response => {
       thisObj.updateState( { selectedPlayersAnswers: response.data, modal: true });
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
   
   parseUnscoredQuestionsContent(payload) {
@@ -239,7 +240,7 @@ class Scoring extends Component {
       answers.splice(index, 1);
       thisObj.updateState({score: null, answers: answers});
       thisObj.updateLeaderboard();
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
     event.currentTarget.reset();
   }
 
@@ -254,7 +255,7 @@ class Scoring extends Component {
 
     answerService.submitCorrection(answer).then(response => {
       thisObj.updateState({ snackOpen: true, snackMessage: "Score updated", snackType: "success"});
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
     event.currentTarget.reset();
   }
 
@@ -268,7 +269,7 @@ class Scoring extends Component {
       let game = thisObj.state.game;
       game.publishedQuestions.push(questionId);
       thisObj.updateState({ snackOpen: true, game: game, snackMessage: "Question published", snackType: "success", answeredCurrentQuestion: [] });
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
 
   publishLeaderboard(event) {
@@ -277,7 +278,7 @@ class Scoring extends Component {
 
     gameService.publishLeaderboard(this.state.game.id).then(response => {
       thisObj.updateState({ snackOpen: true, snackMessage: "Full leaderboard published", snackType: "success" });
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
 
   publishLeaderboardForRound(round) {
@@ -286,7 +287,7 @@ class Scoring extends Component {
     gameService.publishLeaderboard(this.state.game.id, round.id)
       .then(response => {
         thisObj.updateState({ snackOpen: true, snackMessage: "Round leaderboard published", snackType: "success" });
-    }).catch(error => thisObj.parseError(error));
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
 
   publishAnswersForRound(round) {
@@ -295,28 +296,7 @@ class Scoring extends Component {
     gameService.publishAnswersForRound(this.state.game.id, round.id)
       .then(response => {
         thisObj.updateState({ snackOpen: true, snackMessage: "Answers published", snackType: "success" });
-    }).catch(error => thisObj.parseError(error));
-  }
-
-  parseError(error) {
-    let errorMessage = 'Undefined error';
-    if (
-      error.response !== undefined &&
-      error.response.data !== undefined &&
-      error.response.data.message !== undefined &&
-      error.response.data.message !== ''
-    ) {
-      errorMessage = error.response.data.message;
-    } else if (
-      error.response !== undefined &&
-      error.response.statusText !== undefined &&
-      error.response.statusText !== ''
-    ) {
-      errorMessage = error.response.statusText;
-    } else if (error.message !== undefined) {
-      errorMessage = error.message;
-    }
-    this.updateState({ snackOpen: true, snackMessage: errorMessage, snackType: "error" });
+    }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   }
 
   render() {

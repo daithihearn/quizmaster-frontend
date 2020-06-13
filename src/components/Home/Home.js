@@ -9,6 +9,9 @@ import AddIcon from '../../assets/icons/add.svg';
 import { Modal, ModalBody, ModalHeader, ModalFooter, Button, ButtonGroup, Form, FormGroup, Input, InputGroup, InputGroupAddon, InputGroupText, Card, CardBody, CardGroup, CardHeader, Table } from 'reactstrap';
 import Snackbar from "@material-ui/core/Snackbar";
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
+import BlockUi from 'react-block-ui';
+import 'react-block-ui/style.css';
+import errorUtils from '../../utils/ErrorUtils';
 
 import auth0Client from '../../Auth';
 
@@ -19,8 +22,11 @@ class Home extends Component {
    
     this.state = { 
       myActiveGames: [],
+      loadingMyActiveGames: true,
       activeGames: [],
+      loadingActiveGames: true,
       quizzes: [],
+      loadingQuizzes: true,
       players:[],
       selectedPlayers: [],
       quizSelected: null,
@@ -95,19 +101,31 @@ class Home extends Component {
   getAllQuizzes()  {
     let thisObj = this;
 
+    this.updateState({loadingQuizzes: true});
+
     quizService.getAllQuizzes().then(response => {
-      thisObj.updateState({ quizzes: response.data });
-    })
-      .catch(error => thisObj.parseError(error));
+      thisObj.updateState({ quizzes: response.data, loadingQuizzes: false });
+    }).catch(error => {
+      let state = thisObj.state;
+      Object.assign(state, errorUtils.parseError(error));
+      Object.assign(state, {loadingQuizzes: false});
+      thisObj.setState(state);
+    });
   };
 
   getActiveGames()  {
     let thisObj = this;
 
+    this.updateState({loadingActiveGames: true});
+
     gameService.getActive().then(response => {
-      thisObj.updateState({ activeGames: response.data });
-    })
-      .catch(error => thisObj.parseError(error));
+      thisObj.updateState({ activeGames: response.data, loadingActiveGames: false });
+    }).catch(error => {
+      let state = thisObj.state;
+      Object.assign(state, errorUtils.parseError(error));
+      Object.assign(state, {loadingActiveGames: false});
+      thisObj.setState(state);
+    });
   };
 
   getAllPlayers()  {
@@ -116,16 +134,22 @@ class Home extends Component {
     gameService.getAllPlayers().then(response => {
       thisObj.updateState({ players: response.data });
     })
-      .catch(error => thisObj.parseError(error));
+      .catch(error => thisObj.updateState(errorUtils.parseError(error)));
   };
 
   getMyActiveGames()  {
     let thisObj = this;
 
+    this.updateState({loadingMyActiveGames: true});
+
     gameService.getMyActiveGames().then(response => {
-      thisObj.updateState({ myActiveGames: response.data });
-    })
-      .catch(error => thisObj.parseError(error));
+      thisObj.updateState({ myActiveGames: response.data, loadingMyActiveGames: false });
+    }).catch(error => {
+        let state = thisObj.state;
+        Object.assign(state, errorUtils.parseError(error));
+        Object.assign(state, {loadingMyActiveGames: false});
+        thisObj.setState(state);
+      });
   };
 
   startGame() {
@@ -149,8 +173,10 @@ class Home extends Component {
       thisObj.updateState({startGameDisabled: false});
       thisObj.openGameAdminConsole(response.data);
     }).catch(error => {
-      thisObj.parseError(error);
-      thisObj.updateState({startGameDisabled: false}); 
+      let state = thisObj.state;
+      Object.assign(state, errorUtils.parseError(error));
+      Object.assign(state, {startGameDisabled: false});
+      thisObj.setState(state);
     });
   };
 
@@ -233,8 +259,10 @@ class Home extends Component {
     gameService.finish(game.id)
       .then(response => thisObj.updateState({ finishGameDisabled: false, activeGames: activeGames, snackOpen: true, snackMessage: "Game Finished", snackType: "success"  }))
       .catch(error => { 
-        thisObj.parseError(error); 
-        thisObj.updateState({ finishGameDisabled: false });  
+        let state = thisObj.state;
+        Object.assign(state, errorUtils.parseError(error));
+        Object.assign(state, {finishGameDisabled: false});
+        thisObj.setState(state);
       });
     this.handleCloseDeleteGameModal();
   }
@@ -249,10 +277,16 @@ class Home extends Component {
     activeGames.splice(this.state.modalDeleteGameIdx, 1);
 
     gameService.delete(this.state.modalDeleteGameObject.id)
-      .then(response => thisObj.updateState({ deleteGameDisabled: false, activeGames: activeGames, snackOpen: true, snackMessage: "Game Deleted", snackType: "warning"  }))
+      .then(response => { 
+        thisObj.updateState({ deleteGameDisabled: false, activeGames: activeGames, snackOpen: true, snackMessage: "Game Deleted", snackType: "warning"  });
+        thisObj.getActiveGames();
+        thisObj.getMyActiveGames();
+      })
       .catch(error => {
-        thisObj.parseError(error); 
-        thisObj.updateState({ deleteGameDisabled: false });  
+        let state = thisObj.state;
+        Object.assign(state, errorUtils.parseError(error));
+        Object.assign(state, {deleteGameDisabled: false});
+        thisObj.setState(state);
       });
     this.handleCloseDeleteGameModal();
   }
@@ -261,27 +295,6 @@ class Home extends Component {
     let key = event.target.getAttribute("name");
     let updateObj = { [key]: event.target.value };
     this.updateState(updateObj);
-  }
-
-  parseError(error) {
-    let errorMessage = 'Undefined error';
-    if (
-      error.response !== undefined &&
-      error.response.data !== undefined &&
-      error.response.data.message !== undefined &&
-      error.response.data.message !== ''
-    ) {
-      errorMessage = error.response.data.message;
-    } else if (
-      error.response !== undefined &&
-      error.response.statusText !== undefined &&
-      error.response.statusText !== ''
-    ) {
-      errorMessage = error.response.statusText;
-    } else if (error.message !== undefined) {
-      errorMessage = error.message;
-    }
-    this.updateState({ snackOpen: true, snackMessage: errorMessage, snackType: "error" });
   }
   
   render() {
@@ -313,6 +326,7 @@ class Home extends Component {
                 <div>
                 
                         { !!this.state.myActiveGames && this.state.myActiveGames.length > 0 ?
+                          <BlockUi tag="div" blocking={this.state.loadingMyActiveGames}>
                           <CardGroup>
                             <Card className="p-6">
                               <CardHeader tag="h2">My Games</CardHeader>
@@ -338,7 +352,7 @@ class Home extends Component {
                             </CardBody>
                           </Card>
                           </CardGroup>
-                          
+                        </BlockUi>
                           
                           : 
                           <div>
@@ -361,7 +375,8 @@ class Home extends Component {
               { this.state.isAdmin ?
                 <div>
 
-                {this.state.activeGames.length > 0 ?  
+                {this.state.activeGames.length > 0 ?
+                  <BlockUi tag="div" blocking={this.state.loadingActiveGames}>
                   <CardGroup>
                     <Card className="p-6">
                       <CardHeader tag="h2">Active Games</CardHeader>
@@ -414,9 +429,10 @@ class Home extends Component {
                     </CardBody>
                   </Card>
                   </CardGroup>
+                  </BlockUi>
                 : null}
 
-
+                <BlockUi tag="div" blocking={this.state.loadingQuizzes}>
                 <CardGroup>
                   <Card className="p-6">
                     <CardHeader tag="h2">Available Quizzes</CardHeader>
@@ -526,7 +542,7 @@ class Home extends Component {
                     }
 
                       
-                      
+                      { !!this.state.quizSelected && this.state.selectedPlayers.length > 0 ?
                         <CardBody>
                         
                                 <ButtonGroup>
@@ -551,9 +567,11 @@ class Home extends Component {
                               
                               
                       </CardBody>
+                      : null }
                 
                 </Card>
               </CardGroup>
+              </BlockUi>
               </div>
             : null }
 

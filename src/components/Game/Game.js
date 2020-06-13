@@ -9,6 +9,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import DefaultHeader from '../Header';
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 import NoSleep from 'nosleep.js';
+import errorUtils from '../../utils/ErrorUtils';
 
 import auth0Client from '../../Auth';
 
@@ -30,7 +31,7 @@ class Game extends Component {
     super(props);
 
     if (!props.location.state || !props.location.state.game) {
-      this.parseError({message: "No Game provided"})
+      this.updateState(errorUtils.parseError("No Game provided"));
       return;
     }
 
@@ -47,9 +48,7 @@ class Game extends Component {
     this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleGameContentMessage = this.handleGameContentMessage.bind(this);
     this.parseGameContent = this.parseGameContent.bind(this);
-    this.parseAnsweredContent = this.parseAnsweredContent.bind(this);
   }
 
   async componentDidMount() {
@@ -81,8 +80,10 @@ class Game extends Component {
       
       }).catch(
         error => {
-          thisObj.parseError(error);
-          thisObj.updateState({submitDisabled: false});
+          let state = thisObj.state;
+          Object.assign(state, errorUtils.parseError(error));
+          Object.assign(state, {submitDisabled: false});
+          thisObj.setState(state);
         }
       )
     }
@@ -133,7 +134,7 @@ class Game extends Component {
         this.updateState({waiting: false, game: content, question: null, answer: "", leaderboard: null , roundSummary: currentContent.content, answeredCurrentQuestion: []});
         break;
       default:
-        this.parseError({message: "Unsupported content type"})
+        this.updateState(errorUtils.parseError("Unsupported content type"));
     }
    
   }
@@ -184,30 +185,12 @@ class Game extends Component {
         question: null, answer: "", leaderboard: null,  snackOpen: true, snackMessage: "Answer submitted successfully", snackType: "success" });
         this.scropToTop();
     }).catch(error => {
-      thisObj.parseError(error);
-      thisObj.updateState({submitDisabled: false});
-    });
-  }
 
-  parseError(error) {
-    let errorMessage = 'Undefined error';
-    if (
-      error.response !== undefined &&
-      error.response.data !== undefined &&
-      error.response.data.message !== undefined &&
-      error.response.data.message !== ''
-    ) {
-      errorMessage = error.response.data.message;
-    } else if (
-      error.response !== undefined &&
-      error.response.statusText !== undefined &&
-      error.response.statusText !== ''
-    ) {
-      errorMessage = error.response.statusText;
-    } else if (error.message !== undefined) {
-      errorMessage = error.message;
-    }
-    this.updateState({ snackOpen: true, snackMessage: errorMessage, snackType: "error" });
+      let state = thisObj.state;
+      Object.assign(state, errorUtils.parseError(error));
+      Object.assign(state, {submitDisabled: false});
+      thisObj.setState(state);
+    });
   }
 
   goHome() {

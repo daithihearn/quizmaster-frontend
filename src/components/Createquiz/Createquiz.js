@@ -9,27 +9,7 @@ import DefaultHeader from '../Header';
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
 import BlockUi from 'react-block-ui';
 import 'react-block-ui/style.css';
-
-function parseError(error) {
-  let errorMessage = 'Undefined error';
-  if (
-    error.response !== undefined &&
-    error.response.data !== undefined &&
-    error.response.data.message !== undefined &&
-    error.response.data.message !== ''
-  ) {
-    errorMessage = error.response.data.message;
-  } else if (
-    error.response !== undefined &&
-    error.response.statusText !== undefined &&
-    error.response.statusText !== ''
-  ) {
-    errorMessage = error.response.statusText;
-  } else if (error.message !== undefined) {
-    errorMessage = error.message;
-  }
-  return { snackOpen: true, snackMessage: errorMessage, snackType: "error" };
-}
+import errorUtils from '../../utils/ErrorUtils';
 
 class Createquiz extends Component {
 
@@ -102,7 +82,7 @@ class Createquiz extends Component {
 
   handleChangeFile(event) {
     if (event.target.files.length > 1) {
-      return this.updateState(parseError({message: "Can only select one file"}));
+      return this.updateState(errorUtils.parseError({message: "Can only select one file"}));
     }
     let file = event.target.files[0];
 
@@ -120,7 +100,7 @@ class Createquiz extends Component {
     } else if (file.type.includes("video/")) {
       this.uploadVideo(this, file);
     } else {
-      return this.updateState(parseError({message: "Invalid file type"}));
+      return this.updateState(errorUtils.parseError({message: "Invalid file type"}));
     }
   }
 
@@ -139,7 +119,7 @@ class Createquiz extends Component {
       }
       ).catch(error => { 
         let state = thisObj.state;
-        Object.assign(state, parseError(error));
+        Object.assign(state, errorUtils.parseError(error));
         Object.assign(state, {blocking: false});
         thisObj.setState(state);
       });
@@ -165,7 +145,7 @@ class Createquiz extends Component {
       }
       ).catch(error => { 
         let state = thisObj.state;
-        Object.assign(state, parseError(error));
+        Object.assign(state, errorUtils.parseError(error));
         Object.assign(state, {blocking: false});
         thisObj.setState(state);
       });
@@ -190,7 +170,7 @@ class Createquiz extends Component {
       }
       ).catch(error => { 
         let state = thisObj.state;
-        Object.assign(state, parseError(error));
+        Object.assign(state, errorUtils.parseError(error));
         Object.assign(state, {blocking: false});
         thisObj.setState(state);
       });
@@ -261,7 +241,7 @@ class Createquiz extends Component {
       thisObj.clearState();
       thisObj.goHome();
     }
-    ).catch(error => thisObj.updateState(parseError(error)));
+    ).catch(error => thisObj.updateState(errorUtils.parseError(error)));
   };
   
   render() {
