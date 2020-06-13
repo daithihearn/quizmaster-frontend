@@ -82,7 +82,6 @@ class Game extends Component {
         error => {
           let state = thisObj.state;
           Object.assign(state, errorUtils.parseError(error));
-          Object.assign(state, {submitDisabled: false});
           thisObj.setState(state);
         }
       )

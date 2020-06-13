@@ -690,11 +690,11 @@ class Scoring extends Component {
               </Modal>
               : null }
               
-              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getAccessToken()} topics={['/user/answered']}
+              <SockJsClient url={ `${process.env.REACT_APP_API_URL}/websocket?gameId=${this.state.game.id}&tokenId=${auth0Client.getAccessToken()}`} topics={['/user/answered']}
                 onMessage={ this.parseAnsweredContent.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
 
-              <SockJsClient url={ process.env.REACT_APP_API_URL + '/websocket?tokenId=' + auth0Client.getAccessToken()} topics={['/user/unscored']}
+              <SockJsClient url={ `${process.env.REACT_APP_API_URL}/websocket?gameId=${this.state.game.id}&tokenId=${auth0Client.getAccessToken()}`} topics={['/user/unscored']}
                 onMessage={ this.parseUnscoredQuestionsContent.bind(this) }
                 ref={ (client) => { this.clientRef = client }}/>
 
