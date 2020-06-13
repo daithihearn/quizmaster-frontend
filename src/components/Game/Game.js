@@ -3,6 +3,7 @@ import answerService from '../../services/AnswerService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
 import Leaderboard from '../Leaderboard';
+import SlowPlayers from '../SlowPlayers';
 import PlayImage from '../../assets/icons/play.png';
 import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Container, Table, Progress } from 'reactstrap';
 import ReactPlayer from 'react-player'
@@ -15,16 +16,6 @@ import errorUtils from '../../utils/ErrorUtils';
 import auth0Client from '../../Auth';
 
 const noSleep = new NoSleep();
-
-const compare = (a, b) => {
-  let comparison = 0;
-  if (b.score > a.score) {
-    comparison = 1;
-  } else if (b.score < a.score) {
-    comparison = -1;
-  }
-  return comparison;
-}
 
 class Game extends Component {  
 
@@ -237,9 +228,12 @@ class Game extends Component {
           : null}
 
             {!!this.state.waiting ? 
+              <div>
 
-              <h1>Please wait for the next question...</h1>
-
+                {!!this.state && !!this.state.players && !!this.state.answeredCurrentQuestion && this.state.answeredCurrentQuestion.length > 0 && this.state.players.length !== this.state.answeredCurrentQuestion.length ?
+                  <SlowPlayers players={this.state.players} answered={this.state.answeredCurrentQuestion} title="Slow Feckers!!"/>
+                : <h1>Please wait for the next question...</h1>}
+              </div>
             : null}
 
             {!!this.state.question ? 
