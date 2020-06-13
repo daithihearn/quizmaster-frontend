@@ -3,6 +3,7 @@ import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import RemoveImage from '../../assets/icons/remove.png';
+import Leaderboard from '../Leaderboard';
 
 import SockJsClient from 'react-stomp';
 import { Modal, ModalBody, ModalHeader, ModalFooter, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
@@ -12,16 +13,6 @@ import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarCont
 import errorUtils from '../../utils/ErrorUtils';
 
 import auth0Client from '../../Auth';
-
-const compare = (a, b) => {
-  let comparison = 0;
-  if (b.score > a.score) {
-    comparison = 1;
-  } else if (b.score < a.score) {
-    comparison = -1;
-  }
-  return comparison;
-}
 
 class Scoring extends Component {
   constructor(props) {
@@ -276,6 +267,8 @@ class Scoring extends Component {
     let thisObj = this;
     event.preventDefault();
 
+    this.updateLeaderboard();
+
     gameService.publishLeaderboard(this.state.game.id).then(response => {
       thisObj.updateState({ snackOpen: true, snackMessage: "Full leaderboard published", snackType: "success" });
     }).catch(error => thisObj.updateState(errorUtils.parseError(error)));
@@ -283,6 +276,8 @@ class Scoring extends Component {
 
   publishLeaderboardForRound(round) {
     let thisObj = this;
+
+    this.updateLeaderboard();
 
     gameService.publishLeaderboard(this.state.game.id, round.id)
       .then(response => {
@@ -477,38 +472,7 @@ class Scoring extends Component {
 
 
               { !!this.state.players && !!this.state.leaderboard && !!this.state.leaderboard.scores.length >0 ? 
-              <CardGroup>
-                <Card className="p-6">
-                  <CardHeader tag="h2">Leaderboard</CardHeader>
-                  <CardBody>
-
-                  <Table bordered hover responsive>
-                      <thead>
-                        <tr>
-                          <th>Avatar</th>
-                          <th>Player</th>
-                          <th>Score</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-
-                        {[].concat(this.state.leaderboard.scores).sort(compare).map((entry, idx) => (
-                          <tr key={"leaderboard_" + idx}>
-                            <td>
-                              <img alt="Image Preview" src={this.state.players.find(p => p.id === entry.playerId).picture} className="avatar" />
-                            </td>
-                            <td align="left">
-                              {this.state.players.find(p => p.id === entry.playerId).name}
-                            </td>
-                            <td>{entry.score}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                 </CardBody>
-                
-              </Card>
-            </CardGroup>
+                <Leaderboard scores={this.state.leaderboard.scores} players={this.state.players} title="Full Leaderboard"/>
             : null }
 
 

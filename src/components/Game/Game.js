@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import answerService from '../../services/AnswerService';
 import gameService from '../../services/GameService';
 import SockJsClient from 'react-stomp';
+import Leaderboard from '../Leaderboard';
 import PlayImage from '../../assets/icons/play.png';
 import { Button, ButtonGroup, Form, FormGroup, Input, Card, CardBody, CardGroup, CardHeader, Container, Table, Progress } from 'reactstrap';
 import ReactPlayer from 'react-player'
@@ -126,8 +127,11 @@ class Game extends Component {
           this.updateState({ waiting: false, game: content, question: currentContent.content, answer: "", leaderboard: null, roundSummary: null });
         }
         break;
-      case("LEADERBOARD"): 
-        this.updateState({waiting: false, game: content, question: null, answer: "", leaderboard: currentContent.content, roundSummary: null, answeredCurrentQuestion: []});
+      case("LEADERBOARD_FULL"): 
+        this.updateState({waiting: false, game: content, question: null, answer: "", leaderboard: currentContent.content, leaderBoardTitle: "Full Leaderboard", roundSummary: null, answeredCurrentQuestion: []});
+        break;
+      case("LEADERBOARD_ROUND"): 
+        this.updateState({waiting: false, game: content, question: null, answer: "", leaderboard: currentContent.content, leaderBoardTitle: "Round Leaderboard", roundSummary: null, answeredCurrentQuestion: []});
         break;
       case("ROUND_SUMMARY"):
         this.updateState({waiting: false, game: content, question: null, answer: "", leaderboard: null , roundSummary: currentContent.content, answeredCurrentQuestion: []});
@@ -299,38 +303,8 @@ class Game extends Component {
           {!!this.state.players && !!this.state.leaderboard ? 
 
 
-              <CardGroup>
-                <Card className="p-6">
-                  <CardHeader tag="h2">Leaderboard</CardHeader>
-                  <CardBody>
+            <Leaderboard scores={this.state.leaderboard.scores} players={this.state.players} title={this.state.leaderBoardTitle}/>
 
-                  <Table bordered hover responsive>
-                      <thead>
-                        <tr>
-                          <th>Avatar</th>
-                          <th>Player</th>
-                          <th>Score</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-
-                        {[].concat(this.state.leaderboard.scores).sort(compare).map((entry, idx) => (
-                          <tr key={"leaderboard_" + idx}>
-                            <td>
-                              <img alt="Image Preview" src={this.state.players.find(p => p.id === entry.playerId).picture} className="avatar" />
-                            </td>
-                            <td align="left">
-                              {this.state.players.find(p => p.id === entry.playerId).name}
-                            </td>
-                            <td>{entry.score}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                </CardBody>
-                
-              </Card>
-            </CardGroup>
           : null }
 
           {!!this.state.roundSummary ? 
