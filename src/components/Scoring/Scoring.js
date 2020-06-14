@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import answerService from '../../services/AnswerService';
 import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
-import RemoveImage from '../../assets/icons/remove.png';
 import Leaderboard from '../Leaderboard';
+import SlowPlayers from '../SlowPlayers';
 
 import SockJsClient from 'react-stomp';
 import { Modal, ModalBody, ModalHeader, ModalFooter, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
@@ -470,7 +470,10 @@ class Scoring extends Component {
                 </Card>
               </CardGroup>
 
-
+              {!!this.state && !!this.state.players && !!this.state.answeredCurrentQuestion && this.state.answeredCurrentQuestion.length > 0 && this.state.players.length !== this.state.answeredCurrentQuestion.length ?
+                  <SlowPlayers players={this.state.players} answered={this.state.answeredCurrentQuestion} title="Slow Feckers!!"/>
+                : null}
+                
               { !!this.state.players && !!this.state.leaderboard && !!this.state.leaderboard.scores.length >0 ? 
                 <Leaderboard scores={this.state.leaderboard.scores} players={this.state.players} title="Full Leaderboard"/>
             : null }
@@ -524,7 +527,7 @@ class Scoring extends Component {
 
 
             {/* Players section */}
-            <CardGroup>
+            {/* <CardGroup>
                 <Card className="p-6">
                   <CardHeader tag="h2">Players</CardHeader>
                   <CardBody>
@@ -577,7 +580,7 @@ class Scoring extends Component {
 
                   </CardBody>
               </Card>
-            </CardGroup>
+            </CardGroup> */}
 
 
 
