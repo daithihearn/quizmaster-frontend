@@ -527,7 +527,7 @@ class Scoring extends Component {
 
 
             {/* Players section */}
-            {/* <CardGroup>
+            <CardGroup>
                 <Card className="p-6">
                   <CardHeader tag="h2">Players</CardHeader>
                   <CardBody>
@@ -580,7 +580,7 @@ class Scoring extends Component {
 
                   </CardBody>
               </Card>
-            </CardGroup> */}
+            </CardGroup>
 
 
 
