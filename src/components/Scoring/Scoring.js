@@ -4,6 +4,7 @@ import quizService from '../../services/QuizService';
 import gameService from '../../services/GameService';
 import Leaderboard from '../Leaderboard';
 import SlowPlayers from '../SlowPlayers';
+import RemoveImage from '../../assets/icons/remove.png';
 
 import SockJsClient from 'react-stomp';
 import { Modal, ModalBody, ModalHeader, ModalFooter, Button, Form, FormGroup, Input, Row, ButtonGroup, Card, CardBody, CardHeader, CardGroup, UncontrolledCollapse, Table, Progress } from 'reactstrap';
