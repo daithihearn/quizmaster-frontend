@@ -2,9 +2,5 @@
 
 ECHO Building quizmaster-frontend
 
-CALL npm install
-CALL npm run build
-RD /S /Q dist
-MOVE build dist
-CALL gradlew.bat webjar install
-XCOPY "build\libs\*.jar" "..\quizmaster-api\libs" /K /D /H /Y
+CALL docker build -t localhost:5000/quizmaster-frontend:latest .
+CALL docker push localhost:5000/quizmaster-frontend:latest

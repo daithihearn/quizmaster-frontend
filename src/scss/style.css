@@ -11649,11 +11649,15 @@ body {
 html body .app.flex-row.align-items-center {
   height: 100vh; }
 
+.body {
+  font-family: "Open Sans"; }
+
 .app_body {
   background-color: white;
   width: auto;
   flex: 1;
-  position: relative; }
+  position: relative;
+  font-family: "Open Sans"; }
 
 .card-group {
   padding-top: 10px;
@@ -11661,7 +11665,6 @@ html body .app.flex-row.align-items-center {
 
 .game_wrap {
   min-width: 650px;
-  max-height: auto;
   overflow: overlay;
   margin-left: auto;
   margin-right: auto;
@@ -11703,8 +11706,13 @@ html body .app.flex-row.align-items-center {
       color: #355ea3;
       font-weight: 700;
       font-family: "Open Sans";
-      padding: 10%;
       cursor: pointer; }
+
+.avatar {
+  vertical-align: middle;
+  width: 75px;
+  height: 75px;
+  border-radius: 50%; }
 
 .thumbnail_size {
   max-width: 128px;
@@ -11733,7 +11741,6 @@ html body .app.flex-row.align-items-center {
 
 .home-tile_wrap {
   max-width: 1140px;
-  max-height: auto;
   overflow: overlay;
   margin-left: auto;
   margin-right: auto;
@@ -11753,7 +11760,6 @@ html body .app.flex-row.align-items-center {
 
 .tile_wrap {
   max-width: 1140px;
-  max-height: auto;
   overflow: overlay;
   margin-left: auto;
   margin-right: auto;
@@ -11813,6 +11819,12 @@ html body .app.flex-row.align-items-center {
       border-right: none;
       border-bottom: 1px solid #f2f2f2; } }
   @media screen and (min-width: 800px) {
+    .card-product_Stats .game_wrap {
+      min-width: 0;
+      max-width: 790px; }
+    .card-product_Stats .diplay_image_size {
+      max-width: 750px;
+      max-height: 750px; }
     .card-product_Stats .rwd-table tr:hover:not(:first-child) {
       background-color: #d8e7f3; }
     .card-product_Stats .rwd-table td:before {
@@ -11849,40 +11861,53 @@ html body .app.flex-row.align-items-center {
     margin-bottom: 28px;
     text-align: left;
     pointer-events: none; }
-  .card-product_Stats_complianceButton {
-    font-weight: 700;
-    font-family: "Open Sans";
-    background-color: black;
-    color: white;
-    height: 40px;
-    width: 120px;
-    border-radius: 20px;
-    font-size: 14px;
-    border-style: none;
-    margin-right: 20px; }
-    .card-product_Stats_complianceButton:hover {
-      text-decoration: underline; }
-  .card-product_Stats_CPDButton {
-    font-weight: 700;
-    font-family: "Open Sans";
-    background-color: #e3f3fb;
-    color: #355ea3;
-    height: 40px;
-    width: 120px;
-    border-radius: 20px;
-    font-size: 14px;
-    border: none;
-    margin-top: 20px; }
-  .card-product_Stats_TokensImage {
-    margin: 0px 80px 0 2px;
-    margin-left: auto;
-    height: 200px;
-    width: 200px;
-    min-height: 150px;
-    min-width: 150px;
-    pointer-events: none; }
+
+.game_wrap {
+  min-width: 1000px;
+  max-width: 1300px; }
+
+.diplay_image_size {
+  max-width: 1100px;
+  max-height: 1024px; }
+
+@media only screen and (max-width: 1324px) {
+  .game_wrap {
+    min-width: 1100px;
+    max-width: 1300px; }
+  .diplay_image_size {
+    max-width: 1100px;
+    max-height: 1068px; } }
+
+@media only screen and (max-width: 1224px) {
+  .game_wrap {
+    min-width: 900px;
+    max-width: 1100px; }
+  .diplay_image_size {
+    max-width: 1020px;
+    max-height: 868px; } }
+
+@media only screen and (max-width: 1124px) {
+  .game_wrap {
+    min-width: 800px;
+    max-width: 1000px; }
+  .diplay_image_size {
+    max-width: 920px;
+    max-height: 768px; } }
+
+@media only screen and (max-width: 1024px) {
+  .game_wrap {
+    min-width: 700px;
+    max-width: 900px; }
+  .diplay_image_size {
+    max-width: 800px;
+    max-height: 668px; } }
 
 @media only screen and (max-width: 925px) {
+  .game_wrap {
+    min-width: 700px;
+    max-width: 900px; }
+  .diplay_image_size {
+    max-width: 850px; }
   .tile_wrap {
     padding: 0 20px 0 20px; }
   .card-product_Stats {
@@ -11897,20 +11922,98 @@ html body .app.flex-row.align-items-center {
       margin: 0px 30px 10px 30px; }
     .card-product_Stats_Content {
       margin-top: 28px;
-      font-size: 30px; }
-    .card-product_Stats_CPDButton {
-      margin: 14px 0px 14px 0px;
-      display: inherit; }
-    .card-product_Stats_TokensImage {
-      margin: 20px 0 0 20px;
-      margin-left: 0; } }
+      font-size: 30px; } }
 
-@media only screen and (max-width: 385px) {
+@media only screen and (max-width: 900px) {
+  .game_wrap {
+    min-width: 750px;
+    max-width: 823px; }
   .diplay_image_size {
-    max-width: 380px;
-    max-height: 380px; }
+    max-width: 790px;
+    max-height: 411px; } }
+
+@media only screen and (max-width: 823px) {
+  .game_wrap {
+    min-width: 700px;
+    max-width: 800px; }
+  .diplay_image_size {
+    max-width: 760px;
+    max-height: 411px; } }
+
+@media only screen and (max-width: 812px) {
+  .game_wrap {
+    min-width: 0;
+    max-width: 800px; }
+  .diplay_image_size {
+    max-width: 720px;
+    max-height: 375px; } }
+
+@media only screen and (max-width: 768px) {
+  .game_wrap {
+    max-width: 750px; }
+  .diplay_image_size {
+    max-width: 660px;
+    max-height: 1024px; } }
+
+@media only screen and (max-width: 736px) {
+  .game_wrap {
+    max-width: 710px; }
+  .diplay_image_size {
+    max-width: 520px;
+    max-height: 414px; } }
+
+@media only screen and (max-width: 734px) {
+  .game_wrap {
+    max-width: 700px; }
+  .diplay_image_size {
+    max-width: 520px;
+    max-height: 360px; } }
+
+@media only screen and (max-width: 667px) {
+  .game_wrap {
+    min-width: 600px;
+    max-width: 650px; }
+  .diplay_image_size {
+    max-width: 530px;
+    max-height: 375px; } }
+
+@media only screen and (max-width: 570px) {
+  .game_wrap {
+    min-width: 550px;
+    max-width: 560px; }
+  .diplay_image_size {
+    max-width: 460px; }
   .card-product_StatsHome_Content {
     font-size: 38px !important; } }
+
+@media only screen and (max-width: 420px) {
+  .game_wrap {
+    min-width: 400px;
+    max-width: 410px; }
+  .diplay_image_size {
+    max-width: 320px; }
+  .card-product_StatsHome_Content {
+    font-size: 38px !important; } }
+
+@media only screen and (max-width: 385px) {
+  .game_wrap {
+    min-width: 370px;
+    max-width: 375px; }
+  .diplay_image_size {
+    max-width: 280px; } }
+
+@media only screen and (max-width: 360px) {
+  .game_wrap {
+    min-width: 300px;
+    max-width: 350px; }
+  .diplay_image_size {
+    max-width: 260px; } }
+
+@media only screen and (max-width: 320px) {
+  .game_wrap {
+    max-width: 310px; }
+  .diplay_image_size {
+    max-width: 220px; } }
 
 @media (max-width: 277px) {
   .app {
@@ -12153,320 +12256,12 @@ html body .app.flex-row.align-items-center {
     width: 100%;
     transition: all 0.5s linear; } }
 
-.login_background {
-  background-color: white;
-  background-repeat: no-repeat;
-  background-size: cover;
-  height: 100vh;
-  width: 100%; }
-  .login_background_cloumn {
-    display: flex;
-    flex-direction: row;
-    height: 100%; }
-  .login_background_issuerImage {
-    height: 100vh;
-    width: 38%;
-    background: url("../assets/img/brand/Login_Banner.jpg") 0% 0%/cover; }
+.highlightRow {
+  background: LightSteelBlue;
+  color: white; }
 
-.form_wrap {
-  min-width: 500px;
-  max-height: auto;
-  overflow: overlay;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  background-color: white; }
+.completedRow {
+  background: dimgray; }
 
-.form_container {
-  font-size: 16px;
-  line-height: 24px;
-  padding: 50px 20px 0 20px; }
-  .form_container_headerText {
-    height: 40px;
-    width: 92px;
-    color: #000000;
-    font-size: 36px;
-    line-height: 40px;
-    font-weight: 700;
-    font-family: "Open Sans";
-    margin: 0 auto 24px auto; }
-  .form_container_subtext {
-    min-height: 44px;
-    max-width: 293px;
-    color: #0f0f0f;
-    font-family: "Open Sans";
-    font-size: 18px;
-    line-height: 22px;
-    text-align: center;
-    margin: 0 auto 34px auto; }
-  .form_container_text {
-    height: auto;
-    max-width: 304px;
-    color: #262f3a;
-    font-family: "Open Sans";
-    font-size: 16px;
-    line-height: 20px;
-    text-align: center;
-    margin: 40px auto 20px auto; }
-    .form_container_text_link {
-      color: #355ea3;
-      font-weight: 700;
-      font-family: "Open Sans";
-      padding: 10%;
-      cursor: pointer; }
-
-.row {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  padding: 0px 20px; }
-  .row_min {
-    margin-top: 0px;
-    margin-bottom: 0px; }
-
-.firstName {
-  height: 60px;
-  max-width: 440px;
-  border-width: thin;
-  border-radius: 3px;
-  background-color: #f2f2f2;
-  border: none; }
-
-.surname {
-  height: 60px;
-  max-width: 440px;
-  border-width: thin;
-  border-radius: 3px;
-  background-color: #f2f2f2;
-  border: none; }
-
-.username {
-  height: 60px;
-  max-width: 440px;
-  border-width: thin;
-  border-radius: 3px;
-  background-color: #f2f2f2;
-  border: none; }
-
-.password {
-  height: 60px;
-  max-width: 440px;
-  margin-bottom: 20px;
-  border-width: thin;
-  border-radius: 3px;
-  background-color: #f2f2f2;
-  border: none; }
-  .password__show {
-    position: absolute;
-    margin-left: -50px;
-    margin-top: 17px;
-    cursor: pointer; }
-
-.login_button {
-  font-weight: 700;
-  font-family: "Open Sans";
-  background-color: black;
-  color: white;
-  height: 40px;
-  min-width: 120px;
-  border-radius: 20px;
-  font-size: 14px;
-  border: none;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding: 0px 20px; }
-
-.login_error {
-  height: 60px;
-  max-width: 440px;
-  background-color: #fbe5e5;
-  color: #262f3a;
-  transition-duration: 0.1s;
-  overflow: hidden;
-  border: none;
-  font-family: "Open Sans";
-  margin: 10px;
-  padding: 20px;
-  text-align: left; }
-  .login_error_email {
-    position: relative;
-    text-align: left;
-    margin: 10px 0 10px 18px;
-    color: #f77d82;
-    font-family: "Open Sans";
-    font-size: 14px;
-    line-height: 20px; }
-
-@media only screen and (max-width: 840px) {
-  .login_background_cloumn {
-    display: block; }
-  .login_background_issuerImage {
-    display: none; }
-  .Logo {
-    background: url("../assets/icons/logo.jpg");
-    display: none; }
-  .form_wrap {
-    min-width: 0;
-    max-width: 599px; }
-  .game_wrap {
-    min-width: 0;
-    max-width: 599px; } }
-
-.navigation_Tab {
-  height: 100%;
-  min-width: 220px;
-  background-color: #212121; }
-  .navigation_Tab_container {
-    background-color: black;
-    height: 350px;
-    padding-top: 50%; }
-  .navigation_Tab_logo {
-    margin: 0 0 15px 15px;
-    pointer-events: none; }
-    .navigation_Tab_logo_image {
-      margin-top: 8px;
-      height: 20px;
-      margin-bottom: 10px; }
-  .navigation_Tab_ProfilePic {
-    height: 100px;
-    border-radius: 50%;
-    border-style: solid;
-    border-color: #000000;
-    border-width: 8px; }
-  .navigation_Tab_content {
-    text-align: center;
-    pointer-events: none; }
-  .navigation_Tab_Title {
-    font-size: 22px;
-    color: white;
-    line-height: 22px;
-    font-weight: 700;
-    margin: 28px 0 0 0; }
-  .navigation_Tab_designation {
-    font-size: 14px;
-    color: white;
-    line-height: 14px;
-    font-weight: 400;
-    margin: 14px 0 20px 0; }
-  .navigation_Tab_point {
-    height: 18px;
-    margin: 0 8px 0 0; }
-  .navigation_Tab_pointScore {
-    font-size: 14px;
-    color: white;
-    line-height: 14px;
-    font-weight: 700; }
-  .navigation_Tab_Menu {
-    margin: 36px 0 0 28px; }
-  .navigation_Tab_line {
-    border-bottom: 1px solid black;
-    width: auto;
-    border-radius: 100px;
-    margin: 40px 28px; }
-  .navigation_Tab_MenuContent_text {
-    margin: 0 0 20px 0;
-    font-size: 18px;
-    line-height: 18px;
-    font-weight: bolder;
-    color: white;
-    cursor: pointer;
-    border-bottom: none;
-    text-decoration: none;
-    transition: 0.2s ease-in; }
-    .navigation_Tab_MenuContent_text:hover {
-      color: #000000;
-      border-bottom: none;
-      text-decoration: none; }
-
-.active {
-  color: #000000;
-  cursor: pointer;
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  line-height: 18px;
-  font-weight: 900;
-  border-bottom: none;
-  text-decoration: underline; }
-
-@media only screen and (max-width: 767px) {
-  .navigation_Tab {
-    display: none; } }
-
-.footer {
-  background-color: black;
-  width: auto;
-  min-height: 150px;
-  position: relative;
-  margin-left: 220px; }
-
-.footer-content {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around; }
-
-.footer-list_Nav {
-  font-size: 14px;
-  line-height: 20px;
-  color: #7d828b;
-  font-family: "Open Sans";
-  cursor: pointer;
-  display: flex;
-  margin-top: 50px; }
-
-.footer-list_Ad {
-  font-size: 12px;
-  line-height: 20px;
-  color: #7d828b;
-  font-family: "Open Sans";
-  cursor: pointer;
-  right: 80px;
-  margin-top: 50px;
-  margin-left: 20px; }
-
-.footer-list_logo {
-  cursor: pointer; }
-
-.footerLogoIssuer {
-  height: 56px;
-  margin-top: 40px; }
-
-.footer-list_content {
-  margin-top: 0;
-  margin-left: 32px; }
-
-/** Viewport <= 800px **/
-@media (max-width: 767px) {
-  .footer {
-    padding: 0 30px;
-    padding-bottom: 30px;
-    margin-left: 0px; }
-  .footer-content {
-    padding-top: 50px;
-    display: inline-block; }
-  .footer-list_Nav {
-    margin: 12px 0px 0px 0px;
-    font-size: 14px;
-    line-height: 20px;
-    color: #7d828b;
-    font-family: "Open Sans";
-    display: inline;
-    position: relative; }
-  .footer-list_logo {
-    margin: 0px 0px 24px 0px;
-    position: relative;
-    left: 0; }
-  .footer-list_Ad {
-    margin: 24px 0px 32px 0px;
-    font-size: 12px;
-    line-height: 20px;
-    color: #7d828b;
-    font-family: "Open Sans";
-    position: relative;
-    right: 0; }
-  .footer-list_content {
-    margin-top: 12px;
-    margin-left: 0; } }
-
-@media (max-width: 416px) {
-  .content_employer {
-    position: absolute;
-    overflow: unset; } }
+.completedRow:hover {
+  background: dimgray; }

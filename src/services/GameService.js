@@ -1,140 +1,250 @@
+import auth0Client from '../Auth';
+
 const axios = require('axios');
 
-exports.get = (id) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+class GameService {
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?id=${id}`, config)
-    return result;
+  get = (gameId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/game?gameId=${gameId}`, config)
+      return result;
+    }
+  };
+
+  getAll = () => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/all`, config)
+      return result;
+    }
+  };
+
+  getMyActiveGames = () => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/game/active`, config)
+      return result;
+    }
   }
-};
 
-exports.getAll = () => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+  getActive = () => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json"
-      }
-    };
-    const result = axios
-      .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/all`, config)
-    return result;
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/active`, config)
+      return result;
+    }
   }
-};
 
-exports.getActive = () => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+  getAllPlayers = () => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json"
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/players/all`, config)
+      return result;
+    }
+  };
+
+  getPlayersForGame = (gameId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      const result = axios
+        .get(`${process.env.REACT_APP_API_URL}/api/v1/game/players?gameId=${gameId}`, config)
+      return result;
+    }
+  };
+
+  put = (createGame) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game`, createGame, config)
+      return result;
+    }
+  };
+
+  addPlayer = (gameId, playerEmail) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/addPlayer?gameId=${gameId}&playerEmail=${playerEmail}`, null, config)
+      return result;
+    }
+  };
+
+  removePlayer = (gameId, playerId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/removePlayer?gameId=${gameId}&playerId=${playerId}`, config)
+      return result;
+    }
+  };
+
+  finish = (gameId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/finish?gameId=${gameId}`, null, config)
+      return result;
+    }
+  };
+
+  cancel = (gameId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/cancel?gameId=${gameId}`, null, config)
+      return result;
+    }
+  };
+
+
+  delete = (gameId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?gameId=${gameId}`, config)
+      return result;
+    }
+  };
+
+  publishQuestion = (pointer) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader
+        }
+      };
+      const result = axios
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/publishQuestion`, pointer, config)
+      return result;
+    }
+  };
+
+  publishLeaderboard = (gameId, roundId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
+
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      let queryString = `?gameId=${gameId}`;
+      if (roundId !== null && roundId !== undefined) {
+        queryString = queryString + `&roundId=${roundId}`;
       }
-    };
-    const result = axios
-      .get(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/active`, config)
-    return result;
-  }
-};
-
-exports.put = (createGame) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
-
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game`, createGame, config)
-    return result;
-  }
-};
-
-exports.finish = (id) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
-
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/finish?id=${id}`, null, config)
-    return result;
-  }
-};
-
-exports.cancel = (id) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
-
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/cancel?id=${id}`, null, config)
-    return result;
-  }
-};
+      const result = axios
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/publishLeaderboard${queryString}`, null, config)
+      return result;
+    }
+  };
 
 
-exports.delete = (id) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .delete(`${process.env.REACT_APP_API_URL}/api/v1/admin/game?id=${id}`, config)
-    return result;
-  }
-};
+  publishAnswersForRound = (gameId, roundId) => {
+    let authHeader = `Bearer ${auth0Client.getAccessToken()}`;
 
-exports.publishQuestion = (pointer) => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+    if (authHeader) {
+      let config = {
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json"
+        }
+      };
+      const result = axios
+        .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/publishAnswersForRound?gameId=${gameId}&roundId=${roundId}`, null, config)
+      return result;
+    }
+  };
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader
-      }
-    };
-    const result = axios
-      .put(`${process.env.REACT_APP_API_URL}/api/v1/admin/game/publishQuestion`, pointer, config)
-    return result;
-  }
-};
+}
 
-exports.getCurrentContent = () => {
-  let authHeader = sessionStorage.getItem('JWT-TOKEN');
+const gamesService = new GameService();
 
-  if (authHeader) {
-    let config = {
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json"
-      }
-    };
-    const result = axios
-      .get(`${process.env.REACT_APP_API_URL}/api/v1/game/currentContent`, config)
-    return result;
-  }
-};
+export default gamesService;

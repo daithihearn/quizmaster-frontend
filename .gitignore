@@ -5,3 +5,10 @@ node_modules/
 .gradle/
 .idea
 .DS_Store
+.classpath
+.project
+.settings/
+.env
+.env.dev
+.env.prod
+deploy.sh

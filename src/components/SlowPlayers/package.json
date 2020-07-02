@@ -1,0 +1,7 @@
+{
+    "name": "slowPlayers",
+    "version": "0.0.0",
+    "private": true,
+    "main": "./SlowPlayers.js"
+  }
+  
