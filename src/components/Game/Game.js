@@ -240,7 +240,7 @@ class Game extends Component {
 
               <CardGroup>
                 <Card className="p-6">
-                    <CardHeader tag="h1">Question</CardHeader>
+                    <CardHeader tag="h1">{this.state.question.roundName}</CardHeader>
                     <CardBody>
                       <h2>{this.state.question.question}</h2>
                     </CardBody>

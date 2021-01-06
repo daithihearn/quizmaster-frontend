@@ -15,7 +15,6 @@ import errorUtils from '../../utils/ErrorUtils';
 
 import auth0Client from '../../Auth';
 
-
 class Home extends Component {
   constructor(props) {
     super(props);
