@@ -14,7 +14,9 @@ import errorUtils from '../../utils/ErrorUtils';
 
 import auth0Client from '../../Auth';
 
-class Game extends Component {  
+const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+class Game extends Component {
 
   constructor(props) {
     super(props);
@@ -37,6 +39,7 @@ class Game extends Component {
     this.updateState = this.updateState.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.processSubmit = this.processSubmit.bind(this);
     this.parseGameContent = this.parseGameContent.bind(this);
   }
 
@@ -159,16 +162,39 @@ class Game extends Component {
     }
     this.updateState({submitDisabled: true});
 
-    let thisObj = this;
     event.preventDefault();
     
     let answer = {
       gameId: this.state.question.gameId,
       roundId: this.state.question.roundId,
       questionId: this.state.question.questionId,
-      answer: this.state.answer
+      answer: this.state.answer,
+      multipleChoice: false
     }
     
+    this.processSubmit(answer);
+  }
+
+  handleMultipleChoiceSubmit(answerValue) {
+    if (this.state.submitDisabled) {
+      return;
+    }
+    this.updateState({submitDisabled: true});
+    
+    let answer = {
+      gameId: this.state.question.gameId,
+      roundId: this.state.question.roundId,
+      questionId: this.state.question.questionId,
+      answer: answerValue,
+      multipleChoice: true
+    }
+    
+    this.processSubmit(answer);
+  }
+
+  processSubmit(answer) {
+
+    let thisObj = this;
     answerService.submitAnswer(answer).then(response => {
       let answeredQuestions = thisObj.state.answers.push(answer);
       thisObj.setState({ submitDisabled: false, waiting: true, answeredQuestion: answeredQuestions, 
@@ -241,6 +267,22 @@ class Game extends Component {
                       <h2>{this.state.question.question}</h2>
                     </CardBody>
                     <CardBody>
+
+                      {!!this.state.question.options && this.state.question.options.length > 0 ? 
+                        <div>
+                        
+                          {this.state.question.options.map((option, idx) => (
+                            
+                              <Button color="secondary" size="lg" block onClick={this.handleMultipleChoiceSubmit.bind(this, option)}>
+                                {alphabet[idx]}. {option}
+                              </Button>
+                            
+                          ))}
+                          
+                        
+                        </div>
+                      :
+
                       <Form onSubmit={this.handleSubmit}>
                         <FormGroup>
 
@@ -264,6 +306,7 @@ class Game extends Component {
                           </ButtonGroup>
 
                       </Form>
+                      }
                     </CardBody>
                     <CardBody>
                         {!!this.state.question.imageUri ?

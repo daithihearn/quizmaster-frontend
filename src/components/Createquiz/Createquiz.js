@@ -11,6 +11,25 @@ import BlockUi from 'react-block-ui';
 import 'react-block-ui/style.css';
 import errorUtils from '../../utils/ErrorUtils';
 
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+
 class Createquiz extends Component {
 
   constructor(props) {
@@ -24,6 +43,7 @@ class Createquiz extends Component {
         questions: [],
         rounds: [],
         newForceManualCorrection: false,
+        multipleChoice: true,
         newPoints: 1,
         quizName:'',
         newRoundName:'',
@@ -57,8 +77,9 @@ class Createquiz extends Component {
   }
 
   updateState(stateDelta) {
-    this.setState(prevState => (stateDelta));
-    localStorage.setItem("createQuizState", JSON.stringify(this.state));
+    let updatedState = Object.assign(this.state, stateDelta);
+    this.setState(updatedState);
+    localStorage.setItem("createQuizState", JSON.stringify(updatedState));
   }
 
   createQuiz = event => {
@@ -198,7 +219,8 @@ class Createquiz extends Component {
     event.preventDefault();
     let updatedQuestions = this.state.questions;
     updatedQuestions.push({ question: this.state.newQuestion, 
-      answer: this.state.newAnswer, 
+      answer: !!this.state.multipleChoice ? this.state.correctAnswer : this.state.newAnswer,
+      options: !!this.state.multipleChoice ? shuffle([this.state.correctAnswer, this.state.wrongAnswer1, this.state.wrongAnswer2, this.state.wrongAnswer3]) : [],
       imageUri: this.state.newImage.imagePreviewUrl,
       audioUri: this.state.newAudio.uri,
       videoUri: this.state.newVideo.uri,
@@ -206,7 +228,7 @@ class Createquiz extends Component {
       points: this.state.newPoints,
       id: uuid() });
 
-    this.updateState({questions: updatedQuestions, newQuestion: '', newAnswer: '', newImage: {}, newAudio: {}, newVideo: {}, newPoints: 1, newForceManualCorrection: false, 
+    this.updateState({questions: updatedQuestions, options: [], newQuestion: '', newAnswer: '', correctAnswer: '', wrongAnswer1: '', wrongAnswer2: '', wrongAnswer3: '', newImage: {}, newAudio: {}, newVideo: {}, newPoints: 1, newForceManualCorrection: false, 
         snackOpen: true, snackMessage: "Question Added", snackType: "success" });
     event.currentTarget.reset();
   }
@@ -221,7 +243,7 @@ class Createquiz extends Component {
     let updatedRounds = this.state.rounds;
     updatedRounds.push({ questions: this.state.questions, name: this.state.newRoundName, id: uuid() });
 
-    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newAudio: {}, newVideo: {}, newPoints: 1, newForceManualCorrection: false, newRoundName: '', 
+    this.updateState({rounds: updatedRounds, questions: [], newQuestion: '', newAnswer: '', newImage: {}, newAudio: {}, newVideo: {}, newPoints: 1, newForceManualCorrection: false, multipleChoice: true, newRoundName: '', 
         snackOpen: true, snackMessage: "Round Added", snackType: "success"});
   }
 
@@ -304,16 +326,32 @@ class Createquiz extends Component {
                                 <InputGroupText>Question</InputGroupText>
                               </InputGroupAddon>
                               
-                                <Input
-                                  className="newQuestion"
-                                  type="input"
-                                  name="newQuestion"
-                                  placeholder="Question"
-                                  autoComplete="off"
-                                  value={this.state.newQuestion}
-                                  onChange={this.handleChange}
-                                  required
-                                />
+                              <Input
+                                className="newQuestion"
+                                type="input"
+                                name="newQuestion"
+                                placeholder="Question"
+                                autoComplete="off"
+                                value={this.state.newQuestion}
+                                onChange={this.handleChange}
+                                required
+                              />
+
+                              <InputGroupAddon addonType="append">
+                                <InputGroupText>Multiple Choice?</InputGroupText>
+                              </InputGroupAddon>
+                              <InputGroupAddon addonType="append">
+                                <InputGroupText>
+                                  <Input addon
+                                      className="multipleChoice"
+                                      type="checkbox"
+                                      name="multipleChoice"
+                                      checked={this.state.multipleChoice}
+                                      value={this.state.multipleChoice}
+                                      onChange={this.handleChangeCheckbox}
+                                    />
+                              </InputGroupText>
+                            </InputGroupAddon>
                               
                             </InputGroup>
                           </FormGroup>
@@ -338,56 +376,136 @@ class Createquiz extends Component {
                           </FormGroup>
                           {/* Finish load media */}
                           
-                          <FormGroup>
-                            <InputGroup>
-                              <InputGroupAddon addonType="prepend">
-                                <InputGroupText>Answer</InputGroupText>
-                              </InputGroupAddon>
-                              
-                                <Input
-                                  className="newAnswer"
-                                  type="input"
-                                  name="newAnswer"
-                                  placeholder="Answer"
-                                  autoComplete="off"
-                                  value={this.state.newAnswer}
-                                  onChange={this.handleChange}
-                                  required
-                                />
-                            </InputGroup>
-                          </FormGroup>
-                          <FormGroup>
-                          <InputGroup>
-                              <InputGroupAddon addonType="prepend">
-                                <InputGroupText>Points</InputGroupText>
-                              </InputGroupAddon>
-                                <Input
-                                  className="newPoints"
-                                  type="input"
-                                  pattern="[0-9]*"
-                                  name="newPoints"
-                                  placeholder="Points"
-                                  autoComplete="off"
-                                  value={this.state.newPoints}
-                                  onChange={this.handleChange}
-                                  required
-                                />
-                              <InputGroupAddon addonType="append">
-                                <InputGroupText>Force a manual correction</InputGroupText>
-                              </InputGroupAddon>
-                              <InputGroupAddon addonType="append">
-                                <InputGroupText>
-                                  <Input addon
-                                      className="newForceManualCorrection"
-                                      type="checkbox"
-                                      name="newForceManualCorrection"
-                                      value={this.state.newForceManualCorrection}
-                                      onChange={this.handleChangeCheckbox}
+                          {!!this.state.multipleChoice ?
+                            <div>
+                              <FormGroup>
+                                <InputGroup>
+                                  <InputGroupAddon addonType="prepend">
+                                    <InputGroupText>Correct Answer</InputGroupText>
+                                  </InputGroupAddon>
+                                  
+                                    <Input
+                                      className="correctAnswer"
+                                      type="input"
+                                      name="correctAnswer"
+                                      placeholder="Correct Answer"
+                                      autoComplete="off"
+                                      value={this.state.correctAnswer}
+                                      onChange={this.handleChange}
+                                      required
                                     />
-                              </InputGroupText>
-                            </InputGroupAddon>
-                            </InputGroup>
-                          </FormGroup>
+                                </InputGroup>
+                              </FormGroup>
+                              <FormGroup>
+                                <InputGroup>
+                                  <InputGroupAddon addonType="prepend">
+                                    <InputGroupText>Wrong Answer 1</InputGroupText>
+                                  </InputGroupAddon>
+                                  
+                                    <Input
+                                      className="wrongAnswer1"
+                                      type="input"
+                                      name="wrongAnswer1"
+                                      placeholder="Wrong Answer 1"
+                                      autoComplete="off"
+                                      value={this.state.wrongAnswer1}
+                                      onChange={this.handleChange}
+                                      required
+                                    />
+                                </InputGroup>
+                              </FormGroup>
+                              <FormGroup>
+                                <InputGroup>
+                                  <InputGroupAddon addonType="prepend">
+                                    <InputGroupText>Wrong Answer 2</InputGroupText>
+                                  </InputGroupAddon>
+                                  
+                                    <Input
+                                      className="wrongAnswer2"
+                                      type="input"
+                                      name="wrongAnswer2"
+                                      placeholder="Wrong Answer 2"
+                                      autoComplete="off"
+                                      value={this.state.wrongAnswer2}
+                                      onChange={this.handleChange}
+                                      required
+                                    />
+                                </InputGroup>
+                              </FormGroup>
+                              <FormGroup>
+                                <InputGroup>
+                                  <InputGroupAddon addonType="prepend">
+                                    <InputGroupText>Wrong Answer 3</InputGroupText>
+                                  </InputGroupAddon>
+                                  
+                                    <Input
+                                      className="wrongAnswer3"
+                                      type="input"
+                                      name="wrongAnswer3"
+                                      placeholder="Wrong Answer 3"
+                                      autoComplete="off"
+                                      value={this.state.wrongAnswer3}
+                                      onChange={this.handleChange}
+                                      required
+                                    />
+                                </InputGroup>
+                              </FormGroup>
+                            </div>
+                          :
+                          <div>
+                            <FormGroup>
+                              <InputGroup>
+                                <InputGroupAddon addonType="prepend">
+                                  <InputGroupText>Answer</InputGroupText>
+                                </InputGroupAddon>
+                                
+                                  <Input
+                                    className="newAnswer"
+                                    type="input"
+                                    name="newAnswer"
+                                    placeholder="Answer"
+                                    autoComplete="off"
+                                    value={this.state.newAnswer}
+                                    onChange={this.handleChange}
+                                    required
+                                  />
+                              </InputGroup>
+                            </FormGroup>
+                            <FormGroup>
+                            <InputGroup>
+                                <InputGroupAddon addonType="prepend">
+                                  <InputGroupText>Points</InputGroupText>
+                                </InputGroupAddon>
+                                  <Input
+                                    className="newPoints"
+                                    type="input"
+                                    pattern="[0-9]*"
+                                    name="newPoints"
+                                    placeholder="Points"
+                                    autoComplete="off"
+                                    value={this.state.newPoints}
+                                    onChange={this.handleChange}
+                                    required
+                                  />
+                                <InputGroupAddon addonType="append">
+                                  <InputGroupText>Force a manual correction</InputGroupText>
+                                </InputGroupAddon>
+                                <InputGroupAddon addonType="append">
+                                  <InputGroupText>
+                                    <Input addon
+                                        className="newForceManualCorrection"
+                                        type="checkbox"
+                                        name="newForceManualCorrection"
+                                        checked={this.state.newForceManualCorrection}
+                                        value={this.state.newForceManualCorrection}
+                                        onChange={this.handleChangeCheckbox}
+                                      />
+                                </InputGroupText>
+                              </InputGroupAddon>
+                              </InputGroup>
+                            </FormGroup>
+                          </div>}
+
                           <FormGroup>
                             <ButtonGroup>
                               <Button type="submit" color="primary">
