@@ -10,12 +10,9 @@ import ReactPlayer from 'react-player'
 import Snackbar from "@material-ui/core/Snackbar";
 import DefaultHeader from '../Header';
 import MySnackbarContentWrapper from '../MySnackbarContentWrapper/MySnackbarContentWrapper.js';
-import NoSleep from 'nosleep.js';
 import errorUtils from '../../utils/ErrorUtils';
 
 import auth0Client from '../../Auth';
-
-const noSleep = new NoSleep();
 
 class Game extends Component {  
 
@@ -160,7 +157,6 @@ class Game extends Component {
     if (this.state.submitDisabled) {
       return;
     }
-    noSleep.enable();
     this.updateState({submitDisabled: true});
 
     let thisObj = this;
