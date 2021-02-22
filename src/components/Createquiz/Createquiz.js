@@ -336,23 +336,27 @@ class Createquiz extends Component {
                                 onChange={this.handleChange}
                                 required
                               />
-
-                              <InputGroupAddon addonType="append">
-                                <InputGroupText>Multiple Choice?</InputGroupText>
-                              </InputGroupAddon>
-                              <InputGroupAddon addonType="append">
-                                <InputGroupText>
-                                  <Input addon
-                                      className="multipleChoice"
-                                      type="checkbox"
-                                      name="multipleChoice"
-                                      checked={this.state.multipleChoice}
-                                      value={this.state.multipleChoice}
-                                      onChange={this.handleChangeCheckbox}
-                                    />
-                              </InputGroupText>
-                            </InputGroupAddon>
                               
+                            </InputGroup>
+                          </FormGroup>
+
+                          <FormGroup>
+                            <InputGroup>
+                                <InputGroupAddon addonType="prepend">
+                                  <InputGroupText>Multiple Choice?</InputGroupText>
+                                </InputGroupAddon>
+                                <InputGroupAddon addonType="prepend">
+                                  <InputGroupText>
+                                    <Input addon
+                                        className="multipleChoice"
+                                        type="checkbox"
+                                        name="multipleChoice"
+                                        checked={this.state.multipleChoice}
+                                        value={this.state.multipleChoice}
+                                        onChange={this.handleChangeCheckbox}
+                                      />
+                                </InputGroupText>
+                              </InputGroupAddon>
                             </InputGroup>
                           </FormGroup>
 
